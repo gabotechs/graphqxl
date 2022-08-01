@@ -1,4 +1,4 @@
-use crate::{GraphqlParser, Rule};
+use crate::parser::{GraphqlParser, Rule};
 use pest::error::ErrorVariant;
 use pest::iterators::Pair;
 use pest::{Parser, Position};

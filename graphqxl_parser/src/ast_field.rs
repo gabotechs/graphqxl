@@ -1,6 +1,6 @@
-use crate::ast_any_value::{parse_any_value, AnyValue};
+use crate::ast_value::{parse_value, AnyValue};
+use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
-use crate::Rule;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -17,7 +17,7 @@ pub(crate) fn parse_field(pair: Pair<Rule>) -> Result<Field, pest::error::Error<
             let value = pairs.next().unwrap();
             return Ok(Field {
                 name: identifier.as_str().into(),
-                value: parse_any_value(value)?,
+                value: parse_value(value)?,
             });
         }
         _unknown => Err(unknown_rule_error(pair, "field")),
@@ -27,9 +27,9 @@ pub(crate) fn parse_field(pair: Pair<Rule>) -> Result<Field, pest::error::Error<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast_any_value::{Value, ValueArray};
+    use crate::ast_value::{Value, ValueArray};
     use crate::ast_value_content::ValueContent;
-    use crate::GraphqlParser;
+    use crate::parser::GraphqlParser;
     use pest::error::InputLocation;
     use pest::Parser;
 

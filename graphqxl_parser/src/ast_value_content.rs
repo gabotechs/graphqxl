@@ -1,5 +1,5 @@
+use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
-use crate::Rule;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]

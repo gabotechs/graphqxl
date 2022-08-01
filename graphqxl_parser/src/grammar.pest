@@ -1,38 +1,27 @@
-spec = _{ SOI ~ def+ ~ EOI }
+spec = _{ SOI ~ def* ~ EOI }
 
 def = { type_def | input_def }
-
 type_def = { "type" ~ identifier ~ selection_set }
-
 input_def = { "input" ~ identifier ~ selection_set }
 
-selection_set = { "{" ~ field* ~ "}" }
+    selection_set = { "{" ~ field* ~ "}" }
 
-field = { identifier ~ ":" ~ any_value }
+        field = { identifier ~ ":" ~ value }
+        value = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
+
+            value_array_non_nullable = { value_array_nullable ~ "!" }
+            value_array_nullable = { "[" ~ (value_non_nullable | value_nullable) ~ "]" }
+            value_non_nullable = { value_nullable ~ "!" }
+            value_nullable = { value_content }
+
+                value_content = { object | basic_type }
+                    int = @{ "Int" }
+                    float = @{ "Float" }
+                    string = @{ "String" }
+                    boolean = @{ "Boolean" }
+                    basic_type = _{ int | float | boolean | string }
+                    object = @{ &((basic_type ~ ASCII_ALPHANUMERIC | "_") | !basic_type) ~ identifier }
+
 
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )+ }
-
-value_content = { object | basic_type }
-    int = @{ "Int" }
-
-    float = @{ "Float" }
-
-    string = @{ "String" }
-
-    boolean = @{ "Boolean" }
-
-    basic_type = _{ int | float | boolean | string }
-
-    object = @{ &((basic_type ~ ASCII_ALPHANUMERIC | "_") | !basic_type) ~ identifier }
-
-value_nullable = { value_content }
-
-value = { value_nullable ~ "!" }
-
-value_array_nullable = { "[" ~ (value | value_nullable) ~ "]" }
-
-value_array = { value_array_nullable ~ "!" }
-
-any_value = { value_array | value_array_nullable | value | value_nullable }
-
 WHITESPACE = _{ " " | "\n" | "\r" | "\t" }

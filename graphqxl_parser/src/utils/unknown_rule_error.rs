@@ -1,4 +1,4 @@
-use crate::Rule;
+use crate::parser::Rule;
 use pest::iterators::Pair;
 
 pub fn unknown_rule_error(pair: Pair<Rule>, expected_str: &str) -> pest::error::Error<Rule> {
