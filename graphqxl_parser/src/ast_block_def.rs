@@ -11,6 +11,7 @@ pub enum BlockDefType {
     Input,
     Type,
     Enum,
+    Interface,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -51,6 +52,7 @@ pub(crate) fn parse_block_def(pair: Pair<Rule>) -> Result<BlockDef, pest::error:
         Rule::type_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Type),
         Rule::input_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Input),
         Rule::enum_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Enum),
+        Rule::interface_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Interface),
         _unknown => Err(unknown_rule_error(pair, "type_def or input_def")),
     }
 }
@@ -68,6 +70,10 @@ mod tests {
         parse_full_input(input, Rule::input_def, parse_block_def)
     }
 
+    fn parse_interface_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
+        parse_full_input(input, Rule::interface_def, parse_block_def)
+    }
+
     fn parse_enum_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::enum_def, parse_block_def)
     }
@@ -78,8 +84,18 @@ mod tests {
     }
 
     #[test]
+    fn test_interface_def_accepts_field_args() {
+        parse_interface_input("interface MyType { field(arg1: String!): Boolean }").unwrap();
+    }
+
+    #[test]
     fn test_input_def_do_not_accept_field_args() {
         parse_input_input("type MyType { field(arg1: String!): Boolean }").unwrap_err();
+    }
+
+    #[test]
+    fn test_enum_def_do_not_accept_values() {
+        parse_enum_input("enum MyType { field: Boolean }").unwrap_err();
     }
 
     #[test]
