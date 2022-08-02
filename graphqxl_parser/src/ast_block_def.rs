@@ -1,4 +1,4 @@
-use crate::ast_field::{parse_field, Field};
+use crate::ast_block_field::{parse_block_field, BlockField};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use pest::iterators::{Pair, Pairs};
@@ -14,7 +14,7 @@ pub enum BlockDefType {
 pub struct BlockDef {
     pub name: String,
     pub kind: BlockDefType,
-    pub fields: HashMap<String, Field>,
+    pub fields: HashMap<String, BlockField>,
 }
 
 fn _parse_type_or_input(
@@ -27,7 +27,7 @@ fn _parse_type_or_input(
     // ...so we need to move into selection_set to iter the inner fields
     let pairs = pairs.next().unwrap().into_inner();
     for pair in pairs {
-        let field = parse_field(pair)?;
+        let field = parse_block_field(pair)?;
         fields.insert(field.name.clone(), field);
     }
     Ok(BlockDef { name, kind, fields })
@@ -52,6 +52,16 @@ mod tests {
 
     fn parse_input_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::input_def, parse_block_def)
+    }
+
+    #[test]
+    fn test_type_def_accepts_field_args() {
+        parse_type_input("type MyType { field(arg1: String!): Boolean }").unwrap();
+    }
+
+    #[test]
+    fn test_input_def_do_not_accept_field_args() {
+        parse_input_input("type MyType { field(arg1: String!): Boolean }").unwrap_err();
     }
 
     #[test]
