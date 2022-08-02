@@ -8,33 +8,43 @@ use pest::iterators::Pair;
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockField {
     pub name: String,
-    pub value: Value,
+    pub value: Option<Value>,
     pub args: Vec<Argument>,
 }
 
 fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
     // at this moment we are on [type_field|input_field], both will work
     let mut pairs = pair.into_inner();
-    // at this moment we are on [identifier, args?, value]
+    // at this moment we are on [identifier, args?, value?]
     let name = parse_identifier(pairs.next().unwrap())?;
-    let value_or_args = pairs.next().unwrap();
-    let mut value = value_or_args.clone();
-    let mut type_field_args = Vec::new();
-    if let Rule::arguments = value_or_args.as_rule() {
-        type_field_args = parse_arguments(value_or_args)?;
-        value = pairs.next().unwrap();
+    let value_or_args_or_nothing = pairs.next();
+    if let Some(value_or_args) = value_or_args_or_nothing {
+        let mut value = value_or_args.clone();
+        let mut type_field_args = Vec::new();
+        if let Rule::arguments = value_or_args.as_rule() {
+            type_field_args = parse_arguments(value_or_args)?;
+            value = pairs.next().unwrap();
+        }
+        Ok(BlockField {
+            name,
+            value: Some(parse_value(value)?),
+            args: type_field_args,
+        }) 
+    } else {
+        return Ok(BlockField {
+            name,
+            value: None,
+            args: Vec::new(),
+        });
     }
-    Ok(BlockField {
-        name,
-        value: parse_value(value)?,
-        args: type_field_args,
-    })
+    
 }
 
 pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::field_with_args => _parse_block_field(pair),
         Rule::field_without_args => _parse_block_field(pair),
+        Rule::field_without_args_without_value => _parse_block_field(pair),
         _unknown => Err(unknown_rule_error(pair, "field")),
     }
 }
@@ -49,8 +59,13 @@ mod tests {
     fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::field_with_args, parse_block_field)
     }
+    
     fn parse_without_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::field_without_args, parse_block_field)
+    }
+    
+    fn parse_without_args_without_value_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
+        parse_full_input(input, Rule::field_without_args_without_value, parse_block_field)
     }
 
     #[test]
@@ -70,10 +85,10 @@ mod tests {
         assert_eq!(field.args.len(), 0);
         assert_eq!(
             field.value,
-            Value::Simple(ValueSimple {
+            Some(Value::Simple(ValueSimple {
                 nullable: true,
                 content: ValueContent::String
-            })
+            }))
         );
     }
 
@@ -83,13 +98,13 @@ mod tests {
         assert_eq!(field.name, String::from("field"));
         assert_eq!(
             field.value,
-            Value::Array(ValueArray {
+            Some(Value::Array(ValueArray {
                 value: ValueSimple {
                     nullable: false,
                     content: ValueContent::String
                 },
                 nullable: false
-            })
+            }))
         );
     }
 
