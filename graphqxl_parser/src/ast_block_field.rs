@@ -1,19 +1,14 @@
+use crate::ast_arguments::{parse_arguments, Argument};
 use crate::ast_value::{parse_value, Value};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct TypeFieldArg {
-    pub name: String,
-    pub value: Value,
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub struct BlockField {
     pub name: String,
     pub value: Value,
-    pub args: Vec<TypeFieldArg>,
+    pub args: Vec<Argument>,
 }
 
 fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -24,18 +19,8 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
     let value_or_args = pairs.next().unwrap();
     let mut value = value_or_args.clone();
     let mut type_field_args = Vec::new();
-    if let Rule::type_field_args = value_or_args.as_rule() {
-        for type_field_arg in value_or_args.into_inner() {
-            // each arg is [type_field_arg]
-            let mut identifier_value = type_field_arg.into_inner();
-            // at this moment we are on [identifier, value]
-            let identifier = identifier_value.next().unwrap().as_str();
-            let value = parse_value(identifier_value.next().unwrap())?;
-            type_field_args.push(TypeFieldArg {
-                name: identifier.to_string(),
-                value,
-            })
-        }
+    if let Rule::arguments = value_or_args.as_rule() {
+        type_field_args = parse_arguments(value_or_args)?;
         value = pairs.next().unwrap();
     }
     Ok(BlockField {
@@ -81,6 +66,7 @@ mod tests {
     fn test_parse_string_block_field() {
         let field = parse_type_input("field: String").unwrap();
         assert_eq!(field.name, String::from("field"));
+        assert_eq!(field.args.len(), 0);
         assert_eq!(
             field.value,
             Value::Simple(ValueSimple {
@@ -111,7 +97,7 @@ mod tests {
         let field = parse_type_input("field(arg1: String): String").unwrap();
         assert_eq!(
             field.args,
-            vec![TypeFieldArg {
+            vec![Argument {
                 name: "arg1".to_string(),
                 value: Value::Simple(ValueSimple {
                     content: ValueContent::String,
@@ -127,7 +113,7 @@ mod tests {
         assert_eq!(
             field.args,
             vec![
-                TypeFieldArg {
+                Argument {
                     name: "arg1".to_string(),
                     value: Value::Array(ValueArray {
                         value: ValueSimple {
@@ -137,7 +123,7 @@ mod tests {
                         nullable: false
                     })
                 },
-                TypeFieldArg {
+                Argument {
                     name: "arg2".to_string(),
                     value: Value::Simple(ValueSimple {
                         content: ValueContent::Float,

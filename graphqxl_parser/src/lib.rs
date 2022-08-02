@@ -2,6 +2,7 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
+mod ast_arguments;
 mod ast_block_def;
 mod ast_block_field;
 mod ast_value;

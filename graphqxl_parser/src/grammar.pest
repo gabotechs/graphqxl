@@ -4,12 +4,13 @@ def = { type_def | input_def }
 type_def = { "type" ~ identifier ~ type_selection_set }
 input_def = { "input" ~ identifier ~ input_selection_set }
 
+    arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
+    argument = { identifier ~ ":" ~ value }
+
     type_selection_set = { "{" ~ type_field* ~ "}" }
     input_selection_set = { "{" ~ input_field* ~ "}" }
 
-        type_field = { identifier ~ type_field_args? ~ ":" ~ value }
-            type_field_args = { "(" ~ type_field_arg ~ ("," ~ type_field_arg)* ~ ")"}
-            type_field_arg = { identifier ~ ":" ~ value }
+        type_field = { identifier ~ arguments? ~ ":" ~ value }
         input_field = { identifier ~ ":" ~ value }
 
             value = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
