@@ -32,8 +32,8 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
 
 pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::type_field => _parse_block_field(pair),
-        Rule::input_field => _parse_block_field(pair),
+        Rule::field_with_args => _parse_block_field(pair),
+        Rule::field_without_args => _parse_block_field(pair),
         _unknown => Err(unknown_rule_error(pair, "field")),
     }
 }
@@ -45,26 +45,26 @@ mod tests {
     use crate::ast_value_content::ValueContent;
     use crate::utils::parse_full_input;
 
-    fn parse_type_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::type_field, parse_block_field)
+    fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
+        parse_full_input(input, Rule::field_with_args, parse_block_field)
     }
-    fn parse_input_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::input_field, parse_block_field)
+    fn parse_without_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
+        parse_full_input(input, Rule::field_without_args, parse_block_field)
     }
 
     #[test]
     fn test_type_accept_args() {
-        parse_type_input("field(arg1: Int, arg2: String!): String").unwrap();
+        parse_with_args_input("field(arg1: Int, arg2: String!): String").unwrap();
     }
 
     #[test]
     fn test_input_do_not_accept_args() {
-        parse_input_input("field(arg1: Int, arg2: String!): String").unwrap_err();
+        parse_without_args_input("field(arg1: Int, arg2: String!): String").unwrap_err();
     }
 
     #[test]
     fn test_parse_string_block_field() {
-        let field = parse_type_input("field: String").unwrap();
+        let field = parse_with_args_input("field: String").unwrap();
         assert_eq!(field.name, String::from("field"));
         assert_eq!(field.args.len(), 0);
         assert_eq!(
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn test_parse_array_string_block_field() {
-        let field = parse_type_input("field: [String!]!").unwrap();
+        let field = parse_with_args_input("field: [String!]!").unwrap();
         assert_eq!(field.name, String::from("field"));
         assert_eq!(
             field.value,
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_parse_block_field_args_one_arg() {
-        let field = parse_type_input("field(arg1: String): String").unwrap();
+        let field = parse_with_args_input("field(arg1: String): String").unwrap();
         assert_eq!(
             field.args,
             vec![Argument {
@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_parse_block_field_args_two_args() {
-        let field = parse_type_input("field(arg1: [String]!, arg2: Float!): String").unwrap();
+        let field = parse_with_args_input("field(arg1: [String]!, arg2: Float!): String").unwrap();
         assert_eq!(
             field.args,
             vec![
@@ -136,6 +136,6 @@ mod tests {
 
     #[test]
     fn test_do_not_parse_invalid() {
-        parse_type_input("field: [String!!").unwrap_err();
+        parse_with_args_input("field: [String!!").unwrap_err();
     }
 }

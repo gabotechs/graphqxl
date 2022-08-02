@@ -83,7 +83,7 @@ mod tests {
     fn test_simple_nullable() {
         if let Value::Simple(val) = parse_input("Int").unwrap() {
             assert_eq!(val.content, ValueContent::Int);
-            assert!(!val.nullable);
+            assert!(val.nullable);
         } else {
             panic!("should have been a simple value")
         }

@@ -2,31 +2,30 @@ spec = _{ SOI ~ def* ~ EOI }
 
 def = { type_def | input_def }
 type_def = { "type" ~ identifier ~ type_selection_set }
+    type_selection_set = { "{" ~ field_with_args* ~ "}" }
 input_def = { "input" ~ identifier ~ input_selection_set }
+    input_selection_set = { "{" ~ field_without_args* ~ "}" }
 
-    arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
+field_with_args = { identifier ~ arguments? ~ ":" ~ value }
+field_without_args = { identifier ~ ":" ~ value }
+
+arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
     argument = { identifier ~ ":" ~ value }
 
-    type_selection_set = { "{" ~ type_field* ~ "}" }
-    input_selection_set = { "{" ~ input_field* ~ "}" }
+value = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
 
-        type_field = { identifier ~ arguments? ~ ":" ~ value }
-        input_field = { identifier ~ ":" ~ value }
+    value_array_non_nullable = { value_array_nullable ~ "!" }
+    value_array_nullable = { "[" ~ (value_non_nullable | value_nullable) ~ "]" }
+    value_non_nullable = { value_nullable ~ "!" }
+    value_nullable = { value_content }
 
-            value = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
-
-                value_array_non_nullable = { value_array_nullable ~ "!" }
-                value_array_nullable = { "[" ~ (value_non_nullable | value_nullable) ~ "]" }
-                value_non_nullable = { value_nullable ~ "!" }
-                value_nullable = { value_content }
-
-                    value_content = { object | basic_type }
-                        int = @{ "Int" }
-                        float = @{ "Float" }
-                        string = @{ "String" }
-                        boolean = @{ "Boolean" }
-                        basic_type = _{ int | float | boolean | string }
-                        object = @{ &((basic_type ~ ASCII_ALPHANUMERIC | "_") | !basic_type) ~ identifier }
+        value_content = { object | basic_type }
+            int = @{ "Int" }
+            float = @{ "Float" }
+            string = @{ "String" }
+            boolean = @{ "Boolean" }
+            basic_type = _{ int | float | boolean | string }
+            object = @{ &((basic_type ~ ASCII_ALPHANUMERIC | "_") | !basic_type) ~ identifier }
 
 
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )+ }
