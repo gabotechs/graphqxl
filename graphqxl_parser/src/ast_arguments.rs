@@ -1,3 +1,4 @@
+use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use crate::{parse_value, Value};
@@ -15,12 +16,9 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
             // at this moment we are on [argument]
             let mut identifier_value = pair.into_inner();
             // at this moment we are on [identifier, value]
-            let identifier = identifier_value.next().unwrap().as_str();
+            let name = parse_identifier(identifier_value.next().unwrap())?;
             let value = parse_value(identifier_value.next().unwrap())?;
-            Ok(Argument {
-                name: identifier.to_string(),
-                value,
-            })
+            Ok(Argument { name, value })
         }
         _unknown => Err(unknown_rule_error(pair, "argument")),
     }

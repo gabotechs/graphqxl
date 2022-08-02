@@ -5,9 +5,12 @@ type_def = { "type" ~ identifier ~ type_selection_set }
     type_selection_set = { "{" ~ field_with_args* ~ "}" }
 input_def = { "input" ~ identifier ~ input_selection_set }
     input_selection_set = { "{" ~ field_without_args* ~ "}" }
+enum_def = { "enum" ~ identifier ~ enum_selection_set }
+    enum_selection_set = { "{" ~ field_without_args_without_value* ~ "}" }
 
 field_with_args = { identifier ~ arguments? ~ ":" ~ value }
 field_without_args = { identifier ~ ":" ~ value }
+field_without_args_without_value = { identifier }
 
 arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
     argument = { identifier ~ ":" ~ value }

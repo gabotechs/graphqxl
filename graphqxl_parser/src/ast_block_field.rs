@@ -1,4 +1,5 @@
 use crate::ast_arguments::{parse_arguments, Argument};
+use crate::ast_identifier::parse_identifier;
 use crate::ast_value::{parse_value, Value};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
@@ -15,7 +16,7 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
     // at this moment we are on [type_field|input_field], both will work
     let mut pairs = pair.into_inner();
     // at this moment we are on [identifier, args?, value]
-    let identifier = pairs.next().unwrap();
+    let name = parse_identifier(pairs.next().unwrap())?;
     let value_or_args = pairs.next().unwrap();
     let mut value = value_or_args.clone();
     let mut type_field_args = Vec::new();
@@ -24,7 +25,7 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
         value = pairs.next().unwrap();
     }
     Ok(BlockField {
-        name: identifier.as_str().into(),
+        name,
         value: parse_value(value)?,
         args: type_field_args,
     })

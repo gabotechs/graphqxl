@@ -1,4 +1,5 @@
 use crate::ast_block_field::{parse_block_field, BlockField};
+use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use pest::iterators::{Pair, Pairs};
@@ -21,12 +22,11 @@ fn _parse_type_or_input(
     mut pairs: Pairs<Rule>,
     kind: BlockDefType,
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
-    // at this point pairs is [identifier, selection_set]...
-    let name = pairs.next().unwrap().as_str().to_string();
+    // [identifier, selection_set]
+    let name = parse_identifier(pairs.next().unwrap())?;
+    let selection_set = pairs.next().unwrap();
     let mut fields = HashMap::new();
-    // ...so we need to move into selection_set to iter the inner fields
-    let pairs = pairs.next().unwrap().into_inner();
-    for pair in pairs {
+    for pair in selection_set.into_inner() {
         let field = parse_block_field(pair)?;
         fields.insert(field.name.clone(), field);
     }
