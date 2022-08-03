@@ -58,7 +58,7 @@ pub(crate) fn parse_directive_def(
                 is_repeatable,
                 locations,
             })
-        }
+        },
         _unknown => Err(unknown_rule_error(pair, "directive_def")),
     }
 }

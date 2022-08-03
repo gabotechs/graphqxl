@@ -12,6 +12,8 @@ mod parser;
 mod utils;
 mod ast_directive_def;
 mod ast_directive_location;
+mod ast_scalar;
+mod ast_union;
 
 pub use ast_block_def::*;
 pub use ast_block_field::*;

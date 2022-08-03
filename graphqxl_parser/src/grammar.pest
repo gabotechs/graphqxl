@@ -9,6 +9,8 @@ enum_def = { "enum" ~ identifier ~ enum_selection_set }
     enum_selection_set = { "{" ~ field_without_args_without_value* ~ "}" }
 interface_def = { "interface" ~ identifier ~ interface_selection_set }
     interface_selection_set = { "{" ~ field_with_args ~ "}" }
+scalar_def = { "scalar" ~ identifier }
+union_def = { "union" ~ identifier ~ "=" ~ identifier ~ ("|" ~ identifier )* }
 
 field_with_args = { identifier ~ arguments? ~ ":" ~ value }
 field_without_args = { identifier ~ ":" ~ value }
