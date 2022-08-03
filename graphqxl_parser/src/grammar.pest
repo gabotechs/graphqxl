@@ -14,6 +14,30 @@ field_with_args = { identifier ~ arguments? ~ ":" ~ value }
 field_without_args = { identifier ~ ":" ~ value }
 field_without_args_without_value = { identifier }
 
+directive_def = { "directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
+    directive_repeatable = @{ "repeatable" }
+    directive_location = @{
+        "QUERY" |
+        "MUTATION" |
+        "SUBSCRIPTION" |
+        "FIELD_DEFINITION" |
+        "FIELD" |
+        "FRAGMENT_DEFINITION" |
+        "FRAGMENT_SPREAD" |
+        "INLINE_FRAGMENT" |
+        "SCHEMA" |
+        "SCALAR" |
+        "OBJECT" |
+        "ARGUMENT_DEFINITION" |
+        "INTERFACE" |
+        "UNION" |
+        "ENUM_VALUE" |
+        "ENUM" |
+        "INPUT_OBJECT" |
+        "INPUT_FIELD_DEFINITION" |
+        "VARIABLE_DEFINITION"
+    }
+
 arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
     argument = { identifier ~ ":" ~ value }
 

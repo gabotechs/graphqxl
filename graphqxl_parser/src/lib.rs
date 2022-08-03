@@ -10,6 +10,8 @@ mod ast_value;
 mod ast_value_content;
 mod parser;
 mod utils;
+mod ast_directive_def;
+mod ast_directive_location;
 
 pub use ast_block_def::*;
 pub use ast_block_field::*;

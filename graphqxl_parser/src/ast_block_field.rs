@@ -29,15 +29,14 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
             name,
             value: Some(parse_value(value)?),
             args: type_field_args,
-        }) 
+        })
     } else {
-        return Ok(BlockField {
+        Ok(BlockField {
             name,
             value: None,
             args: Vec::new(),
-        });
+        })
     }
-    
 }
 
 pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -59,13 +58,19 @@ mod tests {
     fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::field_with_args, parse_block_field)
     }
-    
+
     fn parse_without_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::field_without_args, parse_block_field)
     }
-    
-    fn parse_without_args_without_value_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::field_without_args_without_value, parse_block_field)
+
+    fn parse_without_args_without_value_input(
+        input: &str,
+    ) -> Result<BlockField, pest::error::Error<Rule>> {
+        parse_full_input(
+            input,
+            Rule::field_without_args_without_value,
+            parse_block_field,
+        )
     }
 
     #[test]
@@ -76,6 +81,12 @@ mod tests {
     #[test]
     fn test_input_do_not_accept_args() {
         parse_without_args_input("field(arg1: Int, arg2: String!): String").unwrap_err();
+    }
+
+    #[test]
+    fn test_enum_do_not_accept_args() {
+        parse_without_args_without_value_input("field(arg1: Int, arg2: String!): String")
+            .unwrap_err();
     }
 
     #[test]
