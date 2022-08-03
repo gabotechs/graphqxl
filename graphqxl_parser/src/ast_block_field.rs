@@ -52,7 +52,7 @@ pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::er
 mod tests {
     use super::*;
     use crate::ast_value::{ValueArray, ValueSimple};
-    use crate::ast_value_content::ValueContent;
+    use crate::ast_value_type::ValueType;
     use crate::utils::parse_full_input;
 
     fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -98,7 +98,7 @@ mod tests {
             field.value,
             Some(Value::Simple(ValueSimple {
                 nullable: true,
-                content: ValueContent::String
+                content: ValueType::String
             }))
         );
     }
@@ -112,7 +112,7 @@ mod tests {
             Some(Value::Array(ValueArray {
                 value: ValueSimple {
                     nullable: false,
-                    content: ValueContent::String
+                    content: ValueType::String
                 },
                 nullable: false
             }))
@@ -127,7 +127,7 @@ mod tests {
             vec![Argument {
                 name: "arg1".to_string(),
                 value: Value::Simple(ValueSimple {
-                    content: ValueContent::String,
+                    content: ValueType::String,
                     nullable: true
                 })
             }]
@@ -144,7 +144,7 @@ mod tests {
                     name: "arg1".to_string(),
                     value: Value::Array(ValueArray {
                         value: ValueSimple {
-                            content: ValueContent::String,
+                            content: ValueType::String,
                             nullable: true
                         },
                         nullable: false
@@ -153,7 +153,7 @@ mod tests {
                 Argument {
                     name: "arg2".to_string(),
                     value: Value::Simple(ValueSimple {
-                        content: ValueContent::Float,
+                        content: ValueType::Float,
                         nullable: false
                     })
                 }

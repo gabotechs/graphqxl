@@ -41,7 +41,7 @@ pub(crate) fn parse_arguments(pair: Pair<Rule>) -> Result<Vec<Argument>, pest::e
 mod tests {
     use super::*;
     use crate::ast_value::ValueSimple;
-    use crate::ast_value_content::ValueContent;
+    use crate::ast_value_type::ValueType;
     use crate::utils::parse_full_input;
     use crate::ValueArray;
 
@@ -57,7 +57,7 @@ mod tests {
             vec![Argument {
                 name: "arg1".to_string(),
                 value: Value::Simple(ValueSimple {
-                    content: ValueContent::String,
+                    content: ValueType::String,
                     nullable: true
                 })
             }]
@@ -73,7 +73,7 @@ mod tests {
                 Argument {
                     name: "arg1".to_string(),
                     value: Value::Simple(ValueSimple {
-                        content: ValueContent::String,
+                        content: ValueType::String,
                         nullable: false
                     })
                 },
@@ -81,7 +81,7 @@ mod tests {
                     name: "arg2".to_string(),
                     value: Value::Array(ValueArray {
                         value: ValueSimple {
-                            content: ValueContent::Boolean,
+                            content: ValueType::Boolean,
                             nullable: true
                         },
                         nullable: false

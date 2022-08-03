@@ -1,11 +1,11 @@
-use crate::ast_value_content::{parse_value_content, ValueContent};
+use crate::ast_value_type::{parse_value_type, ValueType};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValueSimple {
-    pub content: ValueContent,
+    pub content: ValueType,
     pub nullable: bool,
 }
 
@@ -30,7 +30,7 @@ fn _parse_value(
     match pair.as_rule() {
         Rule::value_nullable => {
             let inner = pair.into_inner().next().unwrap();
-            let content = parse_value_content(inner).unwrap();
+            let content = parse_value_type(inner).unwrap();
             let value = ValueSimple { content, nullable };
             if array {
                 Ok(Value::Array(ValueArray {
@@ -82,7 +82,7 @@ mod tests {
     #[test]
     fn test_simple_nullable() {
         if let Value::Simple(val) = parse_input("Int").unwrap() {
-            assert_eq!(val.content, ValueContent::Int);
+            assert_eq!(val.content, ValueType::Int);
             assert!(val.nullable);
         } else {
             panic!("should have been a simple value")
@@ -92,7 +92,7 @@ mod tests {
     #[test]
     fn test_simple_non_nullable() {
         if let Value::Simple(val) = parse_input("Int!").unwrap() {
-            assert_eq!(val.content, ValueContent::Int);
+            assert_eq!(val.content, ValueType::Int);
             assert!(!val.nullable);
         } else {
             panic!("should have been a simple value")
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn test_array_nullable() {
         if let Value::Array(val) = parse_input("[Int]").unwrap() {
-            assert_eq!(val.value.content, ValueContent::Int);
+            assert_eq!(val.value.content, ValueType::Int);
             assert!(val.value.nullable);
             assert!(val.nullable);
         } else {
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     fn test_array_non_nullable() {
         if let Value::Array(val) = parse_input("[Int]!").unwrap() {
-            assert_eq!(val.value.content, ValueContent::Int);
+            assert_eq!(val.value.content, ValueType::Int);
             assert!(val.value.nullable);
             assert!(!val.nullable);
         } else {
@@ -124,7 +124,7 @@ mod tests {
     #[test]
     fn test_array_nullable_inner_value_non_nullable() {
         if let Value::Array(val) = parse_input("[Int!]").unwrap() {
-            assert_eq!(val.value.content, ValueContent::Int);
+            assert_eq!(val.value.content, ValueType::Int);
             assert!(!val.value.nullable);
             assert!(val.nullable);
         } else {
@@ -135,7 +135,7 @@ mod tests {
     #[test]
     fn test_array_non_nullable_inner_value_non_nullable() {
         if let Value::Array(val) = parse_input("[Int!]!").unwrap() {
-            assert_eq!(val.value.content, ValueContent::Int);
+            assert_eq!(val.value.content, ValueType::Int);
             assert!(!val.value.nullable);
             assert!(!val.nullable);
         } else {

@@ -48,9 +48,9 @@ value = { value_array_non_nullable | value_array_nullable | value_non_nullable |
     value_array_non_nullable = { value_array_nullable ~ "!" }
     value_array_nullable = { "[" ~ (value_non_nullable | value_nullable) ~ "]" }
     value_non_nullable = { value_nullable ~ "!" }
-    value_nullable = { value_content }
+    value_nullable = { value_type }
 
-        value_content = { object | basic_type }
+        value_type = { object | basic_type }
             int = @{ "Int" }
             float = @{ "Float" }
             string = @{ "String" }
