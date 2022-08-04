@@ -4,10 +4,7 @@ use pest::iterators::{Pair, Pairs};
 
 pub(crate) fn parse_description(pair: Pair<Rule>) -> Result<String, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::description => {
-            let description = pair.into_inner().next().unwrap().as_str().to_string();
-            Ok(description.trim_matches('\"').trim().to_string())
-        }
+        Rule::description => Ok(pair.as_str().trim_matches('\"').trim().to_string()),
         _unknown => Err(unknown_rule_error(pair, "description")),
     }
 }

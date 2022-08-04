@@ -42,9 +42,9 @@ field_without_args_without_value = { description? ~ identifier }
 arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
     argument = { description? ~ identifier ~ ":" ~ value_type }
 
-description = { multiline_description | one_line_description }
-    multiline_description = ${ "\"\"\"" ~ char*  ~ "\"\"\"" }
-    one_line_description = ${ "\"" ~ (!("\n" | "\r\n") ~ char)* ~ "\"" }
+description = @{ multiline_description | one_line_description }
+    multiline_description = @{ "\"\"\"" ~ char*  ~ "\"\"\"" }
+    one_line_description = @{ "\"" ~ (!("\n" | "\r\n") ~ char)* ~ "\"" }
 
 value_type = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
 
