@@ -1,6 +1,6 @@
 use crate::ast_arguments::{parse_arguments, Argument};
 use crate::ast_identifier::parse_identifier;
-use crate::ast_value::{parse_value, Value};
+use crate::ast_value_type::{parse_value_type, ValueType};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
@@ -8,7 +8,7 @@ use pest::iterators::Pair;
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockField {
     pub name: String,
-    pub value: Option<Value>,
+    pub value: Option<ValueType>,
     pub args: Vec<Argument>,
 }
 
@@ -27,7 +27,7 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
         }
         Ok(BlockField {
             name,
-            value: Some(parse_value(value)?),
+            value: Some(parse_value_type(value)?),
             args: type_field_args,
         })
     } else {
@@ -51,8 +51,8 @@ pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::er
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast_value::{ValueArray, ValueSimple};
-    use crate::ast_value_type::ValueType;
+    use crate::ast_value_basic_type::ValueBasicType;
+    use crate::ast_value_type::{ValueArray, ValueSimple};
     use crate::utils::parse_full_input;
 
     fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -96,9 +96,9 @@ mod tests {
         assert_eq!(field.args.len(), 0);
         assert_eq!(
             field.value,
-            Some(Value::Simple(ValueSimple {
+            Some(ValueType::Simple(ValueSimple {
                 nullable: true,
-                content: ValueType::String
+                content: ValueBasicType::String
             }))
         );
     }
@@ -109,10 +109,10 @@ mod tests {
         assert_eq!(field.name, String::from("field"));
         assert_eq!(
             field.value,
-            Some(Value::Array(ValueArray {
+            Some(ValueType::Array(ValueArray {
                 value: ValueSimple {
                     nullable: false,
-                    content: ValueType::String
+                    content: ValueBasicType::String
                 },
                 nullable: false
             }))
@@ -126,8 +126,8 @@ mod tests {
             field.args,
             vec![Argument {
                 name: "arg1".to_string(),
-                value: Value::Simple(ValueSimple {
-                    content: ValueType::String,
+                value: ValueType::Simple(ValueSimple {
+                    content: ValueBasicType::String,
                     nullable: true
                 })
             }]
@@ -142,9 +142,9 @@ mod tests {
             vec![
                 Argument {
                     name: "arg1".to_string(),
-                    value: Value::Array(ValueArray {
+                    value: ValueType::Array(ValueArray {
                         value: ValueSimple {
-                            content: ValueType::String,
+                            content: ValueBasicType::String,
                             nullable: true
                         },
                         nullable: false
@@ -152,8 +152,8 @@ mod tests {
                 },
                 Argument {
                     name: "arg2".to_string(),
-                    value: Value::Simple(ValueSimple {
-                        content: ValueType::Float,
+                    value: ValueType::Simple(ValueSimple {
+                        content: ValueBasicType::Float,
                         nullable: false
                     })
                 }

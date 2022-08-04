@@ -12,8 +12,8 @@ interface_def = { "interface" ~ identifier ~ interface_selection_set }
 scalar_def = { "scalar" ~ identifier }
 union_def = { "union" ~ identifier ~ "=" ~ identifier ~ ("|" ~ identifier )* }
 
-field_with_args = { identifier ~ arguments? ~ ":" ~ value }
-field_without_args = { identifier ~ ":" ~ value }
+field_with_args = { identifier ~ arguments? ~ ":" ~ value_type }
+field_without_args = { identifier ~ ":" ~ value_type }
 field_without_args_without_value = { identifier }
 
 directive_def = { "directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
@@ -41,16 +41,16 @@ directive_def = { "directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeat
     }
 
 arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
-    argument = { identifier ~ ":" ~ value }
+    argument = { identifier ~ ":" ~ value_type }
 
-value = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
+value_type = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
 
     value_array_non_nullable = { value_array_nullable ~ "!" }
     value_array_nullable = { "[" ~ (value_non_nullable | value_nullable) ~ "]" }
     value_non_nullable = { value_nullable ~ "!" }
-    value_nullable = { value_type }
+    value_nullable = { value_basic_type }
 
-        value_type = { object | basic_type }
+        value_basic_type = { object | basic_type }
             int = @{ "Int" }
             float = @{ "Float" }
             string = @{ "String" }

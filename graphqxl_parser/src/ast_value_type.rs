@@ -1,33 +1,71 @@
+use crate::ast_value_basic_type::{parse_value_basic_type, ValueBasicType};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum ValueType {
-    Int,
-    Float,
-    Boolean,
-    String,
-    Object(String),
+pub struct ValueSimple {
+    pub content: ValueBasicType,
+    pub nullable: bool,
 }
 
-fn _parse_value_type(pair: Pair<Rule>) -> Result<ValueType, pest::error::Error<Rule>> {
+#[derive(Debug, Clone, PartialEq)]
+pub struct ValueArray {
+    pub value: ValueSimple,
+    pub nullable: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ValueType {
+    Simple(ValueSimple),
+    Array(ValueArray),
+}
+
+fn _parse_value_type(
+    pair: Pair<Rule>,
+    nullable: bool,
+    array: bool,
+    array_nullable: bool,
+) -> Result<ValueType, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::int => Ok(ValueType::Int),
-        Rule::float => Ok(ValueType::Float),
-        Rule::string => Ok(ValueType::String),
-        Rule::boolean => Ok(ValueType::Boolean),
-        Rule::object => Ok(ValueType::Object(String::from(pair.as_str()))),
+        Rule::value_nullable => {
+            let inner = pair.into_inner().next().unwrap();
+            let content = parse_value_basic_type(inner).unwrap();
+            let value = ValueSimple { content, nullable };
+            if array {
+                Ok(ValueType::Array(ValueArray {
+                    value,
+                    nullable: array_nullable,
+                }))
+            } else {
+                Ok(ValueType::Simple(value))
+            }
+        }
+        Rule::value_non_nullable => {
+            let rule = pair.into_inner().next().unwrap();
+            _parse_value_type(rule, false, array, array_nullable)
+        }
+        Rule::value_array_nullable => {
+            let rule = pair.into_inner().next().unwrap();
+            _parse_value_type(rule, nullable, true, array_nullable)
+        }
+        Rule::value_array_non_nullable => {
+            let rule = pair.into_inner().next().unwrap();
+            _parse_value_type(rule, nullable, true, false)
+        }
         _unknown => Err(unknown_rule_error(
             pair,
-            "int, float, string, boolean or object",
+            "value_nullable, value, value_array_nullable, value_array",
         )),
     }
 }
 
 pub(crate) fn parse_value_type(pair: Pair<Rule>) -> Result<ValueType, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::value_type => _parse_value_type(pair.into_inner().next().unwrap()),
+        Rule::value_type => {
+            let rule = pair.into_inner().next().unwrap();
+            _parse_value_type(rule, true, false, true)
+        }
         _unknown => Err(unknown_rule_error(pair, "value_type")),
     }
 }
@@ -42,55 +80,66 @@ mod tests {
     }
 
     #[test]
-    fn test_int() {
-        assert_eq!(parse_input("Int").unwrap(), ValueType::Int);
-    }
-
-    #[test]
-    fn test_float() {
-        assert_eq!(parse_input("Float").unwrap(), ValueType::Float);
-    }
-
-    #[test]
-    fn test_string() {
-        assert_eq!(parse_input("String").unwrap(), ValueType::String);
-    }
-
-    #[test]
-    fn test_boolean() {
-        assert_eq!(parse_input("Boolean").unwrap(), ValueType::Boolean);
-    }
-
-    #[test]
-    fn test_object_1() {
-        if let ValueType::Object(val) = parse_input("IntMyType").unwrap() {
-            assert_eq!(val, "IntMyType")
+    fn test_simple_nullable() {
+        if let ValueType::Simple(val) = parse_input("Int").unwrap() {
+            assert_eq!(val.content, ValueBasicType::Int);
+            assert!(val.nullable);
         } else {
-            panic!("not an object")
+            panic!("should have been a simple value")
         }
     }
 
     #[test]
-    fn test_object_2() {
-        if let ValueType::Object(val) = parse_input("MyType").unwrap() {
-            assert_eq!(val, "MyType")
+    fn test_simple_non_nullable() {
+        if let ValueType::Simple(val) = parse_input("Int!").unwrap() {
+            assert_eq!(val.content, ValueBasicType::Int);
+            assert!(!val.nullable);
         } else {
-            panic!("not an object")
+            panic!("should have been a simple value")
         }
     }
 
     #[test]
-    fn test_invalid_1() {
-        parse_input("1DoNotStartWithNumber").unwrap_err();
+    fn test_array_nullable() {
+        if let ValueType::Array(val) = parse_input("[Int]").unwrap() {
+            assert_eq!(val.value.content, ValueBasicType::Int);
+            assert!(val.value.nullable);
+            assert!(val.nullable);
+        } else {
+            panic!("should have been an array value")
+        }
     }
 
     #[test]
-    fn test_invalid_2() {
-        parse_input("no-minus-sign").unwrap_err();
+    fn test_array_non_nullable() {
+        if let ValueType::Array(val) = parse_input("[Int]!").unwrap() {
+            assert_eq!(val.value.content, ValueBasicType::Int);
+            assert!(val.value.nullable);
+            assert!(!val.nullable);
+        } else {
+            panic!("should have been an array value")
+        }
     }
 
     #[test]
-    fn test_invalid_3() {
-        parse_input("no/slash/sign").unwrap_err();
+    fn test_array_nullable_inner_value_non_nullable() {
+        if let ValueType::Array(val) = parse_input("[Int!]").unwrap() {
+            assert_eq!(val.value.content, ValueBasicType::Int);
+            assert!(!val.value.nullable);
+            assert!(val.nullable);
+        } else {
+            panic!("should have been an array value")
+        }
+    }
+
+    #[test]
+    fn test_array_non_nullable_inner_value_non_nullable() {
+        if let ValueType::Array(val) = parse_input("[Int!]!").unwrap() {
+            assert_eq!(val.value.content, ValueBasicType::Int);
+            assert!(!val.value.nullable);
+            assert!(!val.nullable);
+        } else {
+            panic!("should have been an array value")
+        }
     }
 }

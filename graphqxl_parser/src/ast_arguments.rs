@@ -1,13 +1,13 @@
 use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
-use crate::{parse_value, Value};
+use crate::{parse_value_type, ValueType};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Argument {
     pub name: String,
-    pub value: Value,
+    pub value: ValueType,
 }
 
 fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>> {
@@ -17,7 +17,7 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
             let mut identifier_value = pair.into_inner();
             // at this moment we are on [identifier, value]
             let name = parse_identifier(identifier_value.next().unwrap())?;
-            let value = parse_value(identifier_value.next().unwrap())?;
+            let value = parse_value_type(identifier_value.next().unwrap())?;
             Ok(Argument { name, value })
         }
         _unknown => Err(unknown_rule_error(pair, "argument")),
@@ -40,8 +40,8 @@ pub(crate) fn parse_arguments(pair: Pair<Rule>) -> Result<Vec<Argument>, pest::e
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast_value::ValueSimple;
-    use crate::ast_value_type::ValueType;
+    use crate::ast_value_basic_type::ValueBasicType;
+    use crate::ast_value_type::ValueSimple;
     use crate::utils::parse_full_input;
     use crate::ValueArray;
 
@@ -56,8 +56,8 @@ mod tests {
             args,
             vec![Argument {
                 name: "arg1".to_string(),
-                value: Value::Simple(ValueSimple {
-                    content: ValueType::String,
+                value: ValueType::Simple(ValueSimple {
+                    content: ValueBasicType::String,
                     nullable: true
                 })
             }]
@@ -72,16 +72,16 @@ mod tests {
             vec![
                 Argument {
                     name: "arg1".to_string(),
-                    value: Value::Simple(ValueSimple {
-                        content: ValueType::String,
+                    value: ValueType::Simple(ValueSimple {
+                        content: ValueBasicType::String,
                         nullable: false
                     })
                 },
                 Argument {
                     name: "arg2".to_string(),
-                    value: Value::Array(ValueArray {
+                    value: ValueType::Array(ValueArray {
                         value: ValueSimple {
-                            content: ValueType::Boolean,
+                            content: ValueBasicType::Boolean,
                             nullable: true
                         },
                         nullable: false
