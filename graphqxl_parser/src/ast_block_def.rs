@@ -1,4 +1,5 @@
 use crate::ast_block_field::{parse_block_field, BlockField};
+use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
@@ -17,6 +18,7 @@ pub enum BlockDefType {
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockDef {
     pub name: String,
+    pub description: String,
     pub kind: BlockDefType,
     pub fields: Vec<BlockField>,
 }
@@ -25,8 +27,9 @@ fn _parse_type_or_input(
     mut pairs: Pairs<Rule>,
     kind: BlockDefType,
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
-    // [identifier, selection_set]
-    let name = parse_identifier(pairs.next().unwrap())?;
+    // [description?, identifier, selection_set]
+    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
+    let name = parse_identifier(next)?;
     let selection_set = pairs.next().unwrap();
     let mut fields = Vec::new();
     let mut seen_fields = HashSet::new();
@@ -44,7 +47,12 @@ fn _parse_type_or_input(
         }
         fields.push(field);
     }
-    Ok(BlockDef { name, kind, fields })
+    Ok(BlockDef {
+        name,
+        description,
+        kind,
+        fields,
+    })
 }
 
 pub(crate) fn parse_block_def(pair: Pair<Rule>) -> Result<BlockDef, pest::error::Error<Rule>> {
@@ -99,6 +107,35 @@ mod tests {
     }
 
     #[test]
+    fn test_type_description_works() {
+        let block =
+            parse_type_input("\"\"\" my description \"\"\"type MyType { arg: String }").unwrap();
+        assert_eq!(block.description, "my description")
+    }
+
+    #[test]
+    fn test_input_description_works() {
+        let block =
+            parse_input_input("\"\"\" my description \"\"\"input MyInput { arg: String }").unwrap();
+        assert_eq!(block.description, "my description")
+    }
+
+    #[test]
+    fn test_enum_description_works() {
+        let block = parse_enum_input("\"\"\" my description \"\"\"enum MyEnum { arg }").unwrap();
+        assert_eq!(block.description, "my description")
+    }
+
+    #[test]
+    fn test_interface_description_works() {
+        let block = parse_interface_input(
+            "\"\"\" my description \"\"\"interface MyInterface { arg: String }",
+        )
+        .unwrap();
+        assert_eq!(block.description, "my description")
+    }
+
+    #[test]
     fn parses_empty_type() {
         let t = parse_type_input("type MyType { }").unwrap();
         assert_eq!(t.name, "MyType");
@@ -148,6 +185,7 @@ mod tests {
             enum_def.fields,
             vec![BlockField {
                 name: "Field".to_string(),
+                description: "".to_string(),
                 value: None,
                 args: Vec::new()
             }]
@@ -163,11 +201,13 @@ mod tests {
             vec![
                 BlockField {
                     name: "Field1".to_string(),
+                    description: "".to_string(),
                     value: None,
                     args: Vec::new()
                 },
                 BlockField {
                     name: "field2".to_string(),
+                    description: "".to_string(),
                     value: None,
                     args: Vec::new()
                 }

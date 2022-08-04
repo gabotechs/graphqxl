@@ -1,3 +1,4 @@
+use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
@@ -7,16 +8,19 @@ use std::collections::HashSet;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Union {
     name: String,
+    description: String,
     types: Vec<String>,
 }
 
 pub(crate) fn parse_union(pair: Pair<Rule>) -> Result<Union, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::union_def => {
+            let mut childs = pair.into_inner();
+            // [description?, identifier, ...types]
+            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
+            let name = parse_identifier(next)?;
             let mut types = Vec::new();
             let mut seen_types = HashSet::new();
-            let mut childs = pair.into_inner();
-            let name = parse_identifier(childs.next().unwrap())?;
             for child in childs {
                 let name = parse_identifier(child.clone())?;
                 if seen_types.contains(name.as_str()) {
@@ -31,7 +35,11 @@ pub(crate) fn parse_union(pair: Pair<Rule>) -> Result<Union, pest::error::Error<
                     types.push(name);
                 }
             }
-            Ok(Union { name, types })
+            Ok(Union {
+                name,
+                description,
+                types,
+            })
         }
         _unknown => Err(unknown_rule_error(pair, "union_def")),
     }
@@ -44,6 +52,12 @@ mod tests {
 
     fn parse_input(input: &str) -> Result<Union, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::union_def, parse_union)
+    }
+
+    #[test]
+    fn test_accepts_description() {
+        let union = parse_input("\"\"\" my description \"\"\"union MyUnion = Type1").unwrap();
+        assert_eq!(union.description, "my description");
     }
 
     #[test]

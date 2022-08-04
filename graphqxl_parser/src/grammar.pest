@@ -1,17 +1,17 @@
 spec = _{ SOI ~ def* ~ EOI }
 
 def = { type_def | input_def | enum_def | interface_selection_set | scalar_def | union_def | directive_def }
-type_def = { "type" ~ identifier ~ type_selection_set }
+type_def = { description? ~ "type" ~ identifier ~ type_selection_set }
     type_selection_set = { "{" ~ field_with_args* ~ "}" }
-input_def = { "input" ~ identifier ~ input_selection_set }
+input_def = { description? ~"input" ~ identifier ~ input_selection_set }
     input_selection_set = { "{" ~ field_without_args* ~ "}" }
-enum_def = { "enum" ~ identifier ~ enum_selection_set }
+enum_def = { description? ~"enum" ~ identifier ~ enum_selection_set }
     enum_selection_set = { "{" ~ field_without_args_without_value* ~ "}" }
-interface_def = { "interface" ~ identifier ~ interface_selection_set }
+interface_def = { description? ~"interface" ~ identifier ~ interface_selection_set }
     interface_selection_set = { "{" ~ field_with_args ~ "}" }
-scalar_def = { "scalar" ~ identifier }
-union_def = { "union" ~ identifier ~ "=" ~ identifier ~ ("|" ~ identifier )* }
-directive_def = { "directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
+scalar_def = { description? ~"scalar" ~ identifier }
+union_def = { description? ~"union" ~ identifier ~ "=" ~ identifier ~ ("|" ~ identifier )* }
+directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
     directive_repeatable = @{ "repeatable" }
     directive_location = @{
         "QUERY" |
@@ -35,20 +35,16 @@ directive_def = { "directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeat
         "VARIABLE_DEFINITION"
     }
 
-field_with_args = { identifier ~ arguments? ~ ":" ~ value_type }
-field_without_args = { identifier ~ ":" ~ value_type }
-field_without_args_without_value = { identifier }
+field_with_args = { description? ~ identifier ~ arguments? ~ ":" ~ value_type }
+field_without_args = { description? ~ identifier ~ ":" ~ value_type }
+field_without_args_without_value = { description? ~ identifier }
 
 arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
-    argument = { identifier ~ ":" ~ value_type }
+    argument = { description? ~ identifier ~ ":" ~ value_type }
 
-description = { "\"\"\"" ~ description_inner ~ "\"\"\"" }
-    description_inner = @{ char* }
-    char = {
-        !("\"" | "\\") ~ ANY
-        | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-        | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-    }
+description = { multiline_description | one_line_description }
+    multiline_description = ${ "\"\"\"" ~ char*  ~ "\"\"\"" }
+    one_line_description = ${ "\"" ~ (!("\n" | "\r\n") ~ char)* ~ "\"" }
 
 value_type = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
 
@@ -65,6 +61,10 @@ value_type = { value_array_non_nullable | value_array_nullable | value_non_nulla
             basic_type = _{ int | float | boolean | string }
             object = @{ &((basic_type ~ ASCII_ALPHANUMERIC | "_") | !basic_type) ~ identifier }
 
-
+char = @{
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )+ }
 WHITESPACE = _{ " " | "\n" | "\r" | "\t" }

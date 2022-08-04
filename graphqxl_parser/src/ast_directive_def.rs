@@ -1,4 +1,5 @@
 use crate::ast_arguments::{parse_arguments, Argument};
+use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_directive_location::{parse_directive_location, DirectiveLocation};
 use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
@@ -9,6 +10,7 @@ use std::collections::HashSet;
 #[derive(Debug, Clone, PartialEq)]
 pub struct DirectiveDef {
     name: String,
+    description: String,
     arguments: Vec<Argument>,
     is_repeatable: bool,
     locations: Vec<DirectiveLocation>,
@@ -21,7 +23,8 @@ pub(crate) fn parse_directive_def(
         Rule::directive_def => {
             // [identifier, arguments?, repeatable?, ...locations]
             let mut childs = pair.into_inner();
-            let name = parse_identifier(childs.next().unwrap())?;
+            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
+            let name = parse_identifier(next)?;
             let mut next = childs.next().unwrap();
             let mut arguments = Vec::new();
             if let Rule::arguments = next.as_rule() {
@@ -54,11 +57,12 @@ pub(crate) fn parse_directive_def(
             }
             Ok(DirectiveDef {
                 name,
+                description,
                 arguments,
                 is_repeatable,
                 locations,
             })
-        },
+        }
         _unknown => Err(unknown_rule_error(pair, "directive_def")),
     }
 }
@@ -70,6 +74,12 @@ mod tests {
 
     fn parse_input(input: &str) -> Result<DirectiveDef, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::directive_def, parse_directive_def)
+    }
+
+    #[test]
+    fn test_accepts_description() {
+        let directive = parse_input("\"\"\" my description \"\"\"directive @dir on QUERY").unwrap();
+        assert_eq!(directive.description, "my description");
     }
 
     #[test]

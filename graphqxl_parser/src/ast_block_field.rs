@@ -1,4 +1,5 @@
 use crate::ast_arguments::{parse_arguments, Argument};
+use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::parse_identifier;
 use crate::ast_value_type::{parse_value_type, ValueType};
 use crate::parser::Rule;
@@ -8,6 +9,7 @@ use pest::iterators::Pair;
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockField {
     pub name: String,
+    pub description: String,
     pub value: Option<ValueType>,
     pub args: Vec<Argument>,
 }
@@ -15,8 +17,9 @@ pub struct BlockField {
 fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
     // at this moment we are on [type_field|input_field], both will work
     let mut pairs = pair.into_inner();
-    // at this moment we are on [identifier, args?, value?]
-    let name = parse_identifier(pairs.next().unwrap())?;
+    // at this moment we are on [description?, identifier, args?, value?]
+    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
+    let name = parse_identifier(next)?;
     let value_or_args_or_nothing = pairs.next();
     if let Some(value_or_args) = value_or_args_or_nothing {
         let mut value = value_or_args.clone();
@@ -27,12 +30,14 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
         }
         Ok(BlockField {
             name,
+            description,
             value: Some(parse_value_type(value)?),
             args: type_field_args,
         })
     } else {
         Ok(BlockField {
             name,
+            description,
             value: None,
             args: Vec::new(),
         })
@@ -90,6 +95,14 @@ mod tests {
     }
 
     #[test]
+    fn test_accepts_description() {
+        let field =
+            parse_with_args_input("\"\"\" my description \"\"\" field(arg: String): String")
+                .unwrap();
+        assert_eq!(field.description, "my description")
+    }
+
+    #[test]
     fn test_parse_string_block_field() {
         let field = parse_with_args_input("field: String").unwrap();
         assert_eq!(field.name, String::from("field"));
@@ -126,6 +139,7 @@ mod tests {
             field.args,
             vec![Argument {
                 name: "arg1".to_string(),
+                description: "".to_string(),
                 value: ValueType::Simple(ValueSimple {
                     content: ValueBasicType::String,
                     nullable: true
@@ -142,6 +156,7 @@ mod tests {
             vec![
                 Argument {
                     name: "arg1".to_string(),
+                    description: "".to_string(),
                     value: ValueType::Array(ValueArray {
                         value: ValueSimple {
                             content: ValueBasicType::String,
@@ -152,6 +167,7 @@ mod tests {
                 },
                 Argument {
                     name: "arg2".to_string(),
+                    description: "".to_string(),
                     value: ValueType::Simple(ValueSimple {
                         content: ValueBasicType::Float,
                         nullable: false

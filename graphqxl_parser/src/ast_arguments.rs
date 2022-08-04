@@ -1,3 +1,4 @@
+use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
@@ -7,6 +8,7 @@ use pest::iterators::Pair;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Argument {
     pub name: String,
+    pub description: String,
     pub value: ValueType,
 }
 
@@ -14,11 +16,16 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
     match pair.as_rule() {
         Rule::argument => {
             // at this moment we are on [argument]
-            let mut identifier_value = pair.into_inner();
+            let mut childs = pair.into_inner();
+            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
             // at this moment we are on [identifier, value]
-            let name = parse_identifier(identifier_value.next().unwrap())?;
-            let value = parse_value_type(identifier_value.next().unwrap())?;
-            Ok(Argument { name, value })
+            let name = parse_identifier(next)?;
+            let value = parse_value_type(childs.next().unwrap())?;
+            Ok(Argument {
+                name,
+                description,
+                value,
+            })
         }
         _unknown => Err(unknown_rule_error(pair, "argument")),
     }
@@ -50,12 +57,19 @@ mod tests {
     }
 
     #[test]
+    fn test_accepts_description() {
+        let arguments = parse_input("(\"\"\" my description \"\"\"arg: String)").unwrap();
+        assert_eq!(arguments.get(0).unwrap().description, "my description")
+    }
+
+    #[test]
     fn test_one_argument_is_parsed_correctly() {
         let args = parse_input("(arg1: String)").unwrap();
         assert_eq!(
             args,
             vec![Argument {
                 name: "arg1".to_string(),
+                description: "".to_string(),
                 value: ValueType::Simple(ValueSimple {
                     content: ValueBasicType::String,
                     nullable: true
@@ -72,6 +86,7 @@ mod tests {
             vec![
                 Argument {
                     name: "arg1".to_string(),
+                    description: "".to_string(),
                     value: ValueType::Simple(ValueSimple {
                         content: ValueBasicType::String,
                         nullable: false
@@ -79,6 +94,7 @@ mod tests {
                 },
                 Argument {
                     name: "arg2".to_string(),
+                    description: "".to_string(),
                     value: ValueType::Array(ValueArray {
                         value: ValueSimple {
                             content: ValueBasicType::Boolean,

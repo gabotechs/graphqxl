@@ -16,7 +16,12 @@ mod ast_value_type;
 mod parser;
 mod utils;
 
+pub use ast_arguments::*;
 pub use ast_block_def::*;
 pub use ast_block_field::*;
+pub use ast_directive_def::*;
+pub use ast_directive_location::*;
+pub use ast_scalar::*;
+pub use ast_union::*;
 pub use ast_value_basic_type::*;
 pub use ast_value_type::*;
