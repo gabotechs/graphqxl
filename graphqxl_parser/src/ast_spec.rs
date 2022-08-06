@@ -7,7 +7,7 @@ use crate::{
 use pest::iterators::Pair;
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Spec {
     types: HashMap<String, BlockDef>,
     inputs: HashMap<String, BlockDef>,
@@ -20,15 +20,7 @@ pub struct Spec {
 
 impl Spec {
     fn new() -> Self {
-        Self {
-            types: HashMap::new(),
-            inputs: HashMap::new(),
-            enums: HashMap::new(),
-            interfaces: HashMap::new(),
-            scalars: HashMap::new(),
-            unions: HashMap::new(),
-            directives: HashMap::new(),
-        }
+        Self::default()
     }
 
     fn add(&mut self, pair: Pair<Rule>) -> Result<(), pest::error::Error<Rule>> {
