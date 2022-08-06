@@ -56,7 +56,9 @@ pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::er
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast_value_basic_data::ValueBasicData;
     use crate::ast_value_basic_type::ValueBasicType;
+    use crate::ast_value_data::ValueData;
     use crate::ast_value_type::{ValueArray, ValueSimple};
     use crate::utils::parse_full_input;
 
@@ -143,14 +145,17 @@ mod tests {
                 value: ValueType::Simple(ValueSimple {
                     content: ValueBasicType::String,
                     nullable: true
-                })
+                }),
+                default: None
             }]
         );
     }
 
     #[test]
-    fn test_parse_block_field_args_two_args() {
-        let field = parse_with_args_input("field(arg1: [String]!, arg2: Float!): String").unwrap();
+    fn test_parse_block_field_args_two_args_and_one_default() {
+        let field =
+            parse_with_args_input("field(arg1: [String]! = [\"default\"], arg2: Float!): String")
+                .unwrap();
         assert_eq!(
             field.args,
             vec![
@@ -163,7 +168,10 @@ mod tests {
                             nullable: true
                         },
                         nullable: false
-                    })
+                    }),
+                    default: Some(ValueData::List(vec![ValueData::Basic(
+                        ValueBasicData::String("default".to_string())
+                    )]))
                 },
                 Argument {
                     name: "arg2".to_string(),
@@ -171,7 +179,8 @@ mod tests {
                     value: ValueType::Simple(ValueSimple {
                         content: ValueBasicType::Float,
                         nullable: false
-                    })
+                    }),
+                    default: None
                 }
             ]
         );

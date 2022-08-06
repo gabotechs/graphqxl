@@ -40,7 +40,7 @@ field_without_args = { description? ~ identifier ~ ":" ~ value_type }
 field_without_args_without_value = { description? ~ identifier }
 
 arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
-    argument = { description? ~ identifier ~ ":" ~ value_type }
+    argument = { description? ~ identifier ~ ":" ~ value_type ~ ("=" ~ value_data)? }
 
 description = @{ multiline_description | one_line_description }
     multiline_description = @{ "\"\"\"" ~ char*  ~ "\"\"\"" }

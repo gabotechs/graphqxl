@@ -1,5 +1,6 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::parse_identifier;
+use crate::ast_value_data::{parse_value_data, ValueData};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use crate::{parse_value_type, ValueType};
@@ -10,6 +11,7 @@ pub struct Argument {
     pub name: String,
     pub description: String,
     pub value: ValueType,
+    pub default: Option<ValueData>,
 }
 
 fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>> {
@@ -21,10 +23,18 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
             // at this moment we are on [identifier, value]
             let name = parse_identifier(next)?;
             let value = parse_value_type(childs.next().unwrap())?;
+            let mut default = None;
+            let maybe_default = childs.next();
+            if let Some(pair) = maybe_default {
+                if let Rule::value_data = pair.as_rule() {
+                    default = Some(parse_value_data(pair)?)
+                }
+            }
             Ok(Argument {
                 name,
                 description,
                 value,
+                default,
             })
         }
         _unknown => Err(unknown_rule_error(pair, "argument")),
@@ -47,6 +57,7 @@ pub(crate) fn parse_arguments(pair: Pair<Rule>) -> Result<Vec<Argument>, pest::e
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast_value_basic_data::ValueBasicData;
     use crate::ast_value_basic_type::ValueBasicType;
     use crate::ast_value_type::ValueSimple;
     use crate::utils::parse_full_input;
@@ -73,7 +84,8 @@ mod tests {
                 value: ValueType::Simple(ValueSimple {
                     content: ValueBasicType::String,
                     nullable: true
-                })
+                }),
+                default: None
             }]
         )
     }
@@ -90,7 +102,8 @@ mod tests {
                     value: ValueType::Simple(ValueSimple {
                         content: ValueBasicType::String,
                         nullable: false
-                    })
+                    }),
+                    default: None
                 },
                 Argument {
                     name: "arg2".to_string(),
@@ -101,9 +114,29 @@ mod tests {
                             nullable: true
                         },
                         nullable: false
-                    })
+                    }),
+                    default: None
                 }
             ]
+        )
+    }
+
+    #[test]
+    fn test_default_value_for_argument_works() {
+        let args = parse_input("(arg: String = \"default\")").unwrap();
+        assert_eq!(
+            args,
+            vec![Argument {
+                name: "arg".to_string(),
+                description: "".to_string(),
+                value: ValueType::Simple(ValueSimple {
+                    content: ValueBasicType::String,
+                    nullable: true
+                }),
+                default: Some(ValueData::Basic(ValueBasicData::String(
+                    "default".to_string()
+                )))
+            }]
         )
     }
 
