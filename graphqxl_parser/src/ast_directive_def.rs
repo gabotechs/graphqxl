@@ -9,11 +9,11 @@ use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DirectiveDef {
-    name: String,
-    description: String,
-    arguments: Vec<Argument>,
-    is_repeatable: bool,
-    locations: Vec<DirectiveLocation>,
+    pub name: String,
+    pub description: String,
+    pub arguments: Vec<Argument>,
+    pub is_repeatable: bool,
+    pub locations: Vec<DirectiveLocation>,
 }
 
 pub(crate) fn parse_directive_def(

@@ -9,6 +9,7 @@ pub(crate) fn parse_description(pair: Pair<Rule>) -> Result<String, pest::error:
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct DescriptionAndNext<'a>(pub(crate) String, pub(crate) Pair<'a, Rule>);
 
 pub(crate) fn parse_description_and_continue<'a>(

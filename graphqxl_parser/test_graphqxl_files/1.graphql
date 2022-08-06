@@ -1,0 +1,25 @@
+type MyType {
+    field(arg: String!): String
+}
+
+input MyInput {
+    field: String
+}
+
+enum MyEnum {
+    Field
+}
+
+interface MyInterface {
+    field: String
+}
+
+scalar MyScalar
+
+type MyType2 {
+    field2: String
+}
+
+union MyUnion = MyType | MyType2
+
+directive @MyDirective (arg: String) repeatable on ENUM | INPUT_OBJECT

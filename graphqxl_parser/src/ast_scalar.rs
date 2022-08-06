@@ -6,8 +6,8 @@ use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scalar {
-    name: String,
-    description: String,
+    pub name: String,
+    pub description: String,
 }
 
 pub(crate) fn parse_scalar(pair: Pair<Rule>) -> Result<Scalar, pest::error::Error<Rule>> {

@@ -12,15 +12,21 @@ pub fn parse_full_input<R>(
     if let Err(err) = &pair_or_err {
         eprintln!("{}", err);
     }
+    let input = input.trim_end();
     let mut pair = pair_or_err?;
     let parsed = pair.next().unwrap();
-    if parsed.as_str().len() < input.len() {
-        return Err(pest::error::Error::new_from_pos(
+    let _parsed_str = parsed.as_str();
+    let parsed_len = parsed.as_str().len();
+    let input_len = input.len();
+    if parsed_len < input_len {
+        let err = pest::error::Error::new_from_pos(
             ErrorVariant::CustomError {
-                message: String::from("not everything was parsed"),
+                message: "not everything was parsed: ".to_string() + &input[parsed_len..],
             },
             Position::new(input, pair.as_str().len()).unwrap(),
-        ));
+        );
+        eprintln!("{}", err);
+        return Err(err);
     }
     let res = parser(parsed);
     if let Err(err) = &res {

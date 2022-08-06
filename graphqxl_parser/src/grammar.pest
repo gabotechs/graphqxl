@@ -1,6 +1,6 @@
-spec = _{ SOI ~ def* ~ EOI }
+spec = { SOI ~ def* ~ EOI }
 
-def = { type_def | input_def | enum_def | interface_selection_set | scalar_def | union_def | directive_def }
+def = _{ type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
 type_def = { description? ~ "type" ~ identifier ~ type_selection_set }
     type_selection_set = { "{" ~ field_with_args* ~ "}" }
 input_def = { description? ~"input" ~ identifier ~ input_selection_set }
@@ -60,6 +60,16 @@ value_type = { value_array_non_nullable | value_array_nullable | value_non_nulla
             boolean = @{ "Boolean" }
             basic_type = _{ int | float | boolean | string }
             object = @{ &((basic_type ~ ASCII_ALPHANUMERIC | "_") | !basic_type) ~ identifier }
+
+value_data = { float_data | int_data | string_data | boolean_data }
+    object_data = { "{" ~ object_entry* ~ "}" }
+    object_entry = { identifier ~ ":" ~ (basic_data | list_data | object_data )}
+    list_data = { "[" ~ (basic_data | list_data | object_data)? ~ ("," ~ (basic_data | list_data | object_data))* ~ "]" }
+        basic_data = { int_data | float_data | string_data | boolean_data }
+        int_data = @{ ASCII_DIGIT+ }
+        float_data = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+}
+        string_data = @{ "\"" ~ char* ~ "\"" }
+        boolean_data = @{ "false" | "true" }
 
 char = @{
     !("\"" | "\\") ~ ANY

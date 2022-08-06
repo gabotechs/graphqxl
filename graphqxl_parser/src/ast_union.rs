@@ -7,9 +7,9 @@ use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Union {
-    name: String,
-    description: String,
-    types: Vec<String>,
+    pub name: String,
+    pub description: String,
+    pub types: Vec<String>,
 }
 
 pub(crate) fn parse_union(pair: Pair<Rule>) -> Result<Union, pest::error::Error<Rule>> {
