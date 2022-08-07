@@ -61,6 +61,7 @@ name = "graphqxl"
 version = "0.1.0"
 dependencies = [
  "graphqxl_parser",
+ "graphqxl_synthesizer",
 ]
 
 [[package]]
@@ -69,6 +70,13 @@ version = "0.1.0"
 dependencies = [
  "pest",
  "pest_derive",
+]
+
+[[package]]
+name = "graphqxl_synthesizer"
+version = "0.1.0"
+dependencies = [
+ "graphqxl_parser",
 ]
 
 [[package]]

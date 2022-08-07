@@ -3,6 +3,7 @@ use pest::error::ErrorVariant;
 use pest::iterators::Pair;
 use pest::{Parser, Position};
 
+#[allow(dead_code)]
 pub fn parse_full_input<R>(
     input: &str,
     rule: Rule,
