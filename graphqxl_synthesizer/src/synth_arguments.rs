@@ -29,7 +29,6 @@ impl Synth for ArgumentsSynth {
 mod tests {
     use super::*;
     use crate::test_utils::simple_string_arg_factory;
-    use graphqxl_parser::{ValueType, ValueTypeSimple};
 
     #[test]
     fn test_one_argument() {
