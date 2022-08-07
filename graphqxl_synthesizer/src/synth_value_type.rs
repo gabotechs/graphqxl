@@ -1,10 +1,10 @@
-use crate::synths::Synth;
+use crate::synths::{Synth, SynthContext};
 use graphqxl_parser::{ValueBasicType, ValueType};
 
 pub(crate) struct ValueTypeSynth(pub(crate) ValueType);
 
 impl Synth for ValueTypeSynth {
-    fn synth(&self, _indent_lvl: usize, _multiline: bool) -> String {
+    fn synth(&self, _context: &SynthContext) -> String {
         match &self.0 {
             ValueType::Simple(simple) => {
                 let suffix = if !simple.nullable { "!" } else { "" };

@@ -1,9 +1,9 @@
-use crate::synths::Synth;
+use crate::synths::{Synth, SynthContext};
 
 pub(crate) struct StringSynth(pub(crate) String);
 
 impl Synth for StringSynth {
-    fn synth(&self, _indent_lvl: usize, _multiline: bool) -> String {
+    fn synth(&self, _: &SynthContext) -> String {
         self.0.to_string()
     }
 }

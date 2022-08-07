@@ -1,22 +1,13 @@
-use crate::synths::Synth;
+use crate::synths::{Synth, SynthContext};
 
-pub(crate) struct ChainSynth {
-    synths: Vec<Box<dyn Synth>>,
-}
+pub(crate) struct ChainSynth(pub(crate) Vec<Box<dyn Synth>>);
 
 impl Synth for ChainSynth {
-    fn synth(&self, indent_lvl: usize, multiline: bool) -> String {
+    fn synth(&self, context: &SynthContext) -> String {
         let mut result = "".to_string();
-        for synth in self.synths.iter() {
-            result += &synth.synth(indent_lvl, multiline);
+        for synth in self.0.iter() {
+            result += &synth.synth(context);
         }
         result
-    }
-}
-
-
-impl From<Vec<Box<dyn Synth>>> for ChainSynth {
-    fn from(synths: Vec<Box<dyn Synth>>) -> Self {
-        Self { synths }
     }
 }

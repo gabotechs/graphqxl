@@ -1,20 +1,14 @@
 use crate::synth_value_type::ValueTypeSynth;
-use crate::synths::{ListSynth, PairSynth, StringSynth, Synth};
+use crate::synths::{ListSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::Argument;
 
-pub(crate) struct ArgumentsSynth {
-    indent: usize,
-    arguments: Vec<Argument>,
-}
+pub(crate) struct ArgumentsSynth(pub(crate) Vec<Argument>);
 
 impl Synth for ArgumentsSynth {
-    fn synth(&self, indent_lvl: usize, multiline: bool) -> String {
-        let list_synth = ListSynth {
-            wrapper: ("(".to_string(), ")".to_string()),
-            sep: ", ".to_string(),
-            indent: self.indent,
-            items: self
-                .arguments
+    fn synth(&self, context: &SynthContext) -> String {
+        let list_synth = ListSynth::from((
+            "(",
+            self.0
                 .iter()
                 .map(|argument| {
                     PairSynth::inline(
@@ -24,26 +18,10 @@ impl Synth for ArgumentsSynth {
                     // todo: missing default
                 })
                 .collect(),
-        };
-        list_synth.synth(indent_lvl, multiline)
-    }
-}
-
-impl From<Vec<Argument>> for ArgumentsSynth {
-    fn from(arguments: Vec<Argument>) -> Self {
-        ArgumentsSynth {
-            indent: 0,
-            arguments,
-        }
-    }
-}
-
-impl From<(Vec<Argument>, usize)> for ArgumentsSynth {
-    fn from(arguments_indent: (Vec<Argument>, usize)) -> Self {
-        ArgumentsSynth {
-            indent: arguments_indent.1,
-            arguments: arguments_indent.0,
-        }
+            ", ",
+            ")",
+        ));
+        list_synth.synth(context)
     }
 }
 
@@ -51,18 +29,18 @@ impl From<(Vec<Argument>, usize)> for ArgumentsSynth {
 mod tests {
     use super::*;
     use crate::test_utils::simple_string_arg_factory;
-    use graphqxl_parser::{ValueBasicType, ValueType, ValueTypeSimple};
+    use graphqxl_parser::{ValueType, ValueTypeSimple};
 
     #[test]
     fn test_one_argument() {
-        let synth = ArgumentsSynth::from(vec![simple_string_arg_factory("arg")]);
+        let synth = ArgumentsSynth(vec![simple_string_arg_factory("arg")]);
 
         assert_eq!(synth.synth_zero(), "(arg: String)")
     }
 
     #[test]
     fn test_two_argument() {
-        let synth = ArgumentsSynth::from(vec![
+        let synth = ArgumentsSynth(vec![
             simple_string_arg_factory("arg1"),
             simple_string_arg_factory("arg2"),
         ]);
@@ -72,8 +50,15 @@ mod tests {
 
     #[test]
     fn test_one_argument_indent() {
-        let synth = ArgumentsSynth::from((vec![simple_string_arg_factory("arg")], 2));
+        let synth = ArgumentsSynth(vec![simple_string_arg_factory("arg")]);
 
-        assert_eq!(synth.synth(0, true), "(\n  arg: String\n)")
+        assert_eq!(
+            synth.synth(&SynthContext {
+                indent_spaces: 2,
+                multiline: true,
+                ..Default::default()
+            }),
+            "(\n  arg: String\n)"
+        )
     }
 }

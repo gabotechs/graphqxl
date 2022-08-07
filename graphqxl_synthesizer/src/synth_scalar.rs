@@ -1,5 +1,5 @@
 use crate::synth_description::DescriptionSynth;
-use crate::synths::{PairSynth, StringSynth, Synth};
+use crate::synths::{PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::Scalar;
 
 pub(crate) struct SynthScalar {
@@ -7,12 +7,12 @@ pub(crate) struct SynthScalar {
 }
 
 impl Synth for SynthScalar {
-    fn synth(&self, indent_lvl: usize, multiline: bool) -> String {
+    fn synth(&self, context: &SynthContext) -> String {
         let pair_synth = PairSynth::top_level(
             DescriptionSynth::from(self.scalar.description.as_str()),
             StringSynth(format!("scalar {}", self.scalar.name)),
         );
-        pair_synth.synth(indent_lvl, multiline)
+        pair_synth.synth(context)
     }
 }
 

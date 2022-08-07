@@ -1,42 +1,34 @@
-use crate::synths::Synth;
+use crate::synths::{Synth, SynthContext};
 
 pub(crate) struct DescriptionSynth {
     text: String,
-    indent: usize,
     pub(crate) is_multiline: bool,
-}
-
-impl From<(&str, usize)> for DescriptionSynth {
-    fn from(text_indent: (&str, usize)) -> Self {
-        Self {
-            text: text_indent.0.to_string(),
-            indent: text_indent.1,
-            is_multiline: text_indent.0.contains("\n"),
-        }
-    }
 }
 
 impl From<&str> for DescriptionSynth {
     fn from(text: &str) -> Self {
-        Self::from((text, 0))
+        Self {
+            text: text.to_string(),
+            is_multiline: text.contains('\n'),
+        }
     }
 }
 
 impl Synth for DescriptionSynth {
-    fn synth(&self, indent_lvl: usize, _multiline: bool) -> String {
+    fn synth(&self, context: &SynthContext) -> String {
         let mut result = "".to_string();
         if self.text.is_empty() {
             return result;
         }
         if self.is_multiline {
             result += "\"\"\"";
-            for line in self.text.split("\n") {
+            for line in self.text.split('\n') {
                 result += "\n";
-                result += &" ".repeat(indent_lvl * self.indent);
+                result += &" ".repeat(context.indent_lvl * context.indent_spaces);
                 result += line;
             }
             result += "\n";
-            result += &" ".repeat(indent_lvl * self.indent);
+            result += &" ".repeat(context.indent_lvl * context.indent_spaces);
             result += "\"\"\"";
         } else {
             result += "\"";
@@ -78,9 +70,13 @@ hi!
 
     #[test]
     fn test_synth_multiline_indented() {
-        let synth = DescriptionSynth::from(("These are two lines\nhi!", 2));
+        let synth = DescriptionSynth::from("These are two lines\nhi!");
         assert_eq!(
-            synth.synth(1, false),
+            synth.synth(&SynthContext {
+                indent_spaces: 2,
+                indent_lvl: 1,
+                ..Default::default()
+            }),
             "\
 \"\"\"
   These are two lines
