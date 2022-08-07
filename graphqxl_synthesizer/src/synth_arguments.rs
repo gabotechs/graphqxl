@@ -50,19 +50,8 @@ impl From<(Vec<Argument>, usize)> for ArgumentsSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::simple_string_arg_factory;
     use graphqxl_parser::{ValueBasicType, ValueType, ValueTypeSimple};
-
-    fn simple_string_arg_factory(name: &str) -> Argument {
-        Argument {
-            name: name.to_string(),
-            description: "".to_string(),
-            value: ValueType::Simple(ValueTypeSimple {
-                content: ValueBasicType::String,
-                nullable: true,
-            }),
-            default: None,
-        }
-    }
 
     #[test]
     fn test_one_argument() {
