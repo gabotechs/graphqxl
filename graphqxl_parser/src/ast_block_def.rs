@@ -216,37 +216,32 @@ mod tests {
     }
 
     #[test]
-    fn test_incorrect_input_1() {
-        parse_enum_input("enum MyEnum { Field1, Field2 }").unwrap_err();
-    }
-
-    #[test]
-    fn test_incorrect_input_2() {
+    fn test_incorrect_input_no_different_field_types() {
         parse_enum_input("enum MyEnum { Field1: String Field2 }").unwrap_err();
     }
 
     #[test]
-    fn test_incorrect_input_3() {
+    fn test_incorrect_input_no_last_close_keys() {
         parse_enum_input("enum MyEnum { Field1 Field2 ").unwrap_err();
     }
 
     #[test]
-    fn do_not_parse_invalid_input_1() {
+    fn do_not_parse_invalid_input_bad_type() {
         parse_type_input("type MyType { field: String- }").unwrap_err();
     }
 
     #[test]
-    fn do_not_parse_invalid_input_2() {
+    fn do_not_parse_invalid_input_bad_field() {
         parse_type_input("type MyType { fi'eld: String }").unwrap_err();
     }
 
     #[test]
-    fn do_not_parse_invalid_input_3() {
+    fn do_not_parse_invalid_input_bad_type_identifier() {
         parse_type_input("type MyT-ype { field: String }").unwrap_err();
     }
 
     #[test]
-    fn do_not_parse_invalid_input_4() {
+    fn do_not_parse_invalid_input_bad_initial_symbol() {
         parse_type_input("type_ MyType { field: String }").unwrap_err();
     }
 }

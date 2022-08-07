@@ -143,12 +143,6 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_input_no_comma_in_args() {
-        parse_input("directive @dir(arg: String arg2: Boolean) repeatable on INTERFACE")
-            .unwrap_err();
-    }
-
-    #[test]
     fn test_invalid_input_repeatable_after_on() {
         parse_input("directive @dir on repeatable INTERFACE").unwrap_err();
     }

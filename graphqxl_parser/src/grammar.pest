@@ -39,7 +39,7 @@ field_with_args = { description? ~ identifier ~ arguments? ~ ":" ~ value_type }
 field_without_args = { description? ~ identifier ~ ":" ~ value_type }
 field_without_args_without_value = { description? ~ identifier }
 
-arguments = { "(" ~ argument ~ ("," ~ argument)* ~ ")"}
+arguments = { "(" ~ argument* ~ ")"}
     argument = { description? ~ identifier ~ ":" ~ value_type ~ ("=" ~ value_data)? }
 
 description = @{ multiline_description | one_line_description }
@@ -62,9 +62,9 @@ value_type = { value_array_non_nullable | value_array_nullable | value_non_nulla
             object = @{ &((basic_type ~ ASCII_ALPHANUMERIC | "_") | !basic_type) ~ identifier }
 
 value_data = { object_data | list_data | basic_data }
-    object_data = { "{" ~ object_entry? ~ ("," ~ object_entry)* ~ "}" }
+    object_data = { "{" ~ object_entry* ~ "}" }
     object_entry = { identifier ~ ":" ~ (basic_data | list_data | object_data) }
-    list_data = { "[" ~ (basic_data | list_data | object_data)? ~ ("," ~ (basic_data | list_data | object_data))* ~ "]" }
+    list_data = { "[" ~ (basic_data | list_data | object_data)* ~ "]" }
         basic_data = { float_data | int_data | string_data | boolean_data }
         int_data = @{ ASCII_DIGIT+ }
         float_data = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+}
@@ -77,4 +77,4 @@ char = @{
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )* }
-WHITESPACE = _{ " " | "\n" | "\r" | "\t" }
+WHITESPACE = _{ " " | "," | "\n" | "\r" | "\t" }

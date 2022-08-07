@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_multiple_arguments_are_parsed_correctly() {
-        let args = parse_input("(arg1: String!, arg2: [Boolean]!)").unwrap();
+        let args = parse_input("(arg1: String! arg2: [Boolean]!)").unwrap();
         assert_eq!(
             args,
             vec![
@@ -141,23 +141,23 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_input_1() {
+    fn test_invalid_input_no_parenthesis() {
         parse_input("arg: String)").unwrap_err();
     }
     #[test]
-    fn test_invalid_input_2() {
+    fn test_invalid_input_too_much_parenthesis() {
         parse_input("((arg: Boolean))").unwrap_err();
     }
     #[test]
-    fn test_invalid_input_3() {
-        parse_input("(arg1: Int arg2: Boolean)").unwrap_err();
-    }
-    #[test]
-    fn test_invalid_input_4() {
+    fn test_invalid_input_no_two_dots() {
         parse_input("(arg1 Int, arg2: Float)").unwrap_err();
     }
     #[test]
-    fn test_invalid_input_5() {
-        parse_input("(,arg1: Int, arg2: Float)").unwrap_err();
+    fn test_valid_input_accepts_no_comma() {
+        parse_input("(arg1: Int arg2: Boolean)").unwrap();
+    }
+    #[test]
+    fn test_valid_input_accepts_too_much_commas() {
+        parse_input("(,arg1: Int, arg2: Float)").unwrap();
     }
 }
