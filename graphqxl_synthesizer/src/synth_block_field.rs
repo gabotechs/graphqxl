@@ -31,33 +31,27 @@ impl Synth for BlockFieldSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{simple_string_arg_factory, simple_string_value_type_factory};
-
-    fn block_field_synth_factory() -> BlockFieldSynth {
-        BlockFieldSynth(BlockField {
-            name: "field".to_string(),
-            description: "".to_string(),
-            value: None,
-            args: vec![],
-        })
-    }
+    use crate::test_utils::{
+        simple_block_field_synth_factory, simple_string_arg_factory,
+        simple_string_value_type_factory,
+    };
 
     #[test]
     fn test_no_description_no_args_no_type() {
-        let synth = block_field_synth_factory();
+        let synth = BlockFieldSynth(simple_block_field_synth_factory("field"));
         assert_eq!(synth.synth_zero(), "field");
     }
 
     #[test]
     fn test_description_no_args_no_type() {
-        let mut synth = block_field_synth_factory();
+        let mut synth = BlockFieldSynth(simple_block_field_synth_factory("field"));
         synth.0.description = "my description".to_string();
         assert_eq!(synth.synth_zero(), "\"my description\" field");
     }
 
     #[test]
     fn test_multiline_description_no_args_no_type() {
-        let mut synth = block_field_synth_factory();
+        let mut synth = BlockFieldSynth(simple_block_field_synth_factory("field"));
         synth.0.description = "my multiline\n description".to_string();
         assert_eq!(
             synth.synth_zero(),
@@ -71,7 +65,7 @@ my multiline
 
     #[test]
     fn test_description_no_args_type() {
-        let mut synth = block_field_synth_factory();
+        let mut synth = BlockFieldSynth(simple_block_field_synth_factory("field"));
         synth.0.description = "my description".to_string();
         synth.0.value = Some(simple_string_value_type_factory());
         assert_eq!(synth.synth_zero(), "\"my description\" field: String");
@@ -79,7 +73,7 @@ my multiline
 
     #[test]
     fn test_description_args_type() {
-        let mut synth = block_field_synth_factory();
+        let mut synth = BlockFieldSynth(simple_block_field_synth_factory("field"));
         synth.0.description = "my description".to_string();
         synth.0.value = Some(simple_string_value_type_factory());
         synth.0.args.push(simple_string_arg_factory("arg"));
@@ -91,7 +85,7 @@ my multiline
 
     #[test]
     fn test_description_args_type_multiline() {
-        let mut synth = block_field_synth_factory();
+        let mut synth = BlockFieldSynth(simple_block_field_synth_factory("field"));
         synth.0.description = "my description".to_string();
         synth.0.value = Some(simple_string_value_type_factory());
         synth.0.args.push(simple_string_arg_factory("arg"));
@@ -112,7 +106,7 @@ field(
 
     #[test]
     fn test_description_multiple_args_type_multiline_and_indent() {
-        let mut synth = block_field_synth_factory();
+        let mut synth = BlockFieldSynth(simple_block_field_synth_factory("field"));
         synth.0.description = "my description".to_string();
         synth.0.value = Some(simple_string_value_type_factory());
         synth.0.args.push(simple_string_arg_factory("arg1"));
@@ -127,7 +121,7 @@ field(
             "\
 \"my description\"
     field(
-      arg1: String, 
+      arg1: String 
       arg2: String
     ): String"
         );

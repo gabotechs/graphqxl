@@ -37,7 +37,46 @@ impl Synth for BlockDefSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::test_utils::{simple_string_arg_factory, simple_string_block_field_synth_factory};
+
+    fn block_def_factory() -> BlockDef {
+        BlockDef {
+            kind: BlockDefType::Type,
+            name: "MyType".to_string(),
+            description: "".to_string(),
+            fields: vec![simple_string_block_field_synth_factory("field")],
+        }
+    }
 
     #[test]
-    fn test_most_simple_block_def() {}
+    fn test_most_simple_block_def() {
+        let synth = BlockDefSynth(block_def_factory());
+        assert_eq!(synth.synth_zero(), "type MyType {field: String}")
+    }
+
+    #[test]
+    fn test_with_args_block_def() {
+        let mut synth = BlockDefSynth(block_def_factory());
+        let mut field = simple_string_block_field_synth_factory("field2");
+        field.args.push(simple_string_arg_factory("arg1"));
+        field.args.push(simple_string_arg_factory("arg2"));
+        field.args.push(simple_string_arg_factory("arg3"));
+        synth.0.fields.push(field);
+        assert_eq!(
+            synth.synth(&SynthContext {
+                multiline: true,
+                indent_spaces: 2,
+                ..Default::default()
+            }),
+            "\
+type MyType {
+  field: String 
+  field2(
+    arg1: String 
+    arg2: String 
+    arg3: String
+  ): String
+}"
+        )
+    }
 }

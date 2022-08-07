@@ -18,7 +18,7 @@ impl Synth for ArgumentsSynth {
                     // todo: missing default
                 })
                 .collect(),
-            ", ",
+            " ",
             ")",
         ));
         list_synth.synth(context)
@@ -44,12 +44,15 @@ mod tests {
             simple_string_arg_factory("arg2"),
         ]);
 
-        assert_eq!(synth.synth_zero(), "(arg1: String, arg2: String)")
+        assert_eq!(synth.synth_zero(), "(arg1: String arg2: String)")
     }
 
     #[test]
     fn test_one_argument_indent() {
-        let synth = ArgumentsSynth(vec![simple_string_arg_factory("arg")]);
+        let synth = ArgumentsSynth(vec![
+            simple_string_arg_factory("arg"),
+            simple_string_arg_factory("arg2"),
+        ]);
 
         assert_eq!(
             synth.synth(&SynthContext {
@@ -57,7 +60,7 @@ mod tests {
                 multiline: true,
                 ..Default::default()
             }),
-            "(\n  arg: String\n)"
+            "(\n  arg: String \n  arg2: String\n)"
         )
     }
 }
