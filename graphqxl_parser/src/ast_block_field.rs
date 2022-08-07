@@ -59,7 +59,7 @@ mod tests {
     use crate::ast_value_basic_data::ValueBasicData;
     use crate::ast_value_basic_type::ValueBasicType;
     use crate::ast_value_data::ValueData;
-    use crate::ast_value_type::{ValueArray, ValueSimple};
+    use crate::ast_value_type::{ValueTypeArray, ValueTypeSimple};
     use crate::utils::parse_full_input;
 
     fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -111,7 +111,7 @@ mod tests {
         assert_eq!(field.args.len(), 0);
         assert_eq!(
             field.value,
-            Some(ValueType::Simple(ValueSimple {
+            Some(ValueType::Simple(ValueTypeSimple {
                 nullable: true,
                 content: ValueBasicType::String
             }))
@@ -124,8 +124,8 @@ mod tests {
         assert_eq!(field.name, String::from("field"));
         assert_eq!(
             field.value,
-            Some(ValueType::Array(ValueArray {
-                value: ValueSimple {
+            Some(ValueType::Array(ValueTypeArray {
+                value: ValueTypeSimple {
                     nullable: false,
                     content: ValueBasicType::String
                 },
@@ -142,7 +142,7 @@ mod tests {
             vec![Argument {
                 name: "arg1".to_string(),
                 description: "".to_string(),
-                value: ValueType::Simple(ValueSimple {
+                value: ValueType::Simple(ValueTypeSimple {
                     content: ValueBasicType::String,
                     nullable: true
                 }),
@@ -162,8 +162,8 @@ mod tests {
                 Argument {
                     name: "arg1".to_string(),
                     description: "".to_string(),
-                    value: ValueType::Array(ValueArray {
-                        value: ValueSimple {
+                    value: ValueType::Array(ValueTypeArray {
+                        value: ValueTypeSimple {
                             content: ValueBasicType::String,
                             nullable: true
                         },
@@ -176,7 +176,7 @@ mod tests {
                 Argument {
                     name: "arg2".to_string(),
                     description: "".to_string(),
-                    value: ValueType::Simple(ValueSimple {
+                    value: ValueType::Simple(ValueTypeSimple {
                         content: ValueBasicType::Float,
                         nullable: false
                     }),

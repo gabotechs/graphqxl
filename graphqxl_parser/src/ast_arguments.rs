@@ -59,9 +59,9 @@ mod tests {
     use super::*;
     use crate::ast_value_basic_data::ValueBasicData;
     use crate::ast_value_basic_type::ValueBasicType;
-    use crate::ast_value_type::ValueSimple;
+    use crate::ast_value_type::ValueTypeSimple;
     use crate::utils::parse_full_input;
-    use crate::ValueArray;
+    use crate::ValueTypeArray;
 
     fn parse_input(input: &str) -> Result<Vec<Argument>, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::arguments, parse_arguments)
@@ -81,7 +81,7 @@ mod tests {
             vec![Argument {
                 name: "arg1".to_string(),
                 description: "".to_string(),
-                value: ValueType::Simple(ValueSimple {
+                value: ValueType::Simple(ValueTypeSimple {
                     content: ValueBasicType::String,
                     nullable: true
                 }),
@@ -99,7 +99,7 @@ mod tests {
                 Argument {
                     name: "arg1".to_string(),
                     description: "".to_string(),
-                    value: ValueType::Simple(ValueSimple {
+                    value: ValueType::Simple(ValueTypeSimple {
                         content: ValueBasicType::String,
                         nullable: false
                     }),
@@ -108,8 +108,8 @@ mod tests {
                 Argument {
                     name: "arg2".to_string(),
                     description: "".to_string(),
-                    value: ValueType::Array(ValueArray {
-                        value: ValueSimple {
+                    value: ValueType::Array(ValueTypeArray {
+                        value: ValueTypeSimple {
                             content: ValueBasicType::Boolean,
                             nullable: true
                         },
@@ -129,7 +129,7 @@ mod tests {
             vec![Argument {
                 name: "arg".to_string(),
                 description: "".to_string(),
-                value: ValueType::Simple(ValueSimple {
+                value: ValueType::Simple(ValueTypeSimple {
                     content: ValueBasicType::String,
                     nullable: true
                 }),

@@ -4,21 +4,21 @@ use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ValueSimple {
+pub struct ValueTypeSimple {
     pub content: ValueBasicType,
     pub nullable: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ValueArray {
-    pub value: ValueSimple,
+pub struct ValueTypeArray {
+    pub value: ValueTypeSimple,
     pub nullable: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ValueType {
-    Simple(ValueSimple),
-    Array(ValueArray),
+    Simple(ValueTypeSimple),
+    Array(ValueTypeArray),
 }
 
 fn _parse_value_type(
@@ -31,9 +31,9 @@ fn _parse_value_type(
         Rule::value_nullable => {
             let inner = pair.into_inner().next().unwrap();
             let content = parse_value_basic_type(inner).unwrap();
-            let value = ValueSimple { content, nullable };
+            let value = ValueTypeSimple { content, nullable };
             if array {
-                Ok(ValueType::Array(ValueArray {
+                Ok(ValueType::Array(ValueTypeArray {
                     value,
                     nullable: array_nullable,
                 }))
