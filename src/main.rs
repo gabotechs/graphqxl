@@ -7,14 +7,14 @@ use std::process::exit;
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    #[clap(short = 'i', long)]
+    #[clap()]
     input: String,
 
     #[clap(long)]
     indent_spaces: Option<usize>,
 
-    #[clap(long, takes_value = false)]
-    multiline: Option<bool>,
+    #[clap(short, long, action)]
+    multiline: bool,
 }
 
 fn main() {
@@ -32,7 +32,7 @@ fn main() {
                 spec,
                 SynthOptions {
                     indent_spaces: args.indent_spaces.unwrap_or(2),
-                    multiline: args.multiline.unwrap_or(false),
+                    multiline: args.multiline,
                 },
             );
             if let Err(err) = fs::write(&out_path, result) {

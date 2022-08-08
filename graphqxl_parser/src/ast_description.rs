@@ -4,7 +4,15 @@ use pest::iterators::{Pair, Pairs};
 
 pub(crate) fn parse_description(pair: Pair<Rule>) -> Result<String, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::description => Ok(pair.as_str().trim_matches('\"').trim().to_string()),
+        Rule::description => {
+            let mut result = "".to_string();
+            let trimmed = pair.as_str().trim_matches('\"');
+            for line in trimmed.split('\n') {
+                result += line.trim();
+                result += "\n";
+            }
+            Ok(result.trim().to_string())
+        }
         _unknown => Err(unknown_rule_error(pair, "description")),
     }
 }
@@ -52,7 +60,13 @@ mod tests {
     #[test]
     fn test_parses_multiline_description() {
         let description = parse_input("\"\"\" This is a \ndescription 123 \"\"\"").unwrap();
-        assert_eq!(description, "This is a \ndescription 123");
+        assert_eq!(description, "This is a\ndescription 123");
+    }
+
+    #[test]
+    fn test_parses_multiline_description_trimming_indent_spaces() {
+        let description = parse_input("\"\"\" This is a \n    description 123 \"\"\"").unwrap();
+        assert_eq!(description, "This is a\ndescription 123");
     }
 
     #[test]
