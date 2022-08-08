@@ -1,16 +1,16 @@
 spec = { SOI ~ def* ~ EOI }
 
 def = _{ type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
-type_def = { description? ~ "type" ~ identifier ~ type_selection_set }
+type_def = { description? ~ "type " ~ identifier ~ type_selection_set }
     type_selection_set = { "{" ~ field_with_args* ~ "}" }
-input_def = { description? ~"input" ~ identifier ~ input_selection_set }
+input_def = { description? ~ "input " ~ identifier ~ input_selection_set }
     input_selection_set = { "{" ~ field_without_args* ~ "}" }
-enum_def = { description? ~"enum" ~ identifier ~ enum_selection_set }
+enum_def = { description? ~ "enum " ~ identifier ~ enum_selection_set }
     enum_selection_set = { "{" ~ field_without_args_without_value* ~ "}" }
-interface_def = { description? ~"interface" ~ identifier ~ interface_selection_set }
+interface_def = { description? ~ "interface " ~ identifier ~ interface_selection_set }
     interface_selection_set = { "{" ~ field_with_args ~ "}" }
-scalar_def = { description? ~"scalar" ~ identifier }
-union_def = { description? ~"union" ~ identifier ~ "=" ~ identifier ~ ("|" ~ identifier )* }
+scalar_def = { description? ~ "scalar " ~ identifier }
+union_def = { description? ~ "union " ~ identifier ~ "=" ~ identifier ~ ("|" ~ identifier )* }
 directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
     directive_repeatable = @{ "repeatable" }
     directive_location = @{

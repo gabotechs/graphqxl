@@ -244,4 +244,9 @@ mod tests {
     fn do_not_parse_invalid_input_bad_initial_symbol() {
         parse_type_input("type_ MyType { field: String }").unwrap_err();
     }
+
+    #[test]
+    fn do_not_parse_invalid_input_type_and_name_without_space() {
+        parse_type_input("typeMyType { field: String }").unwrap_err();
+    }
 }
