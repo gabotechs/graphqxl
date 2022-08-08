@@ -10,3 +10,4 @@ mod utils;
 #[cfg(test)]
 mod test_utils;
 mod synth_block_def;
+mod synth_directive;
