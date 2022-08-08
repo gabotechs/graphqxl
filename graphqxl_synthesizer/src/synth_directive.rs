@@ -164,8 +164,7 @@ directive @dir(
 ) repeatable on 
   ENUM | 
   ARGUMENT_DEFINITION | 
-  INTERFACE
-"
+  INTERFACE"
         );
     }
 }

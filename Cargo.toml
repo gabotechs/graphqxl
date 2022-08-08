@@ -13,6 +13,7 @@ members = [
 ]
 
 [dependencies]
+clap = { version = "3.2.16", features = ["derive"] }
 graphqxl_parser = { path = "graphqxl_parser" }
 graphqxl_synthesizer = { path = "graphqxl_synthesizer" }
 

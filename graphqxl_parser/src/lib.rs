@@ -22,10 +22,12 @@ mod utils;
 pub use ast_arguments::*;
 pub use ast_block_def::*;
 pub use ast_block_field::*;
+use pest::Parser;
 // pub use ast_description::*;
 pub use ast_directive_def::*;
 pub use ast_directive_location::*;
 // pub use ast_identifier::*;
+use crate::parser::{GraphqlParser, Rule};
 pub use ast_scalar::*;
 pub use ast_spec::*;
 pub use ast_union::*;
@@ -33,3 +35,12 @@ pub use ast_value_basic_data::*;
 pub use ast_value_basic_type::*;
 pub use ast_value_data::*;
 pub use ast_value_type::*;
+
+pub fn parse_graphqxl(input: &str) -> Result<Spec, pest::error::Error<Rule>> {
+    let mut pairs = GraphqlParser::parse(Rule::spec, input)?;
+    if let Some(pair) = pairs.next() {
+        parse_spec(pair)
+    } else {
+        Ok(Spec::default())
+    }
+}

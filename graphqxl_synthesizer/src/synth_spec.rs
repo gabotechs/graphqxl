@@ -5,7 +5,7 @@ use crate::synth_union::UnionSynth;
 use crate::synths::{Synth, SynthContext};
 use graphqxl_parser::{DefType, Spec};
 
-pub(crate) struct SpecSynth(Spec);
+pub(crate) struct SpecSynth(pub(crate) Spec);
 
 impl Synth for SpecSynth {
     fn synth(&self, context: &SynthContext) -> String {
@@ -41,7 +41,7 @@ impl Synth for SpecSynth {
                     result += &DirectiveSynth(def).synth(context);
                 }
             }
-            result += "\n";
+            result += "\n\n";
         }
         result
     }

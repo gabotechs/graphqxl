@@ -2,7 +2,7 @@ type MyType {
     field(arg: String!): String
 }
 
-input MyInput {
+input sMyInput {
     field: String
 }
 

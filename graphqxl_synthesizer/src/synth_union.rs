@@ -84,8 +84,7 @@ union MyUnion = MyType1 | MyType2"
             "\
 union MyUnion = 
   MyType1 | 
-  MyType2
-"
+  MyType2"
         );
     }
 }

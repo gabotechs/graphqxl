@@ -29,7 +29,7 @@ impl<T: Synth> Synth for ListSynth<T> {
                 }
             }
         }
-        if context.multiline {
+        if context.multiline && !self.wrapper.1.is_empty() {
             result += "\n";
             result += &" ".repeat(context.indent_lvl * context.indent_spaces);
         }
