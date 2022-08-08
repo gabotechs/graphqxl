@@ -3,7 +3,7 @@ use crate::synth_description::DescriptionSynth;
 use crate::synths::{ListSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::{BlockDef, BlockDefType};
 
-pub(crate) struct BlockDefSynth(BlockDef);
+pub(crate) struct BlockDefSynth(pub(crate) BlockDef);
 
 impl Synth for BlockDefSynth {
     fn synth(&self, context: &SynthContext) -> String {

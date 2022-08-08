@@ -6,8 +6,10 @@ mod synth_union;
 mod synth_value_type;
 mod synths;
 mod utils;
+mod synth_block_def;
+mod synth_directive;
+mod synth_spec;
 
 #[cfg(test)]
 mod test_utils;
-mod synth_block_def;
-mod synth_directive;
+

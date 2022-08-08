@@ -7,15 +7,27 @@ use crate::{
 use pest::iterators::Pair;
 use std::collections::HashMap;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum DefType {
+    Type(String),
+    Input(String),
+    Enum(String),
+    Interface(String),
+    Scalar(String),
+    Union(String),
+    Directive(String)
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Spec {
-    types: HashMap<String, BlockDef>,
-    inputs: HashMap<String, BlockDef>,
-    enums: HashMap<String, BlockDef>,
-    interfaces: HashMap<String, BlockDef>,
-    scalars: HashMap<String, Scalar>,
-    unions: HashMap<String, Union>,
-    directives: HashMap<String, DirectiveDef>,
+    pub types: HashMap<String, BlockDef>,
+    pub inputs: HashMap<String, BlockDef>,
+    pub enums: HashMap<String, BlockDef>,
+    pub interfaces: HashMap<String, BlockDef>,
+    pub scalars: HashMap<String, Scalar>,
+    pub unions: HashMap<String, Union>,
+    pub directives: HashMap<String, DirectiveDef>,
+    pub order: Vec<DefType>
 }
 
 impl Spec {
@@ -31,7 +43,9 @@ impl Spec {
                 if self.types.contains_key(name) {
                     Err(already_defined_error(pair, "type", name))
                 } else {
-                    self.types.insert(name.to_string(), block_def);
+                    let name = name.to_string();
+                    self.types.insert(name.clone(), block_def);
+                    self.order.push(DefType::Type(name));
                     Ok(())
                 }
             }
@@ -41,7 +55,9 @@ impl Spec {
                 if self.inputs.contains_key(name) {
                     Err(already_defined_error(pair, "input", name))
                 } else {
-                    self.inputs.insert(name.to_string(), block_def);
+                    let name = name.to_string();
+                    self.inputs.insert(name.clone(), block_def);
+                    self.order.push(DefType::Input(name));
                     Ok(())
                 }
             }
@@ -51,7 +67,9 @@ impl Spec {
                 if self.enums.contains_key(name) {
                     Err(already_defined_error(pair, "enum", name))
                 } else {
-                    self.enums.insert(name.to_string(), block_def);
+                    let name = name.to_string();
+                    self.enums.insert(name.clone(), block_def);
+                    self.order.push(DefType::Enum(name));
                     Ok(())
                 }
             }
@@ -61,7 +79,9 @@ impl Spec {
                 if self.interfaces.contains_key(name) {
                     Err(already_defined_error(pair, "interface", name))
                 } else {
-                    self.interfaces.insert(name.to_string(), block_def);
+                    let name = name.to_string();
+                    self.interfaces.insert(name.clone(), block_def);
+                    self.order.push(DefType::Interface(name));
                     Ok(())
                 }
             }
@@ -71,7 +91,9 @@ impl Spec {
                 if self.scalars.contains_key(name) {
                     Err(already_defined_error(pair, "scalar", name))
                 } else {
-                    self.scalars.insert(name.to_string(), scalar);
+                    let name = name.to_string();
+                    self.scalars.insert(name.clone(), scalar);
+                    self.order.push(DefType::Scalar(name));
                     Ok(())
                 }
             }
@@ -81,7 +103,9 @@ impl Spec {
                 if self.unions.contains_key(name) {
                     Err(already_defined_error(pair, "union", name))
                 } else {
-                    self.unions.insert(name.to_string(), union);
+                    let name = name.to_string();
+                    self.unions.insert(name.clone(), union);
+                    self.order.push(DefType::Union(name));
                     Ok(())
                 }
             }
@@ -91,7 +115,9 @@ impl Spec {
                 if self.directives.contains_key(name) {
                     Err(already_defined_error(pair, "directive", name))
                 } else {
-                    self.directives.insert(name.to_string(), directive);
+                    let name = name.to_string();
+                    self.directives.insert(name.clone(), directive);
+                    self.order.push(DefType::Directive(name));
                     Ok(())
                 }
             }

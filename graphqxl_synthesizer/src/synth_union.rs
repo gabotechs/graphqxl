@@ -2,7 +2,7 @@ use crate::synth_description::DescriptionSynth;
 use crate::synths::{ListSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::Union;
 
-pub(crate) struct UnionSynth(Union);
+pub(crate) struct UnionSynth(pub(crate) Union);
 
 impl Synth for UnionSynth {
     fn synth(&self, context: &SynthContext) -> String {
