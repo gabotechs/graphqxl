@@ -19,10 +19,10 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
-    let out_path = if args.input.ends_with("graphql") {
-        args.input[..args.input.len() - "l".len()].to_string() + "xl"
+    let out_path = if args.input.ends_with("graphqxl") {
+        args.input[..args.input.len() - 2].to_string() + "l"
     } else {
-        args.input.to_string() + ".graphxl"
+        args.input.to_string() + ".graphql"
     };
     let content_or_err = fs::read_to_string(&args.input);
     if let Ok(content) = content_or_err {

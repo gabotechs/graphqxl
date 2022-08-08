@@ -15,7 +15,7 @@ pub enum DefType {
     Interface(String),
     Scalar(String),
     Union(String),
-    Directive(String)
+    Directive(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -27,7 +27,7 @@ pub struct Spec {
     pub scalars: HashMap<String, Scalar>,
     pub unions: HashMap<String, Union>,
     pub directives: HashMap<String, DirectiveDef>,
-    pub order: Vec<DefType>
+    pub order: Vec<DefType>,
 }
 
 impl Spec {
@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn test_parses_spec_1() {
-        let content = fs::read_to_string("test_graphqxl_files/1.graphql").unwrap();
+        let content = fs::read_to_string("test_graphqxl_files/1.graphqxl").unwrap();
         let spec_or_err = parse_input(content.as_str());
         if let Err(err) = spec_or_err {
             panic!("Error parsing file: {:?}", err)
