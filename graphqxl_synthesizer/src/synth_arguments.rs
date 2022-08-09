@@ -13,7 +13,7 @@ impl Synth for ArgumentsSynth {
                 .map(|argument| {
                     PairSynth::inline(
                         StringSynth(argument.name.clone() + ":"),
-                        ValueTypeSynth(argument.value.clone()),
+                        ValueTypeSynth(argument.value_type.clone()),
                     )
                     // todo: missing default
                 })
@@ -28,31 +28,22 @@ impl Synth for ArgumentsSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::simple_string_arg_factory;
 
     #[test]
     fn test_one_argument() {
-        let synth = ArgumentsSynth(vec![simple_string_arg_factory("arg")]);
-
+        let synth = ArgumentsSynth(vec![Argument::string("arg")]);
         assert_eq!(synth.synth_zero(), "(arg: String)")
     }
 
     #[test]
     fn test_two_argument() {
-        let synth = ArgumentsSynth(vec![
-            simple_string_arg_factory("arg1"),
-            simple_string_arg_factory("arg2"),
-        ]);
-
+        let synth = ArgumentsSynth(vec![Argument::string("arg1"), Argument::string("arg2")]);
         assert_eq!(synth.synth_zero(), "(arg1: String arg2: String)")
     }
 
     #[test]
     fn test_one_argument_indent() {
-        let synth = ArgumentsSynth(vec![
-            simple_string_arg_factory("arg"),
-            simple_string_arg_factory("arg2"),
-        ]);
+        let synth = ArgumentsSynth(vec![Argument::string("arg"), Argument::string("arg2")]);
 
         assert_eq!(
             synth.synth(&SynthContext {

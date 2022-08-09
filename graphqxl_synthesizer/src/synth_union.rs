@@ -32,31 +32,24 @@ mod tests {
 
     #[test]
     fn test_one_type() {
-        let synth = UnionSynth(Union {
-            name: "MyUnion".to_string(),
-            description: "".to_string(),
-            types: vec!["MyType".to_string()],
-        });
+        let synth = UnionSynth(Union::build("MyUnion").type_("MyType"));
         assert_eq!(synth.synth_zero(), "union MyUnion = MyType");
     }
 
     #[test]
     fn test_multiple() {
-        let synth = UnionSynth(Union {
-            name: "MyUnion".to_string(),
-            description: "".to_string(),
-            types: vec!["MyType1".to_string(), "MyType2".to_string()],
-        });
+        let synth = UnionSynth(Union::build("MyUnion").type_("MyType1").type_("MyType2"));
         assert_eq!(synth.synth_zero(), "union MyUnion = MyType1 | MyType2");
     }
 
     #[test]
     fn test_with_comment() {
-        let synth = UnionSynth(Union {
-            name: "MyUnion".to_string(),
-            description: "my description...\n..that takes two lines".to_string(),
-            types: vec!["MyType1".to_string(), "MyType2".to_string()],
-        });
+        let synth = UnionSynth(
+            Union::build("MyUnion")
+                .description("my description...\n..that takes two lines")
+                .type_("MyType1")
+                .type_("MyType2"),
+        );
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -70,11 +63,7 @@ union MyUnion = MyType1 | MyType2"
 
     #[test]
     fn test_indented() {
-        let synth = UnionSynth(Union {
-            name: "MyUnion".to_string(),
-            description: "".to_string(),
-            types: vec!["MyType1".to_string(), "MyType2".to_string()],
-        });
+        let synth = UnionSynth(Union::build("MyUnion").type_("MyType1").type_("MyType2"));
         assert_eq!(
             synth.synth(&SynthContext {
                 multiline: true,

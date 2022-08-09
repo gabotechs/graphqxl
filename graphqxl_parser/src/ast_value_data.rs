@@ -12,6 +12,50 @@ pub enum ValueData {
     Object(HashMap<String, ValueData>),
 }
 
+impl ValueData {
+    pub fn build(data: ValueBasicData) -> Self {
+        ValueData::Basic(data)
+    }
+
+    pub fn int(int: i64) -> Self {
+        Self::build(ValueBasicData::Int(int))
+    }
+
+    pub fn float(float: f64) -> Self {
+        Self::build(ValueBasicData::Float(float))
+    }
+
+    pub fn string(string: &str) -> Self {
+        Self::build(ValueBasicData::String(string.to_string()))
+    }
+
+    pub fn boolean(boolean: bool) -> Self {
+        Self::build(ValueBasicData::Boolean(boolean))
+    }
+
+    pub fn list(&mut self) -> Self {
+        ValueData::List(vec![self.clone()])
+    }
+
+    pub fn to_object(&self, name: &str) -> Self {
+        ValueData::Object(HashMap::from([(name.to_string(), self.clone())]))
+    }
+
+    pub fn push(&mut self, other: Self) -> Self {
+        if let ValueData::List(data) = self {
+            data.push(other);
+        }
+        self.clone()
+    }
+
+    pub fn insert(&mut self, key: &str, other: Self) -> Self {
+        if let ValueData::Object(data) = self {
+            data.insert(key.to_string(), other);
+        }
+        self.clone()
+    }
+}
+
 pub(crate) fn parse_value_data(pair: Pair<Rule>) -> Result<ValueData, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::value_data => parse_value_data(pair.into_inner().next().unwrap()),
@@ -49,64 +93,39 @@ mod tests {
 
     #[test]
     fn test_simple() {
-        let value = parse_input("1.0").unwrap();
-        assert_eq!(value, ValueData::Basic(ValueBasicData::Float(1.0)))
+        assert_eq!(parse_input("1.0"), Ok(ValueData::float(1.0)));
     }
 
     #[test]
     fn test_list() {
-        let value = parse_input("[1, 2]").unwrap();
         assert_eq!(
-            value,
-            ValueData::List(vec![
-                ValueData::Basic(ValueBasicData::Int(1)),
-                ValueData::Basic(ValueBasicData::Int(2))
-            ])
-        )
+            parse_input("[1, 2]"),
+            Ok(ValueData::int(1).list().push(ValueData::int(2)))
+        );
     }
 
     #[test]
     fn test_object() {
-        let value = parse_input("{ a: 1, b: 2.0, c: \"\", d: false}").unwrap();
         assert_eq!(
-            value,
-            ValueData::Object(HashMap::from([
-                ("a".to_string(), ValueData::Basic(ValueBasicData::Int(1))),
-                (
-                    "b".to_string(),
-                    ValueData::Basic(ValueBasicData::Float(2.0))
-                ),
-                (
-                    "c".to_string(),
-                    ValueData::Basic(ValueBasicData::String("".into()))
-                ),
-                (
-                    "d".to_string(),
-                    ValueData::Basic(ValueBasicData::Boolean(false))
-                ),
-            ]))
-        )
+            parse_input("{ a: 1, b: 2.0, c: \"\", d: false}"),
+            Ok(ValueData::int(1)
+                .to_object("a")
+                .insert("b", ValueData::float(2.0))
+                .insert("c", ValueData::string(""))
+                .insert("d", ValueData::boolean(false)))
+        );
     }
 
     #[test]
     fn test_nested_object() {
-        let value = parse_input("{ a: { b: { c: { d: true }} } }").unwrap();
         assert_eq!(
-            value,
-            ValueData::Object(HashMap::from([(
-                "a".to_string(),
-                ValueData::Object(HashMap::from([(
-                    "b".to_string(),
-                    ValueData::Object(HashMap::from([(
-                        "c".to_string(),
-                        ValueData::Object(HashMap::from([(
-                            "d".to_string(),
-                            ValueData::Basic(ValueBasicData::Boolean(true))
-                        )]))
-                    )]))
-                )]))
-            )]))
-        )
+            parse_input("{ a: { b: { c: { d: true }} } }"),
+            Ok(ValueData::boolean(true)
+                .to_object("d")
+                .to_object("c")
+                .to_object("b")
+                .to_object("a"))
+        );
     }
 
     #[test]
@@ -116,19 +135,12 @@ mod tests {
 
     #[test]
     fn test_nested_list() {
-        let value = parse_input("[[[1, 2]], [[3, 4]]]").unwrap();
+        let mut one_two = ValueData::int(1).list().push(ValueData::int(2));
+        let mut three_four = ValueData::int(3).list().push(ValueData::int(4));
+
         assert_eq!(
-            value,
-            ValueData::List(vec![
-                ValueData::List(vec![ValueData::List(vec![
-                    ValueData::Basic(ValueBasicData::Int(1)),
-                    ValueData::Basic(ValueBasicData::Int(2))
-                ])]),
-                ValueData::List(vec![ValueData::List(vec![
-                    ValueData::Basic(ValueBasicData::Int(3)),
-                    ValueData::Basic(ValueBasicData::Int(4))
-                ])])
-            ])
-        )
+            parse_input("[[[1, 2]], [[3, 4]]]"),
+            Ok(one_two.list().list().push(three_four.list()))
+        );
     }
 }

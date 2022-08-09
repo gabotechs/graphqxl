@@ -10,8 +10,49 @@ use pest::iterators::Pair;
 pub struct Argument {
     pub name: String,
     pub description: String,
-    pub value: ValueType,
+    pub value_type: ValueType,
     pub default: Option<ValueData>,
+}
+
+impl Argument {
+    pub fn build(name: &str, t: ValueType) -> Self {
+        Self {
+            name: name.to_string(),
+            description: "".to_string(),
+            value_type: t,
+            default: None,
+        }
+    }
+
+    pub fn int(name: &str) -> Self {
+        Self::build(name, ValueType::int())
+    }
+
+    pub fn float(name: &str) -> Self {
+        Self::build(name, ValueType::float())
+    }
+
+    pub fn string(name: &str) -> Self {
+        Self::build(name, ValueType::string())
+    }
+
+    pub fn boolean(name: &str) -> Self {
+        Self::build(name, ValueType::boolean())
+    }
+
+    pub fn object(name: &str, object_name: &str) -> Self {
+        Self::build(name, ValueType::object(object_name))
+    }
+
+    pub fn description(&mut self, description: &str) -> Self {
+        self.description = description.to_string();
+        self.clone()
+    }
+
+    pub fn default(&mut self, value_data: ValueData) -> Self {
+        self.default = Some(value_data);
+        self.clone()
+    }
 }
 
 fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>> {
@@ -24,8 +65,7 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
             let name = parse_identifier(next)?;
             let value = parse_value_type(childs.next().unwrap())?;
             let mut default = None;
-            let maybe_default = childs.next();
-            if let Some(pair) = maybe_default {
+            if let Some(pair) = childs.next() {
                 if let Rule::value_data = pair.as_rule() {
                     default = Some(parse_value_data(pair)?)
                 }
@@ -33,7 +73,7 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
             Ok(Argument {
                 name,
                 description,
-                value,
+                value_type: value,
                 default,
             })
         }
@@ -57,11 +97,7 @@ pub(crate) fn parse_arguments(pair: Pair<Rule>) -> Result<Vec<Argument>, pest::e
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast_value_basic_data::ValueBasicData;
-    use crate::ast_value_basic_type::ValueBasicType;
-    use crate::ast_value_type::ValueTypeSimple;
     use crate::utils::parse_full_input;
-    use crate::ValueTypeArray;
 
     fn parse_input(input: &str) -> Result<Vec<Argument>, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::arguments, parse_arguments)
@@ -69,75 +105,39 @@ mod tests {
 
     #[test]
     fn test_accepts_description() {
-        let arguments = parse_input("(\"\"\" my description \"\"\"arg: String)").unwrap();
-        assert_eq!(arguments.get(0).unwrap().description, "my description")
+        assert_eq!(
+            parse_input("(\"\"\" my description \"\"\"arg: String)"),
+            Ok(vec![Argument::string("arg").description("my description")])
+        );
     }
 
     #[test]
     fn test_one_argument_is_parsed_correctly() {
-        let args = parse_input("(arg1: String)").unwrap();
         assert_eq!(
-            args,
-            vec![Argument {
-                name: "arg1".to_string(),
-                description: "".to_string(),
-                value: ValueType::Simple(ValueTypeSimple {
-                    content: ValueBasicType::String,
-                    nullable: true
-                }),
-                default: None
-            }]
-        )
+            parse_input("(arg1: String)"),
+            Ok(vec![Argument::string("arg1")])
+        );
     }
 
     #[test]
     fn test_multiple_arguments_are_parsed_correctly() {
-        let args = parse_input("(arg1: String! arg2: [Boolean]!)").unwrap();
         assert_eq!(
-            args,
-            vec![
-                Argument {
-                    name: "arg1".to_string(),
-                    description: "".to_string(),
-                    value: ValueType::Simple(ValueTypeSimple {
-                        content: ValueBasicType::String,
-                        nullable: false
-                    }),
-                    default: None
-                },
-                Argument {
-                    name: "arg2".to_string(),
-                    description: "".to_string(),
-                    value: ValueType::Array(ValueTypeArray {
-                        value: ValueTypeSimple {
-                            content: ValueBasicType::Boolean,
-                            nullable: true
-                        },
-                        nullable: false
-                    }),
-                    default: None
-                }
-            ]
-        )
+            parse_input("(arg1: String! arg2: [Boolean]!)"),
+            Ok(vec![
+                Argument::build("arg1", ValueType::string().non_nullable()),
+                Argument::build("arg2", ValueType::boolean().array().non_nullable())
+            ])
+        );
     }
 
     #[test]
     fn test_default_value_for_argument_works() {
-        let args = parse_input("(arg: String = \"default\")").unwrap();
         assert_eq!(
-            args,
-            vec![Argument {
-                name: "arg".to_string(),
-                description: "".to_string(),
-                value: ValueType::Simple(ValueTypeSimple {
-                    content: ValueBasicType::String,
-                    nullable: true
-                }),
-                default: Some(ValueData::Basic(ValueBasicData::String(
-                    "default".to_string()
-                )))
-            }]
-        )
+            parse_input("(arg: String = \"default\")"),
+            Ok(vec![
+                Argument::string("arg").default(ValueData::string("default"))
+            ])
+        );
     }
 
     #[test]

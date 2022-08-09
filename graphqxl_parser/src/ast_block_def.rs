@@ -23,6 +23,43 @@ pub struct BlockDef {
     pub fields: Vec<BlockField>,
 }
 
+impl BlockDef {
+    fn build(name: &str, kind: BlockDefType) -> Self {
+        Self {
+            name: name.to_string(),
+            description: "".to_string(),
+            kind,
+            fields: Vec::new(),
+        }
+    }
+
+    pub fn type_(name: &str) -> Self {
+        Self::build(name, BlockDefType::Type)
+    }
+
+    pub fn input(name: &str) -> Self {
+        Self::build(name, BlockDefType::Input)
+    }
+
+    pub fn enum_(name: &str) -> Self {
+        Self::build(name, BlockDefType::Enum)
+    }
+
+    pub fn interface(name: &str) -> Self {
+        Self::build(name, BlockDefType::Interface)
+    }
+
+    pub fn description(&mut self, description: &str) -> Self {
+        self.description = description.to_string();
+        self.clone()
+    }
+
+    pub fn field(&mut self, field: BlockField) -> Self {
+        self.fields.push(field);
+        self.clone()
+    }
+}
+
 fn _parse_type_or_input(
     mut pairs: Pairs<Rule>,
     kind: BlockDefType,
@@ -70,183 +107,171 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_type_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::type_def, parse_block_def)
-    }
-
-    fn parse_input_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::input_def, parse_block_def)
-    }
-
-    fn parse_interface_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::interface_def, parse_block_def)
-    }
-
-    fn parse_enum_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::enum_def, parse_block_def)
+    fn parse_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
+        let rule = if input.contains("input ") {
+            Rule::input_def
+        } else if input.contains("type ") {
+            Rule::type_def
+        } else if input.contains("enum ") {
+            Rule::enum_def
+        } else if input.contains("interface ") {
+            Rule::interface_def
+        } else {
+            Rule::type_def
+        };
+        parse_full_input(input, rule, parse_block_def)
     }
 
     #[test]
     fn test_type_def_accepts_field_args() {
-        parse_type_input("type MyType { field(arg1: String!): Boolean }").unwrap();
+        parse_input("type MyType { field(arg1: String!): Boolean }").unwrap();
     }
 
     #[test]
     fn test_interface_def_accepts_field_args() {
-        parse_interface_input("interface MyType { field(arg1: String!): Boolean }").unwrap();
+        parse_input("interface MyType { field(arg1: String!): Boolean }").unwrap();
     }
 
     #[test]
     fn test_input_def_do_not_accept_field_args() {
-        parse_input_input("type MyType { field(arg1: String!): Boolean }").unwrap_err();
+        parse_input("input MyInput { field(arg1: String!): Boolean }").unwrap_err();
     }
 
     #[test]
     fn test_enum_def_do_not_accept_values() {
-        parse_enum_input("enum MyType { field: Boolean }").unwrap_err();
+        parse_input("enum MyType { field: Boolean }").unwrap_err();
     }
 
     #[test]
     fn test_type_description_works() {
-        let block =
-            parse_type_input("\"\"\" my description \"\"\"type MyType { arg: String }").unwrap();
-        assert_eq!(block.description, "my description")
+        assert_eq!(
+            parse_input("\"\"\" my description \"\"\"type MyType { arg: String }"),
+            Ok(BlockDef::type_("MyType")
+                .description("my description")
+                .field(BlockField::build("arg").string()))
+        );
     }
 
     #[test]
     fn test_input_description_works() {
-        let block =
-            parse_input_input("\"\"\" my description \"\"\"input MyInput { arg: String }").unwrap();
-        assert_eq!(block.description, "my description")
+        assert_eq!(
+            parse_input("\"\"\" my description \"\"\"input MyInput { arg: String }"),
+            Ok(BlockDef::input("MyInput")
+                .description("my description")
+                .field(BlockField::build("arg").string()))
+        );
     }
 
     #[test]
     fn test_enum_description_works() {
-        let block = parse_enum_input("\"\"\" my description \"\"\"enum MyEnum { arg }").unwrap();
-        assert_eq!(block.description, "my description")
+        assert_eq!(
+            parse_input("\"\"\" my description \"\"\"enum MyEnum { arg }"),
+            Ok(BlockDef::enum_("MyEnum")
+                .description("my description")
+                .field(BlockField::build("arg")))
+        );
     }
 
     #[test]
     fn test_interface_description_works() {
-        let block = parse_interface_input(
-            "\"\"\" my description \"\"\"interface MyInterface { arg: String }",
-        )
-        .unwrap();
-        assert_eq!(block.description, "my description")
+        assert_eq!(
+            parse_input("\"\"\" my description \"\"\"interface MyInterface { arg: String }"),
+            Ok(BlockDef::interface("MyInterface")
+                .description("my description")
+                .field(BlockField::build("arg").string()))
+        );
     }
 
     #[test]
     fn parses_empty_type() {
-        let t = parse_type_input("type MyType { }").unwrap();
-        assert_eq!(t.name, "MyType");
-        assert_eq!(t.kind, BlockDefType::Type);
-        assert_eq!(t.fields.len(), 0);
+        assert_eq!(
+            parse_input("type MyType { }"),
+            Ok(BlockDef::type_("MyType"))
+        );
     }
 
     #[test]
     fn parses_empty_input() {
-        let t = parse_input_input("input MyInput { }").unwrap();
-        assert_eq!(t.name, "MyInput");
-        assert_eq!(t.kind, BlockDefType::Input);
-        assert_eq!(t.fields.len(), 0);
+        assert_eq!(
+            parse_input("input MyInput { }"),
+            Ok(BlockDef::input("MyInput"))
+        );
     }
 
     #[test]
     fn parses_empty_enum() {
-        let t = parse_enum_input("enum MyEnum { }").unwrap();
-        assert_eq!(t.name, "MyEnum");
-        assert_eq!(t.kind, BlockDefType::Enum);
-        assert_eq!(t.fields.len(), 0);
+        assert_eq!(
+            parse_input("enum MyEnum { }"),
+            Ok(BlockDef::enum_("MyEnum"))
+        );
     }
 
     #[test]
     fn parses_filled_with_spaces_type() {
-        let t = parse_type_input("type MyType { field: String }").unwrap();
-        assert_eq!(t.name, "MyType");
-        assert_eq!(t.kind, BlockDefType::Type);
-        assert_eq!(t.fields.len(), 1);
-        assert_ne!(t.fields.get(0), None);
+        assert_eq!(
+            parse_input("type MyType { field: String }"),
+            Ok(BlockDef::type_("MyType").field(BlockField::build("field").string()))
+        );
     }
 
     #[test]
     fn parses_filled_with_line_jumps_type() {
-        let t = parse_type_input("type MyType { \nfield: String\n }").unwrap();
-        assert_eq!(t.name, "MyType");
-        assert_eq!(t.kind, BlockDefType::Type);
-        assert_eq!(t.fields.len(), 1);
-        assert_ne!(t.fields.get(0), None);
+        assert_eq!(
+            parse_input("type MyType { \nfield: String\n }"),
+            Ok(BlockDef::type_("MyType").field(BlockField::build("field").string()))
+        );
     }
 
     #[test]
     fn test_parses_enum() {
-        let enum_def = parse_enum_input("enum MyEnum { Field }").unwrap();
-        assert_eq!(enum_def.name, "MyEnum");
         assert_eq!(
-            enum_def.fields,
-            vec![BlockField {
-                name: "Field".to_string(),
-                description: "".to_string(),
-                value: None,
-                args: Vec::new()
-            }]
+            parse_input("enum MyEnum { Field }"),
+            Ok(BlockDef::enum_("MyEnum").field(BlockField::build("Field")))
         );
     }
 
     #[test]
     fn test_parses_enum_multiple_fields() {
-        let enum_def = parse_enum_input("enum MyEnum { Field1\n field2 }").unwrap();
-        assert_eq!(enum_def.name, "MyEnum");
         assert_eq!(
-            enum_def.fields,
-            vec![
-                BlockField {
-                    name: "Field1".to_string(),
-                    description: "".to_string(),
-                    value: None,
-                    args: Vec::new()
-                },
-                BlockField {
-                    name: "field2".to_string(),
-                    description: "".to_string(),
-                    value: None,
-                    args: Vec::new()
-                }
-            ]
+            parse_input("enum MyEnum { Field1\n field2 }"),
+            Ok(BlockDef::enum_("MyEnum")
+                .field(BlockField::build("Field1"))
+                .field(BlockField::build("field2")))
         );
     }
 
     #[test]
     fn test_incorrect_input_no_different_field_types() {
-        parse_enum_input("enum MyEnum { Field1: String Field2 }").unwrap_err();
+        parse_input("enum MyEnum { Field1: String Field2 }").unwrap_err();
     }
 
     #[test]
     fn test_incorrect_input_no_last_close_keys() {
-        parse_enum_input("enum MyEnum { Field1 Field2 ").unwrap_err();
+        parse_input("enum MyEnum { Field1 Field2 ").unwrap_err();
     }
 
     #[test]
     fn do_not_parse_invalid_input_bad_type() {
-        parse_type_input("type MyType { field: String- }").unwrap_err();
+        parse_input("type MyType { field: String- }").unwrap_err();
     }
 
     #[test]
     fn do_not_parse_invalid_input_bad_field() {
-        parse_type_input("type MyType { fi'eld: String }").unwrap_err();
+        parse_input("type MyType { fi'eld: String }").unwrap_err();
     }
 
     #[test]
     fn do_not_parse_invalid_input_bad_type_identifier() {
-        parse_type_input("type MyT-ype { field: String }").unwrap_err();
+        parse_input("type MyT-ype { field: String }").unwrap_err();
     }
 
     #[test]
     fn do_not_parse_invalid_input_bad_initial_symbol() {
-        parse_type_input("type_ MyType { field: String }").unwrap_err();
+        parse_input("type_ MyType { field: String }").unwrap_err();
     }
 
     #[test]
     fn do_not_parse_invalid_input_type_and_name_without_space() {
-        parse_type_input("typeMyType { field: String }").unwrap_err();
+        parse_input("typeMyType { field: String }").unwrap_err();
     }
 }

@@ -8,7 +8,7 @@ impl Synth for ValueTypeSynth {
         match &self.0 {
             ValueType::Simple(simple) => {
                 let suffix = if !simple.nullable { "!" } else { "" };
-                match &simple.content {
+                match &simple.value_type {
                     ValueBasicType::Int => "Int".to_string() + suffix,
                     ValueBasicType::Float => "Float".to_string() + suffix,
                     ValueBasicType::String => "String".to_string() + suffix,
@@ -20,7 +20,7 @@ impl Synth for ValueTypeSynth {
                 let suffix = if !array.nullable { "!" } else { "" };
                 format!(
                     "[{}]{}",
-                    ValueTypeSynth(ValueType::Simple(array.value.clone())).synth_zero(),
+                    ValueTypeSynth(ValueType::Simple(array.value_type.clone())).synth_zero(),
                     suffix
                 )
             }
@@ -36,7 +36,7 @@ mod tests {
     #[test]
     fn test_nullable_int() {
         let synth = ValueTypeSynth(ValueType::Simple(ValueTypeSimple {
-            content: ValueBasicType::Int,
+            value_type: ValueBasicType::Int,
             nullable: true,
         }));
         assert_eq!(synth.synth_zero(), "Int");
@@ -45,7 +45,7 @@ mod tests {
     #[test]
     fn test_non_nullable_int() {
         let synth = ValueTypeSynth(ValueType::Simple(ValueTypeSimple {
-            content: ValueBasicType::Int,
+            value_type: ValueBasicType::Int,
             nullable: false,
         }));
         assert_eq!(synth.synth_zero(), "Int!");
@@ -54,8 +54,8 @@ mod tests {
     #[test]
     fn test_array_int() {
         let synth = ValueTypeSynth(ValueType::Array(ValueTypeArray {
-            value: ValueTypeSimple {
-                content: ValueBasicType::Int,
+            value_type: ValueTypeSimple {
+                value_type: ValueBasicType::Int,
                 nullable: true,
             },
             nullable: true,
@@ -66,8 +66,8 @@ mod tests {
     #[test]
     fn test_non_nullable_array_nullable_int() {
         let synth = ValueTypeSynth(ValueType::Array(ValueTypeArray {
-            value: ValueTypeSimple {
-                content: ValueBasicType::Int,
+            value_type: ValueTypeSimple {
+                value_type: ValueBasicType::Int,
                 nullable: true,
             },
             nullable: false,
@@ -78,8 +78,8 @@ mod tests {
     #[test]
     fn test_non_nullable_array_non_nullable_int() {
         let synth = ValueTypeSynth(ValueType::Array(ValueTypeArray {
-            value: ValueTypeSimple {
-                content: ValueBasicType::Int,
+            value_type: ValueTypeSimple {
+                value_type: ValueBasicType::Int,
                 nullable: false,
             },
             nullable: false,
@@ -90,8 +90,8 @@ mod tests {
     #[test]
     fn test_non_nullable_array_non_nullable_string() {
         let synth = ValueTypeSynth(ValueType::Array(ValueTypeArray {
-            value: ValueTypeSimple {
-                content: ValueBasicType::String,
+            value_type: ValueTypeSimple {
+                value_type: ValueBasicType::String,
                 nullable: false,
             },
             nullable: false,
@@ -102,8 +102,8 @@ mod tests {
     #[test]
     fn test_non_nullable_array_non_nullable_object() {
         let synth = ValueTypeSynth(ValueType::Array(ValueTypeArray {
-            value: ValueTypeSimple {
-                content: ValueBasicType::Object("MyObject".to_string()),
+            value_type: ValueTypeSimple {
+                value_type: ValueBasicType::Object("MyObject".to_string()),
                 nullable: false,
             },
             nullable: false,

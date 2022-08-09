@@ -20,19 +20,13 @@ mod tests {
 
     #[test]
     fn test_scalar_without_description() {
-        let synth = ScalarSynth(Scalar {
-            name: "MyScalar".to_string(),
-            description: "".to_string(),
-        });
+        let synth = ScalarSynth(Scalar::build("MyScalar"));
         assert_eq!(synth.synth_zero(), "scalar MyScalar")
     }
 
     #[test]
     fn test_scalar_with_description() {
-        let synth = ScalarSynth(Scalar {
-            name: "MyScalar".to_string(),
-            description: "my description".to_string(),
-        });
+        let synth = ScalarSynth(Scalar::build("MyScalar").description("my description"));
         assert_eq!(synth.synth_zero(), "\"my description\"\nscalar MyScalar")
     }
 }

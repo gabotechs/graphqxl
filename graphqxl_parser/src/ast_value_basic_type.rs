@@ -65,20 +65,18 @@ mod tests {
 
     #[test]
     fn test_object_1() {
-        if let ValueBasicType::Object(val) = parse_input("IntMyType").unwrap() {
-            assert_eq!(val, "IntMyType")
-        } else {
-            panic!("not an object")
-        }
+        assert_eq!(
+            parse_input("IntMyType"),
+            Ok(ValueBasicType::Object("IntMyType".to_string()))
+        );
     }
 
     #[test]
     fn test_object_2() {
-        if let ValueBasicType::Object(val) = parse_input("MyType").unwrap() {
-            assert_eq!(val, "MyType")
-        } else {
-            panic!("not an object")
-        }
+        assert_eq!(
+            parse_input("MyType"),
+            Ok(ValueBasicType::Object("MyType".to_string()))
+        );
     }
 
     #[test]

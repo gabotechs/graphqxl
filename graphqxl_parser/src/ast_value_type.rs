@@ -5,13 +5,13 @@ use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValueTypeSimple {
-    pub content: ValueBasicType,
+    pub value_type: ValueBasicType,
     pub nullable: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValueTypeArray {
-    pub value: ValueTypeSimple,
+    pub value_type: ValueTypeSimple,
     pub nullable: bool,
 }
 
@@ -19,6 +19,54 @@ pub struct ValueTypeArray {
 pub enum ValueType {
     Simple(ValueTypeSimple),
     Array(ValueTypeArray),
+}
+
+impl ValueType {
+    pub fn build(t: ValueBasicType) -> Self {
+        Self::Simple(ValueTypeSimple {
+            value_type: t,
+            nullable: true,
+        })
+    }
+
+    pub fn int() -> Self {
+        Self::build(ValueBasicType::Int)
+    }
+
+    pub fn float() -> Self {
+        Self::build(ValueBasicType::Float)
+    }
+
+    pub fn string() -> Self {
+        Self::build(ValueBasicType::String)
+    }
+
+    pub fn boolean() -> Self {
+        Self::build(ValueBasicType::Boolean)
+    }
+
+    pub fn object(name: &str) -> Self {
+        Self::build(ValueBasicType::Object(name.to_string()))
+    }
+
+    pub fn non_nullable(&mut self) -> Self {
+        match self {
+            ValueType::Simple(simple) => simple.nullable = false,
+            ValueType::Array(array) => array.nullable = false,
+        }
+        self.clone()
+    }
+
+    pub fn array(&mut self) -> Self {
+        if let ValueType::Simple(simple) = self {
+            ValueType::Array(ValueTypeArray {
+                value_type: simple.clone(),
+                nullable: true,
+            })
+        } else {
+            self.clone()
+        }
+    }
 }
 
 fn _parse_value_type(
@@ -31,10 +79,13 @@ fn _parse_value_type(
         Rule::value_nullable => {
             let inner = pair.into_inner().next().unwrap();
             let content = parse_value_basic_type(inner).unwrap();
-            let value = ValueTypeSimple { content, nullable };
+            let value = ValueTypeSimple {
+                value_type: content,
+                nullable,
+            };
             if array {
                 Ok(ValueType::Array(ValueTypeArray {
-                    value,
+                    value_type: value,
                     nullable: array_nullable,
                 }))
             } else {
@@ -81,65 +132,40 @@ mod tests {
 
     #[test]
     fn test_simple_nullable() {
-        if let ValueType::Simple(val) = parse_input("Int").unwrap() {
-            assert_eq!(val.content, ValueBasicType::Int);
-            assert!(val.nullable);
-        } else {
-            panic!("should have been a simple value")
-        }
+        assert_eq!(parse_input("Int"), Ok(ValueType::int()))
     }
 
     #[test]
     fn test_simple_non_nullable() {
-        if let ValueType::Simple(val) = parse_input("Int!").unwrap() {
-            assert_eq!(val.content, ValueBasicType::Int);
-            assert!(!val.nullable);
-        } else {
-            panic!("should have been a simple value")
-        }
+        assert_eq!(parse_input("Int!"), Ok(ValueType::int().non_nullable()));
     }
 
     #[test]
     fn test_array_nullable() {
-        if let ValueType::Array(val) = parse_input("[Int]").unwrap() {
-            assert_eq!(val.value.content, ValueBasicType::Int);
-            assert!(val.value.nullable);
-            assert!(val.nullable);
-        } else {
-            panic!("should have been an array value")
-        }
+        assert_eq!(parse_input("[Int]"), Ok(ValueType::int().array()));
     }
 
     #[test]
     fn test_array_non_nullable() {
-        if let ValueType::Array(val) = parse_input("[Int]!").unwrap() {
-            assert_eq!(val.value.content, ValueBasicType::Int);
-            assert!(val.value.nullable);
-            assert!(!val.nullable);
-        } else {
-            panic!("should have been an array value")
-        }
+        assert_eq!(
+            parse_input("[Int]!"),
+            Ok(ValueType::int().array().non_nullable())
+        );
     }
 
     #[test]
     fn test_array_nullable_inner_value_non_nullable() {
-        if let ValueType::Array(val) = parse_input("[Int!]").unwrap() {
-            assert_eq!(val.value.content, ValueBasicType::Int);
-            assert!(!val.value.nullable);
-            assert!(val.nullable);
-        } else {
-            panic!("should have been an array value")
-        }
+        assert_eq!(
+            parse_input("[Int!]"),
+            Ok(ValueType::int().non_nullable().array())
+        );
     }
 
     #[test]
     fn test_array_non_nullable_inner_value_non_nullable() {
-        if let ValueType::Array(val) = parse_input("[Int!]!").unwrap() {
-            assert_eq!(val.value.content, ValueBasicType::Int);
-            assert!(!val.value.nullable);
-            assert!(!val.nullable);
-        } else {
-            panic!("should have been an array value")
-        }
+        assert_eq!(
+            parse_input("[Int!]!"),
+            Ok(ValueType::int().non_nullable().array().non_nullable())
+        );
     }
 }

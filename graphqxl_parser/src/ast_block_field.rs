@@ -10,8 +10,59 @@ use pest::iterators::Pair;
 pub struct BlockField {
     pub name: String,
     pub description: String,
-    pub value: Option<ValueType>,
+    pub value_type: Option<ValueType>,
     pub args: Vec<Argument>,
+}
+
+impl BlockField {
+    pub fn build(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            description: "".to_string(),
+            value_type: None,
+            args: Vec::new(),
+        }
+    }
+
+    pub fn value_type(&mut self, value_type: ValueType) -> Self {
+        self.value_type = Some(value_type);
+        self.clone()
+    }
+
+    pub fn int(&mut self) -> Self {
+        self.value_type = Some(ValueType::int());
+        self.clone()
+    }
+
+    pub fn float(&mut self) -> Self {
+        self.value_type = Some(ValueType::float());
+        self.clone()
+    }
+
+    pub fn string(&mut self) -> Self {
+        self.value_type = Some(ValueType::string());
+        self.clone()
+    }
+
+    pub fn boolean(&mut self) -> Self {
+        self.value_type = Some(ValueType::boolean());
+        self.clone()
+    }
+
+    pub fn object(&mut self, object_name: &str) -> Self {
+        self.value_type = Some(ValueType::object(object_name));
+        self.clone()
+    }
+
+    pub fn description(&mut self, description: &str) -> Self {
+        self.description = description.to_string();
+        self.clone()
+    }
+
+    pub fn arg(&mut self, arg: Argument) -> Self {
+        self.args.push(arg);
+        self.clone()
+    }
 }
 
 fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -31,14 +82,14 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
         Ok(BlockField {
             name,
             description,
-            value: Some(parse_value_type(value)?),
+            value_type: Some(parse_value_type(value)?),
             args: type_field_args,
         })
     } else {
         Ok(BlockField {
             name,
             description,
-            value: None,
+            value_type: None,
             args: Vec::new(),
         })
     }
@@ -56,10 +107,7 @@ pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::er
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ast_value_basic_data::ValueBasicData;
-    use crate::ast_value_basic_type::ValueBasicType;
     use crate::ast_value_data::ValueData;
-    use crate::ast_value_type::{ValueTypeArray, ValueTypeSimple};
     use crate::utils::parse_full_input;
 
     fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -98,91 +146,53 @@ mod tests {
 
     #[test]
     fn test_accepts_description() {
-        let field =
-            parse_with_args_input("\"\"\" my description \"\"\" field(arg: String): String")
-                .unwrap();
-        assert_eq!(field.description, "my description")
+        assert_eq!(
+            parse_with_args_input("\"\"\" my description \"\"\" field(arg: String): String"),
+            Ok(BlockField::build("field")
+                .string()
+                .arg(Argument::string("arg"))
+                .description("my description"))
+        );
     }
 
     #[test]
     fn test_parse_string_block_field() {
-        let field = parse_with_args_input("field: String").unwrap();
-        assert_eq!(field.name, String::from("field"));
-        assert_eq!(field.args.len(), 0);
         assert_eq!(
-            field.value,
-            Some(ValueType::Simple(ValueTypeSimple {
-                nullable: true,
-                content: ValueBasicType::String
-            }))
+            parse_with_args_input("field: String"),
+            Ok(BlockField::build("field").string())
         );
     }
 
     #[test]
     fn test_parse_array_string_block_field() {
-        let field = parse_with_args_input("field: [String!]!").unwrap();
-        assert_eq!(field.name, String::from("field"));
         assert_eq!(
-            field.value,
-            Some(ValueType::Array(ValueTypeArray {
-                value: ValueTypeSimple {
-                    nullable: false,
-                    content: ValueBasicType::String
-                },
-                nullable: false
-            }))
+            parse_with_args_input("field: [String!]!"),
+            Ok(BlockField::build("field")
+                .value_type(ValueType::string().non_nullable().array().non_nullable()))
         );
     }
 
     #[test]
     fn test_parse_block_field_args_one_arg() {
-        let field = parse_with_args_input("field(arg1: String): String").unwrap();
         assert_eq!(
-            field.args,
-            vec![Argument {
-                name: "arg1".to_string(),
-                description: "".to_string(),
-                value: ValueType::Simple(ValueTypeSimple {
-                    content: ValueBasicType::String,
-                    nullable: true
-                }),
-                default: None
-            }]
+            parse_with_args_input("field(arg1: String): String"),
+            Ok(BlockField::build("field")
+                .string()
+                .arg(Argument::string("arg1")))
         );
     }
 
     #[test]
     fn test_parse_block_field_args_two_args_and_one_default() {
-        let field =
-            parse_with_args_input("field(arg1: [String]! = [\"default\"], arg2: Float!): String")
-                .unwrap();
         assert_eq!(
-            field.args,
-            vec![
-                Argument {
-                    name: "arg1".to_string(),
-                    description: "".to_string(),
-                    value: ValueType::Array(ValueTypeArray {
-                        value: ValueTypeSimple {
-                            content: ValueBasicType::String,
-                            nullable: true
-                        },
-                        nullable: false
-                    }),
-                    default: Some(ValueData::List(vec![ValueData::Basic(
-                        ValueBasicData::String("default".to_string())
-                    )]))
-                },
-                Argument {
-                    name: "arg2".to_string(),
-                    description: "".to_string(),
-                    value: ValueType::Simple(ValueTypeSimple {
-                        content: ValueBasicType::Float,
-                        nullable: false
-                    }),
-                    default: None
-                }
-            ]
+            parse_with_args_input("field(arg1: [String]! = [\"default\"], arg2: Float!): String"),
+            Ok(BlockField::build("field")
+                .string()
+                .arg(
+                    Argument::build("arg1", ValueType::string().array().non_nullable())
+                        .default(ValueData::string("default").list())
+                )
+                .arg(Argument::build("arg2", ValueType::float().non_nullable())))
         );
     }
 

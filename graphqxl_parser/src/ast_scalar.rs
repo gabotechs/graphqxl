@@ -10,6 +10,20 @@ pub struct Scalar {
     pub description: String,
 }
 
+impl Scalar {
+    pub fn build(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            description: "".to_string(),
+        }
+    }
+
+    pub fn description(&mut self, description: &str) -> Self {
+        self.description = description.to_string();
+        self.clone()
+    }
+}
+
 pub(crate) fn parse_scalar(pair: Pair<Rule>) -> Result<Scalar, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::scalar_def => {
@@ -33,8 +47,10 @@ mod tests {
 
     #[test]
     fn test_accepts_description() {
-        let scalar = parse_input("\"\"\" my description \"\"\" scalar MyScalar").unwrap();
-        assert_eq!(scalar.description, "my description")
+        assert_eq!(
+            parse_input("\"\"\" my description \"\"\" scalar MyScalar"),
+            Ok(Scalar::build("MyScalar").description("my description"))
+        );
     }
 
     #[test]

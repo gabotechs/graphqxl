@@ -16,6 +16,38 @@ pub struct DirectiveDef {
     pub locations: Vec<DirectiveLocation>,
 }
 
+impl DirectiveDef {
+    pub fn build(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            description: "".to_string(),
+            arguments: Vec::new(),
+            is_repeatable: false,
+            locations: Vec::new(),
+        }
+    }
+
+    pub fn description(&mut self, description: &str) -> Self {
+        self.description = description.to_string();
+        self.clone()
+    }
+
+    pub fn repeatable(&mut self) -> Self {
+        self.is_repeatable = true;
+        self.clone()
+    }
+
+    pub fn arg(&mut self, arg: Argument) -> Self {
+        self.arguments.push(arg);
+        self.clone()
+    }
+
+    pub fn location(&mut self, location: DirectiveLocation) -> Self {
+        self.locations.push(location);
+        self.clone()
+    }
+}
+
 pub(crate) fn parse_directive_def(
     pair: Pair<Rule>,
 ) -> Result<DirectiveDef, pest::error::Error<Rule>> {
@@ -71,6 +103,7 @@ pub(crate) fn parse_directive_def(
 mod tests {
     use super::*;
     use crate::utils::parse_full_input;
+    use crate::ValueType;
 
     fn parse_input(input: &str) -> Result<DirectiveDef, pest::error::Error<Rule>> {
         parse_full_input(input, Rule::directive_def, parse_directive_def)
@@ -78,57 +111,64 @@ mod tests {
 
     #[test]
     fn test_accepts_description() {
-        let directive = parse_input("\"\"\" my description \"\"\"directive @dir on QUERY").unwrap();
-        assert_eq!(directive.description, "my description");
+        assert_eq!(
+            parse_input("\"\"\" my description \"\"\"directive @dir on QUERY"),
+            Ok(DirectiveDef::build("dir")
+                .description("my description")
+                .location(DirectiveLocation::Query))
+        );
     }
 
     #[test]
     fn test_directive_without_arguments_without_repeatable_1_location() {
-        let directive = parse_input("directive @dir on QUERY").unwrap();
-        assert_eq!(directive.name, "dir");
-        assert!(!directive.is_repeatable);
-        assert_eq!(directive.arguments.len(), 0);
-        assert_eq!(directive.locations, vec![DirectiveLocation::Query]);
+        assert_eq!(
+            parse_input("directive @dir on QUERY"),
+            Ok(DirectiveDef::build("dir").location(DirectiveLocation::Query))
+        );
     }
 
     #[test]
     fn test_directive_with_arguments_without_repeatable_1_location() {
-        let directive = parse_input("directive @dir2(arg: String) on SUBSCRIPTION").unwrap();
-        assert_eq!(directive.name, "dir2");
-        assert!(!directive.is_repeatable);
-        assert_eq!(directive.arguments.get(0).unwrap().name, "arg");
-        assert_eq!(directive.locations, vec![DirectiveLocation::Subscription]);
+        assert_eq!(
+            parse_input("directive @dir2(arg: String) on SUBSCRIPTION"),
+            Ok(DirectiveDef::build("dir2")
+                .arg(Argument::string("arg"))
+                .location(DirectiveLocation::Subscription))
+        );
     }
 
     #[test]
     fn test_directive_with_arguments_with_repeatable_1_location() {
-        let directive =
-            parse_input("directive @dir3(arg: String, arg2: [Boolean!]!) repeatable on ENUM_VALUE")
-                .unwrap();
-        assert_eq!(directive.name, "dir3");
-        assert!(directive.is_repeatable);
-        assert_eq!(directive.arguments.get(0).unwrap().name, "arg");
-        assert_eq!(directive.arguments.get(1).unwrap().name, "arg2");
-        assert_eq!(directive.locations, vec![DirectiveLocation::EnumValue]);
+        assert_eq!(
+            parse_input("directive @dir3(arg: String, arg2: [Boolean!]!) repeatable on ENUM_VALUE"),
+            Ok(DirectiveDef::build("dir3")
+                .arg(Argument::string("arg"))
+                .arg(Argument::build(
+                    "arg2",
+                    ValueType::boolean().non_nullable().array().non_nullable()
+                ))
+                .repeatable()
+                .location(DirectiveLocation::EnumValue))
+        );
     }
 
     #[test]
     fn test_directive_with_arguments_with_repeatable_3_location() {
-        let directive = parse_input(
-            "directive @dir3(arg: String, arg2: [Boolean!]!) repeatable on UNION | ENUM | FIELD",
-        )
-        .unwrap();
-        assert_eq!(directive.name, "dir3");
-        assert!(directive.is_repeatable);
-        assert_eq!(directive.arguments.get(0).unwrap().name, "arg");
-        assert_eq!(directive.arguments.get(1).unwrap().name, "arg2");
         assert_eq!(
-            directive.locations,
-            vec![
-                DirectiveLocation::Union,
-                DirectiveLocation::Enum,
-                DirectiveLocation::Field
-            ]
+            parse_input(
+                "directive @dir4(arg: String, arg2: [Boolean!]!) repeatable on UNION | ENUM | FIELD",
+            ),
+            Ok(DirectiveDef::build("dir4")
+                .arg(Argument::string("arg"))
+                .arg(Argument::build(
+                    "arg2",
+                    ValueType::boolean().non_nullable().array().non_nullable()
+                ))
+                .repeatable()
+                .location(DirectiveLocation::Union)
+                .location(DirectiveLocation::Enum)
+                .location(DirectiveLocation::Field)
+            )
         );
     }
 

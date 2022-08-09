@@ -12,6 +12,26 @@ pub struct Union {
     pub types: Vec<String>,
 }
 
+impl Union {
+    pub fn build(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+            description: "".to_string(),
+            types: Vec::new(),
+        }
+    }
+
+    pub fn description(&mut self, description: &str) -> Self {
+        self.description = description.to_string();
+        self.clone()
+    }
+
+    pub fn type_(&mut self, type_: &str) -> Self {
+        self.types.push(type_.to_string());
+        self.clone()
+    }
+}
+
 pub(crate) fn parse_union(pair: Pair<Rule>) -> Result<Union, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::union_def => {
@@ -56,22 +76,31 @@ mod tests {
 
     #[test]
     fn test_accepts_description() {
-        let union = parse_input("\"\"\" my description \"\"\"union MyUnion = Type1").unwrap();
-        assert_eq!(union.description, "my description");
+        assert_eq!(
+            parse_input("\"\"\" my description \"\"\"union MyUnion = Type1"),
+            Ok(Union::build("MyUnion")
+                .description("my description")
+                .type_("Type1"))
+        );
     }
 
     #[test]
     fn test_parses_1_type_union() {
-        let union = parse_input("union UnionType = Type1").unwrap();
-        assert_eq!(union.name, "UnionType");
-        assert_eq!(union.types, vec!["Type1"]);
+        assert_eq!(
+            parse_input("union MyUnion = Type1"),
+            Ok(Union::build("MyUnion").type_("Type1"))
+        );
     }
 
     #[test]
     fn test_parses_3_type_union() {
-        let union = parse_input("union UnionType = Type1 | Type2|Type3").unwrap();
-        assert_eq!(union.name, "UnionType");
-        assert_eq!(union.types, vec!["Type1", "Type2", "Type3"]);
+        assert_eq!(
+            parse_input("union UnionType = Type1 | Type2|Type3"),
+            Ok(Union::build("UnionType")
+                .type_("Type1")
+                .type_("Type2")
+                .type_("Type3"))
+        );
     }
 
     #[test]
