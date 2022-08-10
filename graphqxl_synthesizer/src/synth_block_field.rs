@@ -31,10 +31,6 @@ impl Synth for BlockFieldSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::{
-        simple_block_field_synth_factory, simple_string_arg_factory,
-        simple_string_value_type_factory,
-    };
     use graphqxl_parser::{Argument, ValueType};
 
     #[test]

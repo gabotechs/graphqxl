@@ -64,28 +64,21 @@ impl Synth for DirectiveSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::simple_string_arg_factory;
-
-    fn directive_factory(name: &str) -> DirectiveDef {
-        DirectiveDef {
-            name: name.to_string(),
-            description: "".to_string(),
-            is_repeatable: false,
-            arguments: vec![],
-            locations: vec![DirectiveLocation::Enum],
-        }
-    }
+    use graphqxl_parser::Argument;
 
     #[test]
     fn test_most_simple_directive() {
-        let synth = DirectiveSynth(directive_factory("dir"));
+        let synth = DirectiveSynth(DirectiveDef::build("dir").location(DirectiveLocation::Enum));
         assert_eq!(synth.synth_zero(), "directive @dir on ENUM");
     }
 
     #[test]
     fn test_with_description() {
-        let mut synth = DirectiveSynth(directive_factory("dir"));
-        synth.0.description = "my description".to_string();
+        let synth = DirectiveSynth(
+            DirectiveDef::build("dir")
+                .description("my description")
+                .location(DirectiveLocation::Enum),
+        );
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -96,9 +89,12 @@ directive @dir on ENUM"
 
     #[test]
     fn test_with_description_with_args() {
-        let mut synth = DirectiveSynth(directive_factory("dir"));
-        synth.0.description = "my description".to_string();
-        synth.0.arguments = vec![simple_string_arg_factory("arg")];
+        let synth = DirectiveSynth(
+            DirectiveDef::build("dir")
+                .description("my description")
+                .arg(Argument::string("arg"))
+                .location(DirectiveLocation::Enum),
+        );
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -109,10 +105,13 @@ directive @dir(arg: String) on ENUM"
 
     #[test]
     fn test_with_description_with_args_repeatable() {
-        let mut synth = DirectiveSynth(directive_factory("dir"));
-        synth.0.description = "my description".to_string();
-        synth.0.arguments = vec![simple_string_arg_factory("arg")];
-        synth.0.is_repeatable = true;
+        let synth = DirectiveSynth(
+            DirectiveDef::build("dir")
+                .description("my description")
+                .arg(Argument::string("arg"))
+                .repeatable()
+                .location(DirectiveLocation::Enum),
+        );
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -123,15 +122,15 @@ directive @dir(arg: String) repeatable on ENUM"
 
     #[test]
     fn test_with_description_with_args_repeatable_multiple_locations() {
-        let mut synth = DirectiveSynth(directive_factory("dir"));
-        synth.0.description = "my description".to_string();
-        synth.0.arguments = vec![simple_string_arg_factory("arg")];
-        synth.0.is_repeatable = true;
-        synth
-            .0
-            .locations
-            .push(DirectiveLocation::ArgumentDefinition);
-        synth.0.locations.push(DirectiveLocation::Interface);
+        let synth = DirectiveSynth(
+            DirectiveDef::build("dir")
+                .description("my description")
+                .arg(Argument::string("arg"))
+                .repeatable()
+                .location(DirectiveLocation::Enum)
+                .location(DirectiveLocation::ArgumentDefinition)
+                .location(DirectiveLocation::Interface),
+        );
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -142,15 +141,15 @@ directive @dir(arg: String) repeatable on ENUM | ARGUMENT_DEFINITION | INTERFACE
 
     #[test]
     fn test_with_description_with_args_repeatable_multiple_locations_multiline() {
-        let mut synth = DirectiveSynth(directive_factory("dir"));
-        synth.0.description = "my description".to_string();
-        synth.0.arguments = vec![simple_string_arg_factory("arg")];
-        synth.0.is_repeatable = true;
-        synth
-            .0
-            .locations
-            .push(DirectiveLocation::ArgumentDefinition);
-        synth.0.locations.push(DirectiveLocation::Interface);
+        let synth = DirectiveSynth(
+            DirectiveDef::build("dir")
+                .description("my description")
+                .arg(Argument::string("arg"))
+                .repeatable()
+                .location(DirectiveLocation::Enum)
+                .location(DirectiveLocation::ArgumentDefinition)
+                .location(DirectiveLocation::Interface),
+        );
         assert_eq!(
             synth.synth(&SynthContext {
                 indent_spaces: 2,
