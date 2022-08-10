@@ -18,6 +18,7 @@ mod ast_value_data;
 mod ast_value_type;
 mod parser;
 mod utils;
+mod ast_function_call;
 
 pub use ast_arguments::*;
 pub use ast_block_def::*;
