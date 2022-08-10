@@ -2,19 +2,21 @@ use crate::ast_description::{parse_description_and_continue, DescriptionAndNext}
 use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
+use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Scalar {
     pub name: String,
     pub description: String,
+    pub directives: Vec<Directive>,
 }
 
 impl Scalar {
     pub fn build(name: &str) -> Self {
         Self {
             name: name.to_string(),
-            description: "".to_string(),
+            ..Default::default()
         }
     }
 
@@ -22,15 +24,28 @@ impl Scalar {
         self.description = description.to_string();
         self.clone()
     }
+
+    pub fn directive(&mut self, directive: Directive) -> Self {
+        self.directives.push(directive);
+        self.clone()
+    }
 }
 
 pub(crate) fn parse_scalar(pair: Pair<Rule>) -> Result<Scalar, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::scalar_def => {
-            let DescriptionAndNext(description, next) =
-                parse_description_and_continue(&mut pair.into_inner());
+            let mut childs = pair.into_inner();
+            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
             let name = parse_identifier(next)?;
-            Ok(Scalar { name, description })
+            let mut directives = Vec::new();
+            for child in childs {
+                directives.push(parse_directive(child)?);
+            }
+            Ok(Scalar {
+                name,
+                description,
+                directives,
+            })
         }
         _unknown => Err(unknown_rule_error(pair, "scalar_def")),
     }
@@ -55,8 +70,20 @@ mod tests {
 
     #[test]
     fn test_parses_scalar() {
-        let scalar = parse_input("scalar MyScalar").unwrap();
-        assert_eq!(scalar.name, "MyScalar")
+        assert_eq!(
+            parse_input("scalar MyScalar"),
+            Ok(Scalar::build("MyScalar"))
+        );
+    }
+
+    #[test]
+    fn test_accepts_directives() {
+        assert_eq!(
+            parse_input("scalar MyScalar @dir1 @dir2"),
+            Ok(Scalar::build("MyScalar")
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2")))
+        );
     }
 
     #[test]

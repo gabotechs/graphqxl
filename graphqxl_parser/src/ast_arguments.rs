@@ -3,7 +3,7 @@ use crate::ast_identifier::parse_identifier;
 use crate::ast_value_data::{parse_value_data, ValueData};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
-use crate::{parse_value_type, ValueType};
+use crate::{parse_directive, parse_value_type, Directive, ValueType};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -12,6 +12,7 @@ pub struct Argument {
     pub description: String,
     pub value_type: ValueType,
     pub default: Option<ValueData>,
+    pub directives: Vec<Directive>,
 }
 
 impl Argument {
@@ -21,6 +22,7 @@ impl Argument {
             description: "".to_string(),
             value_type: t,
             default: None,
+            directives: Vec::new(),
         }
     }
 
@@ -53,6 +55,11 @@ impl Argument {
         self.default = Some(value_data);
         self.clone()
     }
+
+    pub fn directive(&mut self, directive: Directive) -> Self {
+        self.directives.push(directive);
+        self.clone()
+    }
 }
 
 fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>> {
@@ -65,9 +72,13 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
             let name = parse_identifier(next)?;
             let value = parse_value_type(childs.next().unwrap())?;
             let mut default = None;
+            let mut directives = Vec::new();
             if let Some(pair) = childs.next() {
                 if let Rule::value_data = pair.as_rule() {
                     default = Some(parse_value_data(pair)?)
+                }
+                for directive in childs {
+                    directives.push(parse_directive(directive)?);
                 }
             }
             Ok(Argument {
@@ -75,6 +86,7 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
                 description,
                 value_type: value,
                 default,
+                directives,
             })
         }
         _unknown => Err(unknown_rule_error(pair, "argument")),
@@ -137,6 +149,17 @@ mod tests {
             Ok(vec![
                 Argument::string("arg").default(ValueData::string("default"))
             ])
+        );
+    }
+
+    #[test]
+    fn test_accept_directives() {
+        assert_eq!(
+            parse_input("(arg: String = \"default\" @dir1 @dir2)"),
+            Ok(vec![Argument::string("arg")
+                .default(ValueData::string("default"))
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2"))])
         );
     }
 

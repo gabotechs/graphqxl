@@ -1,16 +1,16 @@
 spec = { SOI ~ def* ~ EOI }
 
 def = _{ type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
-type_def = { description? ~ "type " ~ identifier ~ type_selection_set }
+type_def = { description? ~ "type " ~ identifier ~ directive* ~ type_selection_set }
     type_selection_set = { "{" ~ field_with_args* ~ "}" }
-input_def = { description? ~ "input " ~ identifier ~ input_selection_set }
+input_def = { description? ~ "input " ~ identifier ~ directive* ~ input_selection_set }
     input_selection_set = { "{" ~ field_without_args* ~ "}" }
-enum_def = { description? ~ "enum " ~ identifier ~ enum_selection_set }
+enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
     enum_selection_set = { "{" ~ field_without_args_without_value* ~ "}" }
-interface_def = { description? ~ "interface " ~ identifier ~ interface_selection_set }
+interface_def = { description? ~ "interface " ~ identifier ~ directive* ~ interface_selection_set }
     interface_selection_set = { "{" ~ field_with_args ~ "}" }
-scalar_def = { description? ~ "scalar " ~ identifier }
-union_def = { description? ~ "union " ~ identifier ~ "=" ~ identifier ~ ("|" ~ identifier )* }
+scalar_def = { description? ~ "scalar " ~ identifier ~ directive* }
+union_def = { description? ~ "union " ~ identifier ~ directive* ~ "=" ~ identifier ~ ("|" ~ identifier )* }
 directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
     directive_repeatable = @{ "repeatable" }
     directive_location = @{
@@ -35,12 +35,12 @@ directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ di
         "VARIABLE_DEFINITION"
     }
 
-field_with_args = { description? ~ identifier ~ arguments? ~ ":" ~ value_type }
-field_without_args = { description? ~ identifier ~ ":" ~ value_type }
-field_without_args_without_value = { description? ~ identifier }
+field_with_args = { description? ~ identifier ~ arguments? ~ ":" ~ value_type ~ directive* }
+field_without_args = { description? ~ identifier ~ ":" ~ value_type ~ directive* }
+field_without_args_without_value = { description? ~ identifier ~ directive* }
 
 arguments = { "(" ~ argument* ~ ")" }
-    argument = { description? ~ identifier ~ ":" ~ value_type ~ ("=" ~ value_data)? }
+    argument = { description? ~ identifier ~ ":" ~ value_type ~ ("=" ~ value_data)? ~ directive* }
 
 function_call = { "(" ~ function_input+ ~ ")" }
     function_input = { identifier ~ ":" ~ value_data }

@@ -4,23 +4,23 @@ use crate::ast_identifier::parse_identifier;
 use crate::ast_value_type::{parse_value_type, ValueType};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
+use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct BlockField {
     pub name: String,
     pub description: String,
     pub value_type: Option<ValueType>,
     pub args: Vec<Argument>,
+    pub directives: Vec<Directive>,
 }
 
 impl BlockField {
     pub fn build(name: &str) -> Self {
         Self {
             name: name.to_string(),
-            description: "".to_string(),
-            value_type: None,
-            args: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -63,6 +63,11 @@ impl BlockField {
         self.args.push(arg);
         self.clone()
     }
+
+    pub fn directive(&mut self, directive: Directive) -> Self {
+        self.directives.push(directive);
+        self.clone()
+    }
 }
 
 fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -71,28 +76,28 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
     // at this moment we are on [description?, identifier, args?, value?]
     let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
     let name = parse_identifier(next)?;
+    let mut block_field = BlockField {
+        name,
+        description,
+        ..Default::default()
+    };
     let value_or_args_or_nothing = pairs.next();
     if let Some(value_or_args) = value_or_args_or_nothing {
         let mut value = value_or_args.clone();
-        let mut type_field_args = Vec::new();
         if let Rule::arguments = value_or_args.as_rule() {
-            type_field_args = parse_arguments(value_or_args)?;
+            block_field.args = parse_arguments(value_or_args)?;
             value = pairs.next().unwrap();
         }
-        Ok(BlockField {
-            name,
-            description,
-            value_type: Some(parse_value_type(value)?),
-            args: type_field_args,
-        })
-    } else {
-        Ok(BlockField {
-            name,
-            description,
-            value_type: None,
-            args: Vec::new(),
-        })
+        if let Rule::value_type = value.as_rule() {
+            block_field.value_type = Some(parse_value_type(value)?)
+        } else if let Rule::directive = value.as_rule() {
+            block_field.directives.push(parse_directive(value)?);
+        }
     }
+    for child in pairs {
+        block_field.directives.push(parse_directive(child)?);
+    }
+    Ok(block_field)
 }
 
 pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
@@ -193,6 +198,40 @@ mod tests {
                         .default(ValueData::string("default").list())
                 )
                 .arg(Argument::build("arg2", ValueType::float().non_nullable())))
+        );
+    }
+
+    #[test]
+    fn test_without_args_without_value_input_accepts_directive() {
+        assert_eq!(
+            parse_without_args_without_value_input("field @dir1 @dir2"),
+            Ok(BlockField::build("field")
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2")))
+        );
+    }
+
+    #[test]
+    fn test_with_args_accepts_directives() {
+        assert_eq!(
+            parse_with_args_input("field: [String!]! @dir1 @dir2"),
+            Ok(BlockField::build("field")
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2"))
+                .value_type(ValueType::string().non_nullable().array().non_nullable()))
+        );
+    }
+
+    #[test]
+    fn test_with_args_with_default_value_accepts_directives() {
+        assert_eq!(
+            parse_with_args_input("field(arg1: String, arg2: Int): [String!]! @dir1 @dir2"),
+            Ok(BlockField::build("field")
+                .arg(Argument::string("arg1"))
+                .arg(Argument::int("arg2"))
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2"))
+                .value_type(ValueType::string().non_nullable().array().non_nullable()))
         );
     }
 

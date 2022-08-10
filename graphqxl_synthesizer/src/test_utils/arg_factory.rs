@@ -9,5 +9,6 @@ pub fn simple_string_arg_factory(name: &str) -> Argument {
             nullable: true,
         }),
         default: None,
+        directives: Vec::new(),
     }
 }
