@@ -6,16 +6,17 @@ mod synth_arguments;
 mod synth_block_def;
 mod synth_block_field;
 mod synth_description;
+mod synth_directive;
 mod synth_directive_def;
+mod synth_function_call;
 mod synth_scalar;
+mod synth_schema;
 mod synth_spec;
 mod synth_union;
+mod synth_value_data;
 mod synth_value_type;
 mod synths;
 mod utils;
-mod synth_directive;
-mod synth_value_data;
-mod synth_function_call;
 
 pub struct SynthOptions {
     pub indent_spaces: usize,

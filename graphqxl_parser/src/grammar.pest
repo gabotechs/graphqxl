@@ -1,6 +1,11 @@
 spec = { SOI ~ def* ~ EOI }
 
-def = _{ type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
+def = _{ schema_def | type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
+
+schema_def = { description? ~ "schema" ~ schema_selection_set }
+    schema_key = @{ "query" | "mutation" | "subscription" }
+    schema_selection_set = { "{" ~ schema_field+ ~ "}"}
+    schema_field = { schema_key ~ ":" ~ identifier }
 type_def = { description? ~ "type " ~ identifier ~ directive* ~ type_selection_set }
     type_selection_set = { "{" ~ field_with_args* ~ "}" }
 input_def = { description? ~ "input " ~ identifier ~ directive* ~ input_selection_set }

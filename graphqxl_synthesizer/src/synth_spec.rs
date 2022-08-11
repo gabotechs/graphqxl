@@ -1,6 +1,7 @@
 use crate::synth_block_def::BlockDefSynth;
 use crate::synth_directive_def::DirectiveDefSynth;
 use crate::synth_scalar::ScalarSynth;
+use crate::synth_schema::SchemaSynth;
 use crate::synth_union::UnionSynth;
 use crate::synths::{Synth, SynthContext};
 use graphqxl_parser::{DefType, Spec};
@@ -43,6 +44,8 @@ impl Synth for SpecSynth {
             }
             result += "\n\n";
         }
+        result += &SchemaSynth(self.0.schema.clone()).synth(context);
+        result += "\n";
         result
     }
 }

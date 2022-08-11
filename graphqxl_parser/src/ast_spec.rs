@@ -1,8 +1,8 @@
 use crate::parser::Rule;
 use crate::utils::{already_defined_error, unknown_rule_error};
 use crate::{
-    parse_block_def, parse_directive_def, parse_scalar, parse_union, BlockDef, DirectiveDef,
-    Scalar, Union,
+    parse_block_def, parse_directive_def, parse_scalar, parse_schema, parse_union, BlockDef,
+    DirectiveDef, Scalar, Schema, Union,
 };
 use pest::iterators::Pair;
 use std::collections::HashMap;
@@ -28,6 +28,8 @@ pub struct Spec {
     pub unions: HashMap<String, Union>,
     pub directives: HashMap<String, DirectiveDef>,
     pub order: Vec<DefType>,
+    pub schema: Schema,
+    schema_already_defined: bool,
 }
 
 impl Spec {
@@ -37,6 +39,20 @@ impl Spec {
 
     fn add(&mut self, pair: Pair<Rule>) -> Result<(), pest::error::Error<Rule>> {
         match pair.as_rule() {
+            Rule::schema_def => {
+                if self.schema_already_defined {
+                    Err(pest::error::Error::new_from_span(
+                        pest::error::ErrorVariant::CustomError {
+                            message: "schema is defined multiple times".to_string(),
+                        },
+                        pair.as_span(),
+                    ))
+                } else {
+                    self.schema_already_defined = true;
+                    self.schema = parse_schema(pair)?;
+                    Ok(())
+                }
+            }
             Rule::type_def => {
                 let block_def = parse_block_def(pair.clone())?;
                 let name = block_def.name.as_str();
