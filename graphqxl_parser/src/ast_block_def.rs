@@ -129,6 +129,7 @@ pub(crate) fn parse_block_def(pair: Pair<Rule>) -> Result<BlockDef, pest::error:
 mod tests {
     use super::*;
     use crate::utils::parse_full_input;
+    use crate::ValueType;
 
     fn parse_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
         let rule = if input.contains("input ") {
@@ -271,6 +272,20 @@ mod tests {
                 .field(BlockField::build("Field"))
                 .directive(Directive::build("dir1"))
                 .directive(Directive::build("dir2")))
+        );
+    }
+
+    #[test]
+    fn test_accept_directives_in_fields_indented() {
+        assert_eq!(
+            parse_input("type MyType {\n  Field1: String!\n  Field2: Int @dir\n}"),
+            Ok(BlockDef::type_("MyType")
+                .field(BlockField::build("Field1").value_type(ValueType::string().non_nullable()))
+                .field(
+                    BlockField::build("Field2")
+                        .int()
+                        .directive(Directive::build("dir"))
+                ))
         );
     }
 

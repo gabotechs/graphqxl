@@ -8,7 +8,7 @@ input_def = { description? ~ "input " ~ identifier ~ directive* ~ input_selectio
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
     enum_selection_set = { "{" ~ field_without_args_without_value* ~ "}" }
 interface_def = { description? ~ "interface " ~ identifier ~ directive* ~ interface_selection_set }
-    interface_selection_set = { "{" ~ field_with_args ~ "}" }
+    interface_selection_set = { "{" ~ field_with_args* ~ "}" }
 scalar_def = { description? ~ "scalar " ~ identifier ~ directive* }
 union_def = { description? ~ "union " ~ identifier ~ directive* ~ "=" ~ identifier ~ ("|" ~ identifier )* }
 directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
@@ -46,8 +46,8 @@ function_call = { "(" ~ function_input+ ~ ")" }
     function_input = { identifier ~ ":" ~ value_data }
 
 description = @{ multiline_description | one_line_description }
-    multiline_description = @{ "\"\"\"" ~ char*  ~ "\"\"\"" }
-    one_line_description = @{ "\"" ~ (!("\n" | "\r\n") ~ char)* ~ "\"" }
+    multiline_description = @{ "\"\"\"" ~ (!"\"\"\"" ~ char_double_quote)*  ~ "\"\"\"" }
+    one_line_description = @{ "\"" ~ (!("\n" | "\r\n") ~ char_no_double_quote)* ~ "\"" }
 
 directive = { "@" ~ identifier ~ function_call? }
 
@@ -73,13 +73,20 @@ value_data = { object_data | list_data | basic_data }
         basic_data = { float_data | int_data | string_data | boolean_data }
         int_data = @{ ASCII_DIGIT+ }
         float_data = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+}
-        string_data = @{ "\"" ~ char* ~ "\"" }
+        string_data = @{ "\"" ~ char_no_double_quote* ~ "\"" }
         boolean_data = @{ "false" | "true" }
 
-char = @{
+char_double_quote = @{
+    !("\\") ~ ANY
+    | "\\" ~ ("\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+char_no_double_quote = @{
     !("\"" | "\\") ~ ANY
     | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )* }
 WHITESPACE = _{ " " | "," | "\n" | "\r" | "\t" }
+COMMENT = _{ "#" ~ (!"\n" ~ ANY)* ~ "\n" }
