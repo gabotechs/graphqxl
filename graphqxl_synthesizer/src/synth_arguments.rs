@@ -1,5 +1,7 @@
+use crate::synth_directive::DirectiveSynth;
+use crate::synth_value_data::ValueDataSynth;
 use crate::synth_value_type::ValueTypeSynth;
-use crate::synths::{ListSynth, PairSynth, StringSynth, Synth, SynthContext};
+use crate::synths::{ChainSynth, ListSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::Argument;
 
 pub(crate) struct ArgumentsSynth(pub(crate) Vec<Argument>);
@@ -11,11 +13,19 @@ impl Synth for ArgumentsSynth {
             self.0
                 .iter()
                 .map(|argument| {
-                    PairSynth::inline(
-                        StringSynth(argument.name.clone() + ":"),
-                        ValueTypeSynth(argument.value_type.clone()),
-                    )
-                    // todo: missing default
+                    let mut v: Vec<Box<dyn Synth>> = vec![
+                        Box::new(StringSynth(argument.name.clone() + ": ")),
+                        Box::new(ValueTypeSynth(argument.value_type.clone())),
+                    ];
+                    if let Some(default) = &argument.default {
+                        v.push(Box::new(StringSynth::from(" = ")));
+                        v.push(Box::new(ValueDataSynth(default.clone())));
+                    }
+                    for directive in argument.directives.iter() {
+                        v.push(Box::new(StringSynth::from(" ")));
+                        v.push(Box::new(DirectiveSynth(directive.clone())));
+                    }
+                    ChainSynth(v)
                 })
                 .collect(),
             " ",
@@ -28,6 +38,7 @@ impl Synth for ArgumentsSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use graphqxl_parser::{Directive, ValueData};
 
     #[test]
     fn test_one_argument() {
@@ -46,12 +57,28 @@ mod tests {
         let synth = ArgumentsSynth(vec![Argument::string("arg"), Argument::string("arg2")]);
 
         assert_eq!(
-            synth.synth(&SynthContext {
-                indent_spaces: 2,
-                multiline: true,
-                ..Default::default()
-            }),
+            synth.synth_multiline(2),
             "(\n  arg: String \n  arg2: String\n)"
         )
+    }
+
+    #[test]
+    fn test_with_default_value() {
+        let synth = ArgumentsSynth(vec![Argument::int("arg").default(ValueData::int(1).list())]);
+        assert_eq!(synth.synth_zero(), "(arg: Int = [ 1 ])")
+    }
+
+    #[test]
+    fn test_with_directives() {
+        let synth = ArgumentsSynth(vec![Argument::int("arg").directive(Directive::build("dir"))]);
+        assert_eq!(synth.synth_zero(), "(arg: Int @dir)")
+    }
+
+    #[test]
+    fn test_with_default_value_with_directives() {
+        let synth = ArgumentsSynth(vec![Argument::int("arg")
+            .default(ValueData::int(1).list())
+            .directive(Directive::build("dir"))]);
+        assert_eq!(synth.synth_zero(), "(arg: Int = [ 1 ] @dir)")
     }
 }

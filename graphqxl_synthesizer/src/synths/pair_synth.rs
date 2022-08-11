@@ -31,12 +31,4 @@ impl<T1: Synth, T2: Synth> PairSynth<T1, T2> {
             line_jump_sep: true,
         }
     }
-
-    pub(crate) fn inline(first: T1, last: T2) -> Self {
-        Self {
-            first,
-            last,
-            line_jump_sep: false,
-        }
-    }
 }

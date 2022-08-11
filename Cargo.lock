@@ -131,6 +131,7 @@ dependencies = [
 name = "graphqxl_parser"
 version = "0.1.0"
 dependencies = [
+ "indexmap",
  "pest",
  "pest_derive",
 ]
@@ -140,6 +141,7 @@ name = "graphqxl_synthesizer"
 version = "0.1.0"
 dependencies = [
  "graphqxl_parser",
+ "indexmap",
 ]
 
 [[package]]

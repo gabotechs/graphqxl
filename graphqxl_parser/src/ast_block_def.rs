@@ -3,6 +3,7 @@ use crate::ast_description::{parse_description_and_continue, DescriptionAndNext}
 use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
+use crate::{parse_directive, Directive};
 use pest::error::ErrorVariant;
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashSet;
@@ -21,6 +22,7 @@ pub struct BlockDef {
     pub description: String,
     pub kind: BlockDefType,
     pub fields: Vec<BlockField>,
+    pub directives: Vec<Directive>,
 }
 
 impl BlockDef {
@@ -30,6 +32,7 @@ impl BlockDef {
             description: "".to_string(),
             kind,
             fields: Vec::new(),
+            directives: Vec::new(),
         }
     }
 
@@ -58,37 +61,54 @@ impl BlockDef {
         self.fields.push(field);
         self.clone()
     }
+
+    pub fn directive(&mut self, directive: Directive) -> Self {
+        self.directives.push(directive);
+        self.clone()
+    }
 }
 
 fn _parse_type_or_input(
     mut pairs: Pairs<Rule>,
     kind: BlockDefType,
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
-    // [description?, identifier, selection_set]
+    // [description?, identifier, directives*, selection_set]
     let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
     let name = parse_identifier(next)?;
-    let selection_set = pairs.next().unwrap();
+
     let mut fields = Vec::new();
-    let mut seen_fields = HashSet::new();
-    for pair in selection_set.into_inner() {
-        let field = parse_block_field(pair.clone())?;
-        if seen_fields.contains(&field.name) {
-            return Err(pest::error::Error::new_from_span(
-                ErrorVariant::CustomError {
-                    message: "duplicate field ".to_string() + &field.name,
-                },
-                pair.as_span(),
-            ));
-        } else {
-            seen_fields.insert(field.name.clone());
+    let mut directives = Vec::new();
+    for child in pairs {
+        match child.as_rule() {
+            Rule::directive => {
+                directives.push(parse_directive(child)?);
+            }
+            // this means selection_set
+            _ => {
+                let mut seen_fields = HashSet::new();
+                for pair in child.into_inner() {
+                    let field = parse_block_field(pair.clone())?;
+                    if seen_fields.contains(&field.name) {
+                        return Err(pest::error::Error::new_from_span(
+                            ErrorVariant::CustomError {
+                                message: format!("duplicate field {}", field.name),
+                            },
+                            pair.as_span(),
+                        ));
+                    } else {
+                        seen_fields.insert(field.name.clone());
+                    }
+                    fields.push(field);
+                }
+            }
         }
-        fields.push(field);
     }
     Ok(BlockDef {
         name,
         description,
         kind,
         fields,
+        directives,
     })
 }
 
@@ -98,7 +118,10 @@ pub(crate) fn parse_block_def(pair: Pair<Rule>) -> Result<BlockDef, pest::error:
         Rule::input_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Input),
         Rule::enum_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Enum),
         Rule::interface_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Interface),
-        _unknown => Err(unknown_rule_error(pair, "type_def or input_def")),
+        _unknown => Err(unknown_rule_error(
+            pair,
+            "type_def, input_def, enum_def or interface_def",
+        )),
     }
 }
 
@@ -237,6 +260,17 @@ mod tests {
             Ok(BlockDef::enum_("MyEnum")
                 .field(BlockField::build("Field1"))
                 .field(BlockField::build("field2")))
+        );
+    }
+
+    #[test]
+    fn test_accept_directives() {
+        assert_eq!(
+            parse_input("enum MyEnum @dir1 @dir2 { Field }"),
+            Ok(BlockDef::enum_("MyEnum")
+                .field(BlockField::build("Field"))
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2")))
         );
     }
 

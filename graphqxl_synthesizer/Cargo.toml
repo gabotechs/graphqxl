@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 graphqxl_parser = { path = '../graphqxl_parser' }
+indexmap = "1.9.1"
 

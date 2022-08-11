@@ -2,14 +2,14 @@ use crate::ast_identifier::parse_identifier;
 use crate::ast_value_basic_data::{parse_basic_data, ValueBasicData};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
+use indexmap::IndexMap;
 use pest::iterators::Pair;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ValueData {
     Basic(ValueBasicData),
     List(Vec<ValueData>),
-    Object(HashMap<String, ValueData>),
+    Object(IndexMap<String, ValueData>),
 }
 
 impl ValueData {
@@ -38,7 +38,7 @@ impl ValueData {
     }
 
     pub fn to_object(&self, name: &str) -> Self {
-        ValueData::Object(HashMap::from([(name.to_string(), self.clone())]))
+        ValueData::Object(IndexMap::from([(name.to_string(), self.clone())]))
     }
 
     pub fn push(&mut self, other: Self) -> Self {
@@ -60,7 +60,7 @@ pub(crate) fn parse_value_data(pair: Pair<Rule>) -> Result<ValueData, pest::erro
     match pair.as_rule() {
         Rule::value_data => parse_value_data(pair.into_inner().next().unwrap()),
         Rule::object_data => {
-            let mut data = HashMap::new();
+            let mut data = IndexMap::new();
             for entry in pair.into_inner() {
                 let mut childs = entry.into_inner();
                 let name = parse_identifier(childs.next().unwrap())?;

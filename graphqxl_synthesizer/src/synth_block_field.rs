@@ -1,5 +1,6 @@
 use crate::synth_arguments::ArgumentsSynth;
 use crate::synth_description::DescriptionSynth;
+use crate::synth_directive::DirectiveSynth;
 use crate::synth_value_type::ValueTypeSynth;
 use crate::synths::{ChainSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::BlockField;
@@ -20,7 +21,10 @@ impl Synth for BlockFieldSynth {
                     v.push(Box::new(StringSynth::from(": ")));
                     v.push(Box::new(ValueTypeSynth(value_type.clone())));
                 }
-                // todo: add default
+                for directive in self.0.directives.iter() {
+                    v.push(Box::new(StringSynth::from(" ")));
+                    v.push(Box::new(DirectiveSynth(directive.clone())));
+                }
                 v
             }),
         };
@@ -31,7 +35,7 @@ impl Synth for BlockFieldSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use graphqxl_parser::{Argument, ValueType};
+    use graphqxl_parser::{Argument, Directive, ValueType};
 
     #[test]
     fn test_no_description_no_args_no_type() {
@@ -108,14 +112,15 @@ field(
     }
 
     #[test]
-    fn test_description_multiple_args_type_multiline_and_indent() {
+    fn test_description_multiple_args_type_multiline_and_indent_and_directive() {
         let synth = BlockFieldSynth(
             BlockField::build("field")
                 .string()
                 .description("my description")
                 .value_type(ValueType::string())
                 .arg(Argument::string("arg1"))
-                .arg(Argument::string("arg2")),
+                .arg(Argument::string("arg2"))
+                .directive(Directive::build("dir1")),
         );
         assert_eq!(
             synth.synth(&SynthContext {
@@ -128,7 +133,7 @@ field(
     field(
       arg1: String 
       arg2: String
-    ): String"
+    ): String @dir1"
         );
     }
 }

@@ -5,8 +5,8 @@ use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Directive {
-    name: String,
-    call: Option<FunctionCall>,
+    pub name: String,
+    pub call: Option<FunctionCall>,
 }
 
 impl Directive {
@@ -22,7 +22,7 @@ impl Directive {
             name: name.to_string(),
             value,
         };
-        if let Some(mut call) = self.call.clone() {
+        if let Some(call) = self.call.as_mut() {
             call.inputs.push(input);
         } else {
             self.call = Some(FunctionCall {

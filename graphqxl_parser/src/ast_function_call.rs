@@ -5,8 +5,8 @@ use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionInput {
-    pub(crate) name: String,
-    pub(crate) value: ValueData,
+    pub name: String,
+    pub value: ValueData,
 }
 
 #[derive(Debug, Clone, PartialEq)]

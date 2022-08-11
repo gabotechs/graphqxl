@@ -1,5 +1,5 @@
 use crate::synth_block_def::BlockDefSynth;
-use crate::synth_directive::DirectiveSynth;
+use crate::synth_directive_def::DirectiveDefSynth;
 use crate::synth_scalar::ScalarSynth;
 use crate::synth_union::UnionSynth;
 use crate::synths::{Synth, SynthContext};
@@ -38,7 +38,7 @@ impl Synth for SpecSynth {
                 }
                 DefType::Directive(name) => {
                     let def = self.0.directives.get(name).unwrap().to_owned();
-                    result += &DirectiveSynth(def).synth(context);
+                    result += &DirectiveDefSynth(def).synth(context);
                 }
             }
             result += "\n\n";
