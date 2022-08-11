@@ -4,29 +4,15 @@ use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ValueTypeSimple {
-    pub value_type: ValueBasicType,
-    pub nullable: bool,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct ValueTypeArray {
-    pub value_type: ValueTypeSimple,
-    pub nullable: bool,
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub enum ValueType {
-    Simple(ValueTypeSimple),
-    Array(ValueTypeArray),
+    Basic(ValueBasicType),
+    Array(Box<ValueType>),
+    NonNullable(Box<ValueType>),
 }
 
 impl ValueType {
     pub fn build(t: ValueBasicType) -> Self {
-        Self::Simple(ValueTypeSimple {
-            value_type: t,
-            nullable: true,
-        })
+        Self::Basic(t)
     }
 
     pub fn int() -> Self {
@@ -50,74 +36,28 @@ impl ValueType {
     }
 
     pub fn non_nullable(&mut self) -> Self {
-        match self {
-            ValueType::Simple(simple) => simple.nullable = false,
-            ValueType::Array(array) => array.nullable = false,
-        }
-        self.clone()
+        ValueType::NonNullable(Box::new(self.clone()))
     }
 
     pub fn array(&mut self) -> Self {
-        if let ValueType::Simple(simple) = self {
-            ValueType::Array(ValueTypeArray {
-                value_type: simple.clone(),
-                nullable: true,
-            })
-        } else {
-            self.clone()
-        }
-    }
-}
-
-fn _parse_value_type(
-    pair: Pair<Rule>,
-    nullable: bool,
-    array: bool,
-    array_nullable: bool,
-) -> Result<ValueType, pest::error::Error<Rule>> {
-    match pair.as_rule() {
-        Rule::value_nullable => {
-            let inner = pair.into_inner().next().unwrap();
-            let content = parse_value_basic_type(inner).unwrap();
-            let value = ValueTypeSimple {
-                value_type: content,
-                nullable,
-            };
-            if array {
-                Ok(ValueType::Array(ValueTypeArray {
-                    value_type: value,
-                    nullable: array_nullable,
-                }))
-            } else {
-                Ok(ValueType::Simple(value))
-            }
-        }
-        Rule::value_non_nullable => {
-            let rule = pair.into_inner().next().unwrap();
-            _parse_value_type(rule, false, array, array_nullable)
-        }
-        Rule::value_array_nullable => {
-            let rule = pair.into_inner().next().unwrap();
-            _parse_value_type(rule, nullable, true, array_nullable)
-        }
-        Rule::value_array_non_nullable => {
-            let rule = pair.into_inner().next().unwrap();
-            _parse_value_type(rule, nullable, true, false)
-        }
-        _unknown => Err(unknown_rule_error(
-            pair,
-            "value_nullable, value, value_array_nullable, value_array",
-        )),
+        ValueType::Array(Box::new(self.clone()))
     }
 }
 
 pub(crate) fn parse_value_type(pair: Pair<Rule>) -> Result<ValueType, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::value_type => {
-            let rule = pair.into_inner().next().unwrap();
-            _parse_value_type(rule, true, false, true)
-        }
-        _unknown => Err(unknown_rule_error(pair, "value_type")),
+        Rule::value_type => parse_value_type(pair.into_inner().next().unwrap()),
+        Rule::value_basic_type => Ok(ValueType::Basic(parse_value_basic_type(pair)?)),
+        Rule::value_non_nullable => Ok(ValueType::NonNullable(Box::new(parse_value_type(
+            pair.into_inner().next().unwrap(),
+        )?))),
+        Rule::value_array => Ok(ValueType::Array(Box::new(parse_value_type(
+            pair.into_inner().next().unwrap(),
+        )?))),
+        _unknown => Err(unknown_rule_error(
+            pair,
+            "value_type, value_array, value_non_nullable or value_basic_type",
+        )),
     }
 }
 
@@ -167,5 +107,33 @@ mod tests {
             parse_input("[Int!]!"),
             Ok(ValueType::int().non_nullable().array().non_nullable())
         );
+    }
+
+    #[test]
+    fn test_parses_super_nested_array() {
+        assert_eq!(
+            parse_input("[[[[Int]]]]"),
+            Ok(ValueType::int().array().array().array().array())
+        )
+    }
+
+    #[test]
+    fn test_parses_super_nested_array_with_non_nullables() {
+        assert_eq!(
+            parse_input("[[[[Int!]]!]]!"),
+            Ok(ValueType::int()
+                .non_nullable()
+                .array()
+                .array()
+                .non_nullable()
+                .array()
+                .array()
+                .non_nullable())
+        )
+    }
+
+    #[test]
+    fn test_not_parses_double_nullable() {
+        parse_input("[Int!!]").unwrap_err();
     }
 }

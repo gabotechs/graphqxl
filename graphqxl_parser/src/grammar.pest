@@ -51,12 +51,10 @@ description = @{ multiline_description | one_line_description }
 
 directive = { "@" ~ identifier ~ function_call? }
 
-value_type = { value_array_non_nullable | value_array_nullable | value_non_nullable | value_nullable }
+value_type = { value_non_nullable | value_array | value_basic_type }
 
-    value_array_non_nullable = { value_array_nullable ~ "!" }
-    value_array_nullable = { "[" ~ (value_non_nullable | value_nullable) ~ "]" }
-    value_non_nullable = { value_nullable ~ "!" }
-    value_nullable = { value_basic_type }
+    value_array = { "[" ~ (value_non_nullable | value_array | value_basic_type) ~ "]" }
+    value_non_nullable = { (value_basic_type | value_array) ~ "!" }
 
         value_basic_type = { object | basic_type }
             int = @{ "Int" }
