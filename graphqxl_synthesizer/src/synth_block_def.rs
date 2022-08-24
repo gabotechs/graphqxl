@@ -22,14 +22,13 @@ impl Synth for BlockDefSynth {
             v.push(Box::new(DirectiveSynth(directive.clone())));
             v.push(Box::new(StringSynth::from(" ")));
         }
-        v.push(Box::new(ListSynth::from((
+        v.push(Box::new(ListSynth::multiline((
             "{",
             self.0
                 .fields
                 .iter()
                 .map(|e| BlockFieldSynth(e.clone()))
                 .collect(),
-            " ",
             "}",
         ))));
         let synth = PairSynth::top_level(
@@ -52,7 +51,10 @@ mod tests {
     #[test]
     fn test_most_simple_block_def() {
         let synth = BlockDefSynth(test_most_simple_block_def_factory());
-        assert_eq!(synth.synth_zero(), "type MyType {field: String}")
+        assert_eq!(
+            synth.synth_multiline(2),
+            "type MyType {\n  field: String\n}"
+        )
     }
 
     fn test_with_args_block_def_factory() -> BlockDef {
@@ -72,10 +74,10 @@ mod tests {
             synth.synth_multiline(2),
             "\
 type MyType {
-  field: String 
+  field: String
   field2(
-    arg1: String 
-    arg2: String 
+    arg1: String
+    arg2: String
     arg3: String
   ): String
 }"
@@ -97,7 +99,7 @@ type MyType {
             synth.synth_multiline(2),
             "\
 type MyType {
-  field: String 
+  field: String
   \"my description\"
   field2: String
 }"
@@ -116,13 +118,11 @@ type MyType {
         assert_eq!(
             synth.synth_multiline(2),
             "\
-type MyType @dir1(
-  arg: 1
-) @dir2 {
-  field: String 
+type MyType @dir1(arg: 1) @dir2 {
+  field: String
   field2(
-    arg1: String 
-    arg2: String 
+    arg1: String
+    arg2: String
     arg3: String
   ): String
 }"

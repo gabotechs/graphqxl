@@ -5,6 +5,28 @@ use graphqxl_parser::Union;
 
 pub(crate) struct UnionSynth(pub(crate) Union);
 
+struct UnionTypesSynth(Vec<String>);
+
+impl Synth for UnionTypesSynth {
+    fn synth(&self, context: &SynthContext) -> String {
+        let list_synth = ListSynth::inline_or_multiline_suffixed((
+            "",
+            self.0
+                .iter()
+                .map(|t| StringSynth::from(t.as_str()))
+                .collect(),
+            (" | ", " |"),
+            "",
+        ));
+
+        if self.0.len() > context.max_one_line_ors {
+            list_synth.synth(&context.multiline())
+        } else {
+            list_synth.synth(&context.no_multiline())
+        }
+    }
+}
+
 impl Synth for UnionSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let mut v: Vec<Box<dyn Synth>> =
@@ -14,21 +36,17 @@ impl Synth for UnionSynth {
             v.push(Box::new(DirectiveSynth(directive.clone())));
         }
         v.push(Box::new(StringSynth::from(" = ")));
-        v.push(Box::new(ListSynth::from((
-            "",
-            self.0
-                .types
-                .iter()
-                .map(|t| StringSynth::from(t.as_str()))
-                .collect(),
-            " | ",
-            "",
-        ))));
+        v.push(Box::new(UnionTypesSynth(self.0.types.clone())));
         let pair_synth = PairSynth::top_level(
             DescriptionSynth::from(self.0.description.as_str()),
             ChainSynth(v),
         );
-        pair_synth.synth(context)
+        // todo: where does this 4 come from
+        if self.0.types.len() > 4 {
+            pair_synth.synth(&context.multiline())
+        } else {
+            pair_synth.synth(&context.no_multiline())
+        }
     }
 }
 
@@ -72,10 +90,10 @@ union MyUnion = MyType1 | MyType2"
     fn test_indented() {
         let synth = UnionSynth(Union::build("MyUnion").type_("MyType1").type_("MyType2"));
         assert_eq!(
-            synth.synth_multiline(2),
+            synth.synth(&SynthContext::default().max_one_line_ors(1)),
             "\
 union MyUnion = 
-  MyType1 | 
+  MyType1 |
   MyType2"
         );
     }
@@ -90,10 +108,10 @@ union MyUnion =
                 .directive(Directive::build("dir2")),
         );
         assert_eq!(
-            synth.synth_multiline(2),
+            synth.synth(&SynthContext::default().max_one_line_ors(1)),
             "\
 union MyUnion @dir1 @dir2 = 
-  MyType1 | 
+  MyType1 |
   MyType2"
         );
     }

@@ -24,7 +24,7 @@ impl Synth for SchemaSynth {
             DescriptionSynth::from(self.0.description.as_str()),
             ChainSynth(vec![
                 Box::new(StringSynth("schema ".to_string())),
-                Box::new(ListSynth::from(("{", to_include, " ", "}"))),
+                Box::new(ListSynth::multiline(("{", to_include, "}"))),
             ]),
         );
         pair_synth.synth(context)
@@ -38,7 +38,7 @@ mod tests {
     #[test]
     fn test_with_query() {
         let synth = SchemaSynth(Schema::build().query("Query"));
-        assert_eq!(synth.synth_zero(), "schema {query: Query}")
+        assert_eq!(synth.synth_zero(), "schema {\n  query: Query\n}")
     }
 
     #[test]
@@ -51,7 +51,12 @@ mod tests {
         );
         assert_eq!(
             synth.synth_zero(),
-            "schema {query: Query mutation: Mutation subscription: Subscription}"
+            "\
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}"
         )
     }
 
@@ -64,12 +69,12 @@ mod tests {
                 .subscription("Subscription"),
         );
         assert_eq!(
-            synth.synth_multiline(2),
+            synth.synth_multiline(4),
             "\
 schema {
-  query: Query 
-  mutation: Mutation 
-  subscription: Subscription
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
 }"
         )
     }

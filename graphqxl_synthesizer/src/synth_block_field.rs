@@ -28,7 +28,12 @@ impl Synth for BlockFieldSynth {
                 v
             }),
         };
-        synth.synth(context)
+        // todo: that 2, where does it come from
+        if self.0.args.len() > 2 {
+            synth.synth(&context.multiline())
+        } else {
+            synth.synth(&context.no_multiline())
+        }
     }
 }
 
@@ -98,19 +103,13 @@ my multiline
                 .arg(Argument::string("arg")),
         );
         assert_eq!(
-            synth.synth(&SynthContext {
-                multiline: true,
-                indent_spaces: 2,
-                indent_lvl: 0,
-            }),
+            synth.synth_multiline(2),
             "\
 \"my description\"
-field(
-  arg: String
-): String"
+field(arg: String): String"
         );
     }
-
+    // todo: choose the rules that say when arguments should be separated in multiple lines
     #[test]
     fn test_description_multiple_args_type_multiline_and_indent_and_directive() {
         let synth = BlockFieldSynth(
@@ -123,17 +122,10 @@ field(
                 .directive(Directive::build("dir1")),
         );
         assert_eq!(
-            synth.synth(&SynthContext {
-                multiline: true,
-                indent_spaces: 2,
-                indent_lvl: 2,
-            }),
+            synth.synth_multiline_offset(2, 2),
             "\
 \"my description\"
-    field(
-      arg1: String 
-      arg2: String
-    ): String @dir1"
+    field(arg1: String, arg2: String): String @dir1"
         );
     }
 }

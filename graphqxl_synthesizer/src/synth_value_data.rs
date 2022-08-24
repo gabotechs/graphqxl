@@ -6,6 +6,11 @@ pub(crate) struct ValueDataSynth(pub(crate) ValueData);
 
 impl Synth for ValueDataSynth {
     fn synth(&self, context: &SynthContext) -> String {
+        let context = if !context.allow_multiline_values {
+            context.no_multiline()
+        } else {
+            *context
+        };
         match &self.0 {
             ValueData::Basic(value) => match value {
                 ValueBasicData::Int(v) => v.to_string(),
@@ -120,7 +125,7 @@ mod tests {
     fn test_list_multiline() {
         let synth = ValueDataSynth(ValueData::int(1).list().push(ValueData::int(2)));
         assert_eq!(
-            synth.synth_multiline(2),
+            synth.synth(&SynthContext::default().multiline().allow_multiline_values()),
             "\
 [
   1
@@ -133,7 +138,12 @@ mod tests {
     fn test_list_multiline_indented() {
         let synth = ValueDataSynth(ValueData::int(1).list().push(ValueData::int(2)));
         assert_eq!(
-            synth.synth_multiline_offset(2, 4),
+            synth.synth(
+                &SynthContext::default()
+                    .multiline()
+                    .allow_multiline_values()
+                    .with_indent_lvl(4)
+            ),
             "\
 [
           1
@@ -160,7 +170,7 @@ mod tests {
                 .insert("b", ValueData::int(2)),
         );
         assert_eq!(
-            synth.synth_multiline(2),
+            synth.synth(&SynthContext::default().multiline().allow_multiline_values()),
             "\
 {
   a: 1
@@ -177,7 +187,12 @@ mod tests {
                 .insert("b", ValueData::int(2)),
         );
         assert_eq!(
-            synth.synth_multiline_offset(2, 4),
+            synth.synth(
+                &SynthContext::default()
+                    .multiline()
+                    .allow_multiline_values()
+                    .with_indent_lvl(4)
+            ),
             "\
 {
           a: 1
@@ -212,7 +227,7 @@ mod tests {
                 .insert("b", ValueData::int(2)),
         );
         assert_eq!(
-            synth.synth_multiline(2),
+            synth.synth(&SynthContext::default().multiline().allow_multiline_values()),
             "\
 {
   a: [

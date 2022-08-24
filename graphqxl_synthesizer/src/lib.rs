@@ -28,5 +28,8 @@ pub fn synth_spec(spec: Spec, options: SynthOptions) -> String {
         indent_spaces: options.indent_spaces,
         indent_lvl: 0,
         multiline: options.multiline,
+        max_one_line_args: 2,
+        max_one_line_ors: 2,
+        allow_multiline_values: false,
     })
 }

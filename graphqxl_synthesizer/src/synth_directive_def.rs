@@ -29,6 +29,27 @@ fn print_directive_location(directive_location: &DirectiveLocation) -> String {
     }
 }
 
+struct DirectiveLocationSynth(Vec<DirectiveLocation>);
+
+impl Synth for DirectiveLocationSynth {
+    fn synth(&self, context: &SynthContext) -> String {
+        let list_synth = ListSynth::inline_or_multiline_suffixed((
+            "",
+            self.0
+                .iter()
+                .map(|t| StringSynth(print_directive_location(t)))
+                .collect(),
+            (" | ", " |"),
+            "",
+        ));
+        if self.0.len() > context.max_one_line_ors {
+            list_synth.synth(&context.multiline())
+        } else {
+            list_synth.synth(&context.no_multiline())
+        }
+    }
+}
+
 impl Synth for DirectiveDefSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let synth = PairSynth::top_level(
@@ -37,16 +58,7 @@ impl Synth for DirectiveDefSynth {
                 let mut v: Vec<Box<dyn Synth>> = vec![
                     Box::new(StringSynth(format!("directive @{}", self.0.name))),
                     Box::new(StringSynth::from(" on ")),
-                    Box::new(ListSynth::from((
-                        "",
-                        self.0
-                            .locations
-                            .iter()
-                            .map(|t| StringSynth(print_directive_location(t)))
-                            .collect(),
-                        " | ",
-                        "",
-                    ))),
+                    Box::new(DirectiveLocationSynth(self.0.locations.clone())),
                 ];
                 if self.0.is_repeatable {
                     v.insert(1, Box::new(StringSynth::from(" repeatable")));
@@ -57,7 +69,7 @@ impl Synth for DirectiveDefSynth {
                 v
             }),
         );
-        synth.synth(context)
+        synth.synth(&context.no_multiline())
     }
 }
 
@@ -132,7 +144,7 @@ directive @dir(arg: String) repeatable on ENUM"
                 .location(DirectiveLocation::Interface),
         );
         assert_eq!(
-            synth.synth_zero(),
+            synth.synth(&SynthContext::default().max_one_line_ors(3)),
             "\
 \"my description\"
 directive @dir(arg: String) repeatable on ENUM | ARGUMENT_DEFINITION | INTERFACE"
@@ -158,11 +170,9 @@ directive @dir(arg: String) repeatable on ENUM | ARGUMENT_DEFINITION | INTERFACE
             }),
             "\
 \"my description\"
-directive @dir(
-  arg: String
-) repeatable on 
-  ENUM | 
-  ARGUMENT_DEFINITION | 
+directive @dir(arg: String) repeatable on 
+  ENUM |
+  ARGUMENT_DEFINITION |
   INTERFACE"
         );
     }

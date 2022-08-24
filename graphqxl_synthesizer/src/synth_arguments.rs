@@ -8,7 +8,7 @@ pub(crate) struct ArgumentsSynth(pub(crate) Vec<Argument>);
 
 impl Synth for ArgumentsSynth {
     fn synth(&self, context: &SynthContext) -> String {
-        let list_synth = ListSynth::from((
+        let list_synth = ListSynth::inline_or_multiline_suffixed((
             "(",
             self.0
                 .iter()
@@ -28,10 +28,14 @@ impl Synth for ArgumentsSynth {
                     ChainSynth(v)
                 })
                 .collect(),
-            " ",
+            (", ", ""),
             ")",
         ));
-        list_synth.synth(context)
+        if self.0.len() > context.max_one_line_args {
+            list_synth.synth(&context.multiline())
+        } else {
+            list_synth.synth(&context.no_multiline())
+        }
     }
 }
 
@@ -49,16 +53,15 @@ mod tests {
     #[test]
     fn test_two_argument() {
         let synth = ArgumentsSynth(vec![Argument::string("arg1"), Argument::string("arg2")]);
-        assert_eq!(synth.synth_zero(), "(arg1: String arg2: String)")
+        assert_eq!(synth.synth_zero(), "(arg1: String, arg2: String)")
     }
 
     #[test]
-    fn test_one_argument_indent() {
+    fn test_two_arguments_indent() {
         let synth = ArgumentsSynth(vec![Argument::string("arg"), Argument::string("arg2")]);
-
         assert_eq!(
-            synth.synth_multiline(2),
-            "(\n  arg: String \n  arg2: String\n)"
+            synth.synth(&SynthContext::default().max_one_line_args(1)),
+            "(\n  arg: String\n  arg2: String\n)"
         )
     }
 

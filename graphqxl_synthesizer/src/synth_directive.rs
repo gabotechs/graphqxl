@@ -15,7 +15,7 @@ impl Synth for DirectiveSynth {
         }
 
         let synth = ChainSynth(v);
-        synth.synth(context)
+        synth.synth(&context.no_multiline())
     }
 }
 
@@ -33,7 +33,7 @@ mod tests {
     #[test]
     fn test_directive_with_one_input() {
         let synth = DirectiveSynth(Directive::build("dir").input("arg", ValueData::string("data")));
-        assert_eq!(synth.synth_zero(), "@dir( arg: \"data\" )")
+        assert_eq!(synth.synth_zero(), "@dir(arg: \"data\")")
     }
 
     #[test]
@@ -45,7 +45,7 @@ mod tests {
         );
         assert_eq!(
             synth.synth_zero(),
-            "@dir( arg: \"data\", arg2: [ { bool: true } ] )"
+            "@dir(arg: \"data\", arg2: [ { bool: true } ])"
         )
     }
 
@@ -54,6 +54,7 @@ mod tests {
         let synth = DirectiveSynth(
             Directive::build("dir")
                 .input("arg", ValueData::string("data"))
+                .input("arg1", ValueData::int(1))
                 .input("arg2", ValueData::boolean(true).to_object("bool").list()),
         );
         assert_eq!(
@@ -61,11 +62,8 @@ mod tests {
             "\
 @dir(
   arg: \"data\"
-  arg2: [
-    {
-      bool: true
-    }
-  ]
+  arg1: 1
+  arg2: [ { bool: true } ]
 )"
         )
     }
