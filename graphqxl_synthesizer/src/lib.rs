@@ -1,4 +1,5 @@
 use crate::synth_spec::SpecSynth;
+pub use crate::synths::SynthConfig;
 use crate::synths::{Synth, SynthContext};
 use graphqxl_parser::Spec;
 
@@ -18,18 +19,6 @@ mod synth_value_type;
 mod synths;
 mod utils;
 
-pub struct SynthOptions {
-    pub indent_spaces: usize,
-    pub multiline: bool,
-}
-
-pub fn synth_spec(spec: Spec, options: SynthOptions) -> String {
-    SpecSynth(spec).synth(&SynthContext {
-        indent_spaces: options.indent_spaces,
-        indent_lvl: 0,
-        multiline: options.multiline,
-        max_one_line_args: 2,
-        max_one_line_ors: 2,
-        allow_multiline_values: false,
-    })
+pub fn synth_spec(spec: Spec, options: SynthConfig) -> String {
+    SpecSynth(options, spec).synth(&SynthContext { indent_lvl: 0 })
 }

@@ -1,15 +1,25 @@
-use crate::synths::{Synth, SynthContext};
+use crate::synths::{Synth, SynthConfig, SynthContext};
 
 pub(crate) struct DescriptionSynth {
-    text: String,
+    pub(crate) text: String,
     pub(crate) is_multiline: bool,
+    pub(crate) indent_spaces: usize
 }
 
-impl From<&str> for DescriptionSynth {
-    fn from(text: &str) -> Self {
+impl DescriptionSynth {
+    pub(crate) fn text(config: &SynthConfig, text: &str) -> Self {
         Self {
             text: text.to_string(),
             is_multiline: text.contains('\n'),
+            indent_spaces: config.indent_spaces
+        }
+    }
+
+    pub(crate) fn text_default(text: &str) -> Self {
+        Self {
+            text: text.to_string(),
+            is_multiline: text.contains('\n'),
+            indent_spaces: SynthConfig::default().indent_spaces
         }
     }
 }
@@ -24,11 +34,11 @@ impl Synth for DescriptionSynth {
             result += "\"\"\"";
             for line in self.text.split('\n') {
                 result += "\n";
-                result += &" ".repeat(context.indent_lvl * context.indent_spaces);
+                result += &" ".repeat(context.indent_lvl * self.indent_spaces);
                 result += line;
             }
             result += "\n";
-            result += &" ".repeat(context.indent_lvl * context.indent_spaces);
+            result += &" ".repeat(context.indent_lvl * self.indent_spaces);
             result += "\"\"\"";
         } else {
             result += "\"";
@@ -45,19 +55,19 @@ mod tests {
 
     #[test]
     fn test_synth_empty() {
-        let synth = DescriptionSynth::from("");
+        let synth = DescriptionSynth::text_default("");
         assert_eq!(synth.synth_zero(), "");
     }
 
     #[test]
     fn test_synth_one_line() {
-        let synth = DescriptionSynth::from("This is one line");
+        let synth = DescriptionSynth::text_default("This is one line");
         assert_eq!(synth.synth_zero(), "\"This is one line\"");
     }
 
     #[test]
     fn test_synth_multiline() {
-        let synth = DescriptionSynth::from("These are two lines\nhi!");
+        let synth = DescriptionSynth::text_default("These are two lines\nhi!");
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -70,13 +80,9 @@ hi!
 
     #[test]
     fn test_synth_multiline_indented() {
-        let synth = DescriptionSynth::from("These are two lines\nhi!");
+        let synth = DescriptionSynth::text_default("These are two lines\nhi!");
         assert_eq!(
-            synth.synth(&SynthContext {
-                indent_spaces: 2,
-                indent_lvl: 1,
-                ..Default::default()
-            }),
+            synth.synth(&SynthContext::default().plus_one_indent_lvl()),
             "\
 \"\"\"
   These are two lines

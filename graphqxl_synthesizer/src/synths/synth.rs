@@ -1,24 +1,8 @@
-#[derive(Copy, Clone)]
+use std::collections::HashMap;
+
+#[derive(Copy, Clone, Default)]
 pub(crate) struct SynthContext {
     pub(crate) indent_lvl: usize,
-    pub(crate) indent_spaces: usize,
-    pub(crate) multiline: bool,
-    pub(crate) max_one_line_args: usize,
-    pub(crate) max_one_line_ors: usize,
-    pub(crate) allow_multiline_values: bool,
-}
-
-impl Default for SynthContext {
-    fn default() -> Self {
-        Self {
-            indent_lvl: 0,
-            indent_spaces: 2,
-            multiline: false,
-            max_one_line_args: 2,
-            max_one_line_ors: 2,
-            allow_multiline_values: false,
-        }
-    }
 }
 
 impl SynthContext {
@@ -33,16 +17,31 @@ impl SynthContext {
         clone.indent_lvl = lvl;
         clone
     }
+}
 
-    pub(crate) fn no_multiline(&self) -> Self {
-        let mut clone = *self;
-        clone.multiline = false;
-        clone
+#[derive(Copy, Clone)]
+pub struct SynthConfig {
+    pub indent_spaces: usize,
+    pub max_one_line_args: usize,
+    pub max_one_line_ors: usize,
+    pub allow_multiline_values: bool,
+}
+
+impl Default for SynthConfig {
+    fn default() -> Self {
+        Self {
+            indent_spaces: 2,
+            max_one_line_args: 2,
+            max_one_line_ors: 2,
+            allow_multiline_values: false,
+        }
     }
+}
 
-    pub(crate) fn multiline(&self) -> Self {
+impl SynthConfig {
+    pub(crate) fn indent_spaces(&self, n: usize) -> Self {
         let mut clone = *self;
-        clone.multiline = true;
+        clone.indent_spaces = n;
         clone
     }
 
@@ -67,23 +66,8 @@ impl SynthContext {
 
 pub(crate) trait Synth {
     fn synth(&self, context: &SynthContext) -> String;
+
     fn synth_zero(&self) -> String {
         self.synth(&SynthContext::default())
-    }
-    fn synth_multiline(&self, indent: usize) -> String {
-        self.synth(&SynthContext {
-            multiline: true,
-            indent_spaces: indent,
-            ..Default::default()
-        })
-    }
-
-    fn synth_multiline_offset(&self, indent: usize, indent_start: usize) -> String {
-        self.synth(&SynthContext {
-            multiline: true,
-            indent_spaces: indent,
-            indent_lvl: indent_start,
-            ..Default::default()
-        })
     }
 }

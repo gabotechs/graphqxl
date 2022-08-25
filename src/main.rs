@@ -1,6 +1,6 @@
 use clap::Parser;
 use graphqxl_parser::parse_graphqxl;
-use graphqxl_synthesizer::{synth_spec, SynthOptions};
+use graphqxl_synthesizer::{synth_spec, SynthConfig};
 use std::fs;
 use std::process::exit;
 
@@ -30,9 +30,9 @@ fn main() {
         if let Ok(spec) = spec_or_err {
             let result = synth_spec(
                 spec,
-                SynthOptions {
+                SynthConfig {
                     indent_spaces: args.indent_spaces.unwrap_or(2),
-                    multiline: args.multiline,
+                    ..Default::default()
                 },
             );
             if let Err(err) = fs::write(&out_path, result) {

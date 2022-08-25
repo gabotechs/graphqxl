@@ -1,28 +1,26 @@
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
-use crate::synths::{ChainSynth, ListSynth, PairSynth, StringSynth, Synth, SynthContext};
+use crate::synths::{
+    ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthConfig,
+    SynthContext,
+};
 use graphqxl_parser::Union;
 
-pub(crate) struct UnionSynth(pub(crate) Union);
+pub(crate) struct UnionSynth(pub(crate) SynthConfig, pub(crate) Union);
 
-struct UnionTypesSynth(Vec<String>);
+struct UnionTypesSynth(pub(crate) SynthConfig, pub(crate) Vec<String>);
 
 impl Synth for UnionTypesSynth {
     fn synth(&self, context: &SynthContext) -> String {
-        let list_synth = ListSynth::inline_or_multiline_suffixed((
-            "",
-            self.0
-                .iter()
-                .map(|t| StringSynth::from(t.as_str()))
-                .collect(),
-            (" | ", " |"),
-            "",
-        ));
-
-        if self.0.len() > context.max_one_line_ors {
-            list_synth.synth(&context.multiline())
+        let inner_synths = self
+            .1
+            .iter()
+            .map(|t| StringSynth::from(t.as_str()))
+            .collect();
+        if self.1.len() > self.0.max_one_line_ors {
+            MultilineListSynth::or_suffix(&self.0, ("", inner_synths, "")).synth(context)
         } else {
-            list_synth.synth(&context.no_multiline())
+            OneLineListSynth::or(("", inner_synths, "")).synth(context)
         }
     }
 }
@@ -30,23 +28,19 @@ impl Synth for UnionTypesSynth {
 impl Synth for UnionSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let mut v: Vec<Box<dyn Synth>> =
-            vec![Box::new(StringSynth(format!("union {}", self.0.name)))];
-        for directive in self.0.directives.iter() {
+            vec![Box::new(StringSynth(format!("union {}", self.1.name)))];
+        for directive in self.1.directives.iter() {
             v.push(Box::new(StringSynth::from(" ")));
-            v.push(Box::new(DirectiveSynth(directive.clone())));
+            v.push(Box::new(DirectiveSynth(self.0, directive.clone())));
         }
         v.push(Box::new(StringSynth::from(" = ")));
-        v.push(Box::new(UnionTypesSynth(self.0.types.clone())));
+        v.push(Box::new(UnionTypesSynth(self.0, self.1.types.clone())));
         let pair_synth = PairSynth::top_level(
-            DescriptionSynth::from(self.0.description.as_str()),
+            &self.0,
+            DescriptionSynth::text(&self.0, self.1.description.as_str()),
             ChainSynth(v),
         );
-        // todo: where does this 4 come from
-        if self.0.types.len() > 4 {
-            pair_synth.synth(&context.multiline())
-        } else {
-            pair_synth.synth(&context.no_multiline())
-        }
+        pair_synth.synth(context)
     }
 }
 
@@ -55,21 +49,27 @@ mod tests {
     use super::*;
     use graphqxl_parser::Directive;
 
+    impl UnionSynth {
+        fn default(def: Union) -> Self {
+            Self(SynthConfig::default(), def)
+        }
+    }
+
     #[test]
     fn test_one_type() {
-        let synth = UnionSynth(Union::build("MyUnion").type_("MyType"));
+        let synth = UnionSynth::default(Union::build("MyUnion").type_("MyType"));
         assert_eq!(synth.synth_zero(), "union MyUnion = MyType");
     }
 
     #[test]
     fn test_multiple() {
-        let synth = UnionSynth(Union::build("MyUnion").type_("MyType1").type_("MyType2"));
+        let synth = UnionSynth::default(Union::build("MyUnion").type_("MyType1").type_("MyType2"));
         assert_eq!(synth.synth_zero(), "union MyUnion = MyType1 | MyType2");
     }
 
     #[test]
     fn test_with_comment() {
-        let synth = UnionSynth(
+        let synth = UnionSynth::default(
             Union::build("MyUnion")
                 .description("my description...\n..that takes two lines")
                 .type_("MyType1")
@@ -88,9 +88,12 @@ union MyUnion = MyType1 | MyType2"
 
     #[test]
     fn test_indented() {
-        let synth = UnionSynth(Union::build("MyUnion").type_("MyType1").type_("MyType2"));
+        let synth = UnionSynth(
+            SynthConfig::default().max_one_line_ors(1),
+            Union::build("MyUnion").type_("MyType1").type_("MyType2"),
+        );
         assert_eq!(
-            synth.synth(&SynthContext::default().max_one_line_ors(1)),
+            synth.synth_zero(),
             "\
 union MyUnion = 
   MyType1 |
@@ -101,6 +104,7 @@ union MyUnion =
     #[test]
     fn test_with_directives() {
         let synth = UnionSynth(
+            SynthConfig::default().max_one_line_ors(1),
             Union::build("MyUnion")
                 .type_("MyType1")
                 .type_("MyType2")
@@ -108,7 +112,7 @@ union MyUnion =
                 .directive(Directive::build("dir2")),
         );
         assert_eq!(
-            synth.synth(&SynthContext::default().max_one_line_ors(1)),
+            synth.synth_zero(),
             "\
 union MyUnion @dir1 @dir2 = 
   MyType1 |
