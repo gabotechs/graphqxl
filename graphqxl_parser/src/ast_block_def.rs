@@ -4,9 +4,7 @@ use crate::ast_identifier::parse_identifier;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use crate::{parse_directive, Directive};
-use pest::error::ErrorVariant;
 use pest::iterators::{Pair, Pairs};
-use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlockDefType {
@@ -17,11 +15,17 @@ pub enum BlockDefType {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum BlockEntry {
+    Field(BlockField),
+    SpreadRef(String),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct BlockDef {
     pub name: String,
     pub description: String,
     pub kind: BlockDefType,
-    pub fields: Vec<BlockField>,
+    pub entries: Vec<BlockEntry>,
     pub directives: Vec<Directive>,
 }
 
@@ -31,7 +35,7 @@ impl BlockDef {
             name: name.to_string(),
             description: "".to_string(),
             kind,
-            fields: Vec::new(),
+            entries: Vec::new(),
             directives: Vec::new(),
         }
     }
@@ -58,7 +62,13 @@ impl BlockDef {
     }
 
     pub fn field(&mut self, field: BlockField) -> Self {
-        self.fields.push(field);
+        self.entries.push(BlockEntry::Field(field));
+        self.clone()
+    }
+
+    pub fn spread(&mut self, identifier: &str) -> Self {
+        self.entries
+            .push(BlockEntry::SpreadRef(identifier.to_string()));
         self.clone()
     }
 
@@ -76,29 +86,26 @@ fn _parse_type_or_input(
     let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
     let name = parse_identifier(next)?;
 
-    let mut fields = Vec::new();
+    let mut entries = Vec::new();
     let mut directives = Vec::new();
     for child in pairs {
         match child.as_rule() {
             Rule::directive => {
                 directives.push(parse_directive(child)?);
             }
-            // this means selection_set
+            // this means selection_set or spread_reference
             _ => {
-                let mut seen_fields = HashSet::new();
                 for pair in child.into_inner() {
-                    let field = parse_block_field(pair.clone())?;
-                    if seen_fields.contains(&field.name) {
-                        return Err(pest::error::Error::new_from_span(
-                            ErrorVariant::CustomError {
-                                message: format!("duplicate field {}", field.name),
-                            },
-                            pair.as_span(),
-                        ));
-                    } else {
-                        seen_fields.insert(field.name.clone());
+                    match pair.as_rule() {
+                        Rule::spread_reference => {
+                            let spread = parse_identifier(pair.into_inner().next().unwrap())?;
+                            entries.push(BlockEntry::SpreadRef(spread))
+                        }
+                        _ => {
+                            let field = parse_block_field(pair.clone())?;
+                            entries.push(BlockEntry::Field(field));
+                        }
                     }
-                    fields.push(field);
                 }
             }
         }
@@ -107,7 +114,7 @@ fn _parse_type_or_input(
         name,
         description,
         kind,
-        fields,
+        entries,
         directives,
     })
 }
@@ -227,6 +234,39 @@ mod tests {
         assert_eq!(
             parse_input("enum MyEnum { }"),
             Ok(BlockDef::enum_("MyEnum"))
+        );
+    }
+
+    #[test]
+    fn parses_type_with_spread() {
+        assert_eq!(
+            parse_input("type MyType { field1: String ...Type field2: String }"),
+            Ok(BlockDef::type_("MyType")
+                .field(BlockField::build("field1").string())
+                .spread("Type")
+                .field(BlockField::build("field2").string()))
+        );
+    }
+
+    #[test]
+    fn parses_input_with_spread() {
+        assert_eq!(
+            parse_input("input MyInput { field1: String ...Input field2: String }"),
+            Ok(BlockDef::input("MyInput")
+                .field(BlockField::build("field1").string())
+                .spread("Input")
+                .field(BlockField::build("field2").string()))
+        );
+    }
+
+    #[test]
+    fn parses_enum_with_spread() {
+        assert_eq!(
+            parse_input("enum MyEnum { field1 ...Enum field2 }"),
+            Ok(BlockDef::enum_("MyEnum")
+                .field(BlockField::build("field1"))
+                .spread("Enum")
+                .field(BlockField::build("field2")))
         );
     }
 

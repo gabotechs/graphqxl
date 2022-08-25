@@ -7,11 +7,11 @@ schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
 type_def = { description? ~ "type " ~ identifier ~ directive* ~ type_selection_set }
-    type_selection_set = { "{" ~ field_with_args* ~ "}" }
+    type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
 input_def = { description? ~ "input " ~ identifier ~ directive* ~ input_selection_set }
-    input_selection_set = { "{" ~ field_without_args* ~ "}" }
+    input_selection_set = { "{" ~ (field_without_args | spread_reference)* ~ "}" }
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
-    enum_selection_set = { "{" ~ field_without_args_without_value* ~ "}" }
+    enum_selection_set = { "{" ~ (field_without_args_without_value | spread_reference)* ~ "}" }
 interface_def = { description? ~ "interface " ~ identifier ~ directive* ~ interface_selection_set }
     interface_selection_set = { "{" ~ field_with_args* ~ "}" }
 scalar_def = { description? ~ "scalar " ~ identifier ~ directive* }
@@ -91,5 +91,6 @@ char_no_double_quote = @{
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )* }
+spread_reference = ${ "..." ~ identifier }
 WHITESPACE = _{ " " | "," | "\n" | "\r" | "\t" }
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* ~ "\n" }
