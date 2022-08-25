@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 #[derive(Copy, Clone)]
 pub struct SynthConfig {
     pub indent_spaces: usize,
@@ -19,29 +17,34 @@ impl Default for SynthConfig {
     }
 }
 
-impl SynthConfig {
-    pub(crate) fn indent_spaces(&self, n: usize) -> Self {
-        let mut clone = *self;
-        clone.indent_spaces = n;
-        clone
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    pub(crate) fn max_one_line_args(&self, n: usize) -> Self {
-        let mut clone = *self;
-        clone.max_one_line_args = n;
-        clone
-    }
+    impl SynthConfig {
+        pub(crate) fn indent_spaces(&self, n: usize) -> Self {
+            let mut clone = *self;
+            clone.indent_spaces = n;
+            clone
+        }
 
-    pub(crate) fn max_one_line_ors(&self, n: usize) -> Self {
-        let mut clone = *self;
-        clone.max_one_line_ors = n;
-        clone
-    }
+        pub(crate) fn max_one_line_args(&self, n: usize) -> Self {
+            let mut clone = *self;
+            clone.max_one_line_args = n;
+            clone
+        }
 
-    pub(crate) fn allow_multiline_values(&self) -> Self {
-        let mut clone = *self;
-        clone.allow_multiline_values = true;
-        clone
+        pub(crate) fn max_one_line_ors(&self, n: usize) -> Self {
+            let mut clone = *self;
+            clone.max_one_line_ors = n;
+            clone
+        }
+
+        pub(crate) fn allow_multiline_values(&self) -> Self {
+            let mut clone = *self;
+            clone.allow_multiline_values = true;
+            clone
+        }
     }
 }
 
