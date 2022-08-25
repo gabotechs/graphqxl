@@ -6,11 +6,11 @@ use crate::synths::{
 };
 use graphqxl_parser::{BlockDef, BlockDefType};
 
-pub(crate) struct BlockDefSynth(pub(crate) SynthConfig, pub(crate) BlockDef);
+pub(crate) struct BlockDefSynth(pub(crate) BlockDef);
 
 impl Synth for BlockDefSynth {
     fn synth(&self, context: &SynthContext) -> String {
-        let symbol = match self.1.kind {
+        let symbol = match self.0.kind {
             BlockDefType::Type => "type",
             BlockDefType::Input => "input",
             BlockDefType::Enum => "enum",
@@ -18,27 +18,27 @@ impl Synth for BlockDefSynth {
         };
         let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth(format!(
             "{} {} ",
-            symbol, self.1.name
+            symbol, self.0.name
         )))];
-        for directive in self.1.directives.iter() {
-            v.push(Box::new(DirectiveSynth(self.0, directive.clone())));
+        for directive in self.0.directives.iter() {
+            v.push(Box::new(DirectiveSynth(directive.clone())));
             v.push(Box::new(StringSynth::from(" ")));
         }
         v.push(Box::new(MultilineListSynth::no_suffix(
-            &self.0,
+            &context.config,
             (
                 "{",
-                self.1
+                self.0
                     .fields
                     .iter()
-                    .map(|e| BlockFieldSynth(self.0, e.clone()))
+                    .map(|e| BlockFieldSynth(e.clone()))
                     .collect(),
                 "}",
             ),
         )));
         let synth = PairSynth::top_level(
-            &self.0,
-            DescriptionSynth::text(&self.0, self.1.description.as_str()),
+            &context.config,
+            DescriptionSynth::text(&context.config, &self.0.description.as_str()),
             ChainSynth(v),
         );
         synth.synth(context)
@@ -50,19 +50,13 @@ mod tests {
     use super::*;
     use graphqxl_parser::{Argument, BlockField, Directive, ValueData};
 
-    impl BlockDefSynth {
-        fn default(def: BlockDef) -> Self {
-            Self(SynthConfig::default(), def)
-        }
-    }
-
     fn test_most_simple_block_def_factory() -> BlockDef {
         BlockDef::type_("MyType").field(BlockField::build("field").string())
     }
 
     #[test]
     fn test_most_simple_block_def() {
-        let synth = BlockDefSynth::default(test_most_simple_block_def_factory());
+        let synth = BlockDefSynth(test_most_simple_block_def_factory());
         assert_eq!(synth.synth_zero(), "type MyType {\n  field: String\n}")
     }
 
@@ -78,7 +72,7 @@ mod tests {
 
     #[test]
     fn test_with_args_block_def() {
-        let synth = BlockDefSynth::default(test_with_args_block_def_factory());
+        let synth = BlockDefSynth(test_with_args_block_def_factory());
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -103,7 +97,7 @@ type MyType {
 
     #[test]
     fn test_with_descriptions_block_def() {
-        let synth = BlockDefSynth::default(test_with_descriptions_block_def_factory());
+        let synth = BlockDefSynth(test_with_descriptions_block_def_factory());
         assert_eq!(
             synth.synth_zero(),
             "\
@@ -123,7 +117,7 @@ type MyType {
 
     #[test]
     fn test_with_directive() {
-        let synth = BlockDefSynth::default(test_with_directive_factory());
+        let synth = BlockDefSynth(test_with_directive_factory());
         assert_eq!(
             synth.synth_zero(),
             "\

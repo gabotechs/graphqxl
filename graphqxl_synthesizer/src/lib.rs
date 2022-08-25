@@ -19,6 +19,9 @@ mod synth_value_type;
 mod synths;
 mod utils;
 
-pub fn synth_spec(spec: Spec, options: SynthConfig) -> String {
-    SpecSynth(options, spec).synth(&SynthContext { indent_lvl: 0 })
+pub fn synth_spec(spec: Spec, config: SynthConfig) -> String {
+    SpecSynth(spec).synth(&SynthContext {
+        indent_lvl: 0,
+        config,
+    })
 }

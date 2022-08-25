@@ -1,9 +1,12 @@
 use crate::synth_arguments::ArgumentsSynth;
 use crate::synth_description::DescriptionSynth;
-use crate::synths::{ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthConfig, SynthContext};
+use crate::synths::{
+    ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthConfig,
+    SynthContext,
+};
 use graphqxl_parser::{DirectiveDef, DirectiveLocation};
 
-pub(crate) struct DirectiveDefSynth(pub(crate) SynthConfig, pub(crate) DirectiveDef);
+pub(crate) struct DirectiveDefSynth(pub(crate) DirectiveDef);
 
 fn print_directive_location(directive_location: &DirectiveLocation) -> String {
     match directive_location {
@@ -29,16 +32,17 @@ fn print_directive_location(directive_location: &DirectiveLocation) -> String {
     }
 }
 
-struct DirectiveLocationSynth(pub(crate) SynthConfig, pub(crate) Vec<DirectiveLocation>);
+struct DirectiveLocationSynth(pub(crate) Vec<DirectiveLocation>);
 
 impl Synth for DirectiveLocationSynth {
     fn synth(&self, context: &SynthContext) -> String {
-        let inner_synths =  self.1
+        let inner_synths = self
+            .0
             .iter()
             .map(|t| StringSynth(print_directive_location(t)))
             .collect();
-        if self.1.len() > self.0.max_one_line_ors {
-            MultilineListSynth::or_suffix(&self.0, ("", inner_synths, "")).synth(context)
+        if self.0.len() > context.config.max_one_line_ors {
+            MultilineListSynth::or_suffix(&context.config, ("", inner_synths, "")).synth(context)
         } else {
             OneLineListSynth::or(("", inner_synths, "")).synth(context)
         }
@@ -48,19 +52,19 @@ impl Synth for DirectiveLocationSynth {
 impl Synth for DirectiveDefSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let synth = PairSynth::top_level(
-            &self.0,
-            DescriptionSynth::text(&self.0, self.1.description.as_str()),
+            &context.config,
+            DescriptionSynth::text(&context.config, &self.0.description.as_str()),
             ChainSynth({
                 let mut v: Vec<Box<dyn Synth>> = vec![
-                    Box::new(StringSynth(format!("directive @{}", self.1.name))),
+                    Box::new(StringSynth(format!("directive @{}", self.0.name))),
                     Box::new(StringSynth::from(" on ")),
-                    Box::new(DirectiveLocationSynth(self.0, self.1.locations.clone())),
+                    Box::new(DirectiveLocationSynth(self.0.locations.clone())),
                 ];
-                if self.1.is_repeatable {
+                if self.0.is_repeatable {
                     v.insert(1, Box::new(StringSynth::from(" repeatable")));
                 }
-                if !self.1.arguments.is_empty() {
-                    v.insert(1, Box::new(ArgumentsSynth(self.0, self.1.arguments.clone())));
+                if !self.0.arguments.is_empty() {
+                    v.insert(1, Box::new(ArgumentsSynth(self.0.arguments.clone())));
                 }
                 v
             }),
@@ -74,21 +78,15 @@ mod tests {
     use super::*;
     use graphqxl_parser::Argument;
 
-    impl DirectiveDefSynth {
-        fn default(def: DirectiveDef) -> Self {
-            Self(SynthConfig::default(), def)
-        }
-    }
-
     #[test]
     fn test_most_simple_directive_def() {
-        let synth = DirectiveDefSynth::default(DirectiveDef::build("dir").location(DirectiveLocation::Enum));
+        let synth = DirectiveDefSynth(DirectiveDef::build("dir").location(DirectiveLocation::Enum));
         assert_eq!(synth.synth_zero(), "directive @dir on ENUM");
     }
 
     #[test]
     fn test_with_description() {
-        let synth = DirectiveDefSynth::default(
+        let synth = DirectiveDefSynth(
             DirectiveDef::build("dir")
                 .description("my description")
                 .location(DirectiveLocation::Enum),
@@ -103,7 +101,7 @@ directive @dir on ENUM"
 
     #[test]
     fn test_with_description_with_args() {
-        let synth = DirectiveDefSynth::default(
+        let synth = DirectiveDefSynth(
             DirectiveDef::build("dir")
                 .description("my description")
                 .arg(Argument::string("arg"))
@@ -119,7 +117,7 @@ directive @dir(arg: String) on ENUM"
 
     #[test]
     fn test_with_description_with_args_repeatable() {
-        let synth = DirectiveDefSynth::default(
+        let synth = DirectiveDefSynth(
             DirectiveDef::build("dir")
                 .description("my description")
                 .arg(Argument::string("arg"))
@@ -137,7 +135,6 @@ directive @dir(arg: String) repeatable on ENUM"
     #[test]
     fn test_with_description_with_args_repeatable_multiple_locations() {
         let synth = DirectiveDefSynth(
-            SynthConfig::default().max_one_line_ors(3),
             DirectiveDef::build("dir")
                 .description("my description")
                 .arg(Argument::string("arg"))
@@ -147,7 +144,9 @@ directive @dir(arg: String) repeatable on ENUM"
                 .location(DirectiveLocation::Interface),
         );
         assert_eq!(
-            synth.synth_zero(),
+            synth.synth(
+                &SynthContext::default().with_config(SynthConfig::default().max_one_line_ors(3))
+            ),
             "\
 \"my description\"
 directive @dir(arg: String) repeatable on ENUM | ARGUMENT_DEFINITION | INTERFACE"
@@ -156,7 +155,7 @@ directive @dir(arg: String) repeatable on ENUM | ARGUMENT_DEFINITION | INTERFACE
 
     #[test]
     fn test_with_description_with_args_repeatable_multiple_locations_multiline() {
-        let synth = DirectiveDefSynth::default(
+        let synth = DirectiveDefSynth(
             DirectiveDef::build("dir")
                 .description("my description")
                 .arg(Argument::string("arg"))
