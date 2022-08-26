@@ -4,18 +4,18 @@ use crate::synths::{
     ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthConfig,
     SynthContext,
 };
-use graphqxl_parser::Union;
+use graphqxl_parser::{Identifier, Union};
 
 pub(crate) struct UnionSynth(pub(crate) Union);
 
-struct UnionTypesSynth(pub(crate) Vec<String>);
+struct UnionTypesSynth(pub(crate) Vec<Identifier>);
 
 impl Synth for UnionTypesSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let inner_synths = self
             .0
             .iter()
-            .map(|t| StringSynth::from(t.as_str()))
+            .map(|t| StringSynth::from(t.id.as_str()))
             .collect();
         if self.0.len() > context.config.max_one_line_ors {
             MultilineListSynth::or_suffix(&context.config, ("", inner_synths, "")).synth(context)
@@ -28,7 +28,7 @@ impl Synth for UnionTypesSynth {
 impl Synth for UnionSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let mut v: Vec<Box<dyn Synth>> =
-            vec![Box::new(StringSynth(format!("union {}", self.0.name)))];
+            vec![Box::new(StringSynth(format!("union {}", self.0.name.id)))];
         for directive in self.0.directives.iter() {
             v.push(Box::new(StringSynth::from(" ")));
             v.push(Box::new(DirectiveSynth(directive.clone())));

@@ -1,15 +1,16 @@
 use crate::ast_arguments::{parse_arguments, Argument};
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
-use crate::ast_identifier::parse_identifier;
+use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::ast_value_type::{parse_value_type, ValueType};
 use crate::parser::Rule;
-use crate::utils::unknown_rule_error;
+use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct BlockField {
-    pub name: String,
+    pub span: OwnedSpan,
+    pub name: Identifier,
     pub description: String,
     pub value_type: Option<ValueType>,
     pub args: Vec<Argument>,
@@ -19,7 +20,7 @@ pub struct BlockField {
 impl BlockField {
     pub fn build(name: &str) -> Self {
         Self {
-            name: name.to_string(),
+            name: Identifier::from(name),
             ..Default::default()
         }
     }
@@ -71,12 +72,14 @@ impl BlockField {
 }
 
 fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
+    let span = OwnedSpan::from(pair.as_span());
     // at this moment we are on [type_field|input_field], both will work
     let mut pairs = pair.into_inner();
     // at this moment we are on [description?, identifier, args?, value?]
     let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
     let name = parse_identifier(next)?;
     let mut block_field = BlockField {
+        span,
         name,
         description,
         ..Default::default()

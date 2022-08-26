@@ -1,27 +1,30 @@
-use crate::ast_identifier::parse_identifier;
-use crate::utils::unknown_rule_error;
+use crate::ast_identifier::{parse_identifier, Identifier};
+use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_value_data, Rule, ValueData};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionInput {
-    pub name: String,
+    pub span: OwnedSpan,
+    pub name: Identifier,
     pub value: ValueData,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct FunctionCall {
+    pub span: OwnedSpan,
     pub inputs: Vec<FunctionInput>,
 }
 
 impl FunctionCall {
     pub fn build() -> Self {
-        Self { inputs: Vec::new() }
+        Self::default()
     }
 
     pub fn input(&mut self, name: &str, value: ValueData) -> Self {
         self.inputs.push(FunctionInput {
-            name: name.to_string(),
+            span: OwnedSpan::default(),
+            name: Identifier::from(name),
             value,
         });
         self.clone()
@@ -31,17 +34,19 @@ impl FunctionCall {
 pub(crate) fn parse_function_call(
     pair: Pair<Rule>,
 ) -> Result<FunctionCall, pest::error::Error<Rule>> {
+    let span = OwnedSpan::from(pair.as_span());
     match pair.as_rule() {
         Rule::function_call => {
             let mut inputs = Vec::new();
             for function_input in pair.into_inner() {
+                let span = OwnedSpan::from(function_input.as_span());
                 // [identifier, value_data]
                 let mut childs = function_input.into_inner();
                 let name = parse_identifier(childs.next().unwrap())?;
                 let value = parse_value_data(childs.next().unwrap())?;
-                inputs.push(FunctionInput { name, value })
+                inputs.push(FunctionInput { span, name, value })
             }
-            Ok(FunctionCall { inputs })
+            Ok(FunctionCall { span, inputs })
         }
         _unknown => Err(unknown_rule_error(pair, "function_call")),
     }

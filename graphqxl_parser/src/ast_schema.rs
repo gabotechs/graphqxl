@@ -1,16 +1,17 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
-use crate::ast_identifier::parse_identifier;
-use crate::utils::unknown_rule_error;
+use crate::ast_identifier::{parse_identifier, Identifier};
+use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::Rule;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Schema {
+    pub span: OwnedSpan,
     pub description: String,
     // TODO: add directives
-    pub query: String,
-    pub mutation: String,
-    pub subscription: String,
+    pub query: Identifier,
+    pub mutation: Identifier,
+    pub subscription: Identifier,
 }
 
 impl Schema {
@@ -19,17 +20,17 @@ impl Schema {
     }
 
     pub fn query(&mut self, query: &str) -> Self {
-        self.query = query.to_string();
+        self.query = Identifier::from(query);
         self.clone()
     }
 
     pub fn mutation(&mut self, mutation: &str) -> Self {
-        self.mutation = mutation.to_string();
+        self.mutation = Identifier::from(mutation);
         self.clone()
     }
 
     pub fn subscription(&mut self, subscription: &str) -> Self {
-        self.subscription = subscription.to_string();
+        self.subscription = Identifier::from(subscription);
         self.clone()
     }
 
@@ -62,11 +63,12 @@ fn parse_schema_key(pair: Pair<Rule>) -> Result<SchemaKey, pest::error::Error<Ru
 pub(crate) fn parse_schema(pair: Pair<Rule>) -> Result<Schema, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::schema_def => {
+            let span = OwnedSpan::from(pair.as_span());
             let mut childs = pair.into_inner();
             let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
-            let mut query = "".to_string();
-            let mut mutation = "".to_string();
-            let mut subscription = "".to_string();
+            let mut query = Identifier::from("");
+            let mut mutation = Identifier::from("");
+            let mut subscription = Identifier::from("");
             for field in next.into_inner() {
                 let mut field_parts = field.into_inner();
                 let key = parse_schema_key(field_parts.next().unwrap())?;
@@ -78,6 +80,7 @@ pub(crate) fn parse_schema(pair: Pair<Rule>) -> Result<Schema, pest::error::Erro
                 }
             }
             Ok(Schema {
+                span,
                 description,
                 query,
                 mutation,

@@ -65,7 +65,7 @@ pub(crate) fn parse_value_data(pair: Pair<Rule>) -> Result<ValueData, pest::erro
                 let mut childs = entry.into_inner();
                 let name = parse_identifier(childs.next().unwrap())?;
                 let value = parse_value_data(childs.next().unwrap())?;
-                data.insert(name, value);
+                data.insert(name.id, value);
             }
             Ok(ValueData::Object(data))
         }

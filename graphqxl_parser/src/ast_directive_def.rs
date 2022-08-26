@@ -1,15 +1,17 @@
 use crate::ast_arguments::{parse_arguments, Argument};
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_directive_location::{parse_directive_location, DirectiveLocation};
-use crate::ast_identifier::parse_identifier;
+use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::parser::Rule;
-use crate::utils::unknown_rule_error;
+use crate::utils::{unknown_rule_error, OwnedSpan};
+use crate::Rule::spec;
 use pest::iterators::Pair;
 use std::collections::HashSet;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct DirectiveDef {
-    pub name: String,
+    pub span: OwnedSpan,
+    pub name: Identifier,
     pub description: String,
     pub arguments: Vec<Argument>,
     pub is_repeatable: bool,
@@ -19,11 +21,8 @@ pub struct DirectiveDef {
 impl DirectiveDef {
     pub fn build(name: &str) -> Self {
         Self {
-            name: name.to_string(),
-            description: "".to_string(),
-            arguments: Vec::new(),
-            is_repeatable: false,
-            locations: Vec::new(),
+            name: Identifier::from(name),
+            ..Default::default()
         }
     }
 
@@ -53,6 +52,7 @@ pub(crate) fn parse_directive_def(
 ) -> Result<DirectiveDef, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::directive_def => {
+            let span = OwnedSpan::from(pair.as_span());
             // [identifier, arguments?, repeatable?, ...locations]
             let mut childs = pair.into_inner();
             let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
@@ -88,6 +88,7 @@ pub(crate) fn parse_directive_def(
                 locations.push(parse_directive_location(child)?);
             }
             Ok(DirectiveDef {
+                span,
                 name,
                 description,
                 arguments,

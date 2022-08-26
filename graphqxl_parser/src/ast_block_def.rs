@@ -1,10 +1,11 @@
 use crate::ast_block_field::{parse_block_field, BlockField};
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
-use crate::ast_identifier::parse_identifier;
+use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::parser::Rule;
-use crate::utils::unknown_rule_error;
+use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, Directive};
-use pest::iterators::{Pair, Pairs};
+use pest::iterators::Pair;
+use std::process::id;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlockDefType {
@@ -17,12 +18,13 @@ pub enum BlockDefType {
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlockEntry {
     Field(BlockField),
-    SpreadRef(String),
+    SpreadRef(Identifier),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockDef {
-    pub name: String,
+    pub span: OwnedSpan,
+    pub name: Identifier,
     pub description: String,
     pub kind: BlockDefType,
     pub entries: Vec<BlockEntry>,
@@ -32,7 +34,8 @@ pub struct BlockDef {
 impl BlockDef {
     fn build(name: &str, kind: BlockDefType) -> Self {
         Self {
-            name: name.to_string(),
+            span: OwnedSpan::default(),
+            name: Identifier::from(name),
             description: "".to_string(),
             kind,
             entries: Vec::new(),
@@ -68,7 +71,7 @@ impl BlockDef {
 
     pub fn spread(&mut self, identifier: &str) -> Self {
         self.entries
-            .push(BlockEntry::SpreadRef(identifier.to_string()));
+            .push(BlockEntry::SpreadRef(Identifier::from(identifier)));
         self.clone()
     }
 
@@ -79,9 +82,11 @@ impl BlockDef {
 }
 
 fn _parse_type_or_input(
-    mut pairs: Pairs<Rule>,
+    pair: Pair<Rule>,
     kind: BlockDefType,
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
+    let span = OwnedSpan::from(pair.as_span());
+    let mut pairs = pair.into_inner();
     // [description?, identifier, directives*, selection_set]
     let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
     let name = parse_identifier(next)?;
@@ -111,6 +116,7 @@ fn _parse_type_or_input(
         }
     }
     Ok(BlockDef {
+        span,
         name,
         description,
         kind,
@@ -121,10 +127,10 @@ fn _parse_type_or_input(
 
 pub(crate) fn parse_block_def(pair: Pair<Rule>) -> Result<BlockDef, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::type_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Type),
-        Rule::input_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Input),
-        Rule::enum_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Enum),
-        Rule::interface_def => _parse_type_or_input(pair.into_inner(), BlockDefType::Interface),
+        Rule::type_def => _parse_type_or_input(pair, BlockDefType::Type),
+        Rule::input_def => _parse_type_or_input(pair, BlockDefType::Input),
+        Rule::enum_def => _parse_type_or_input(pair, BlockDefType::Enum),
+        Rule::interface_def => _parse_type_or_input(pair, BlockDefType::Interface),
         _unknown => Err(unknown_rule_error(
             pair,
             "type_def, input_def, enum_def or interface_def",

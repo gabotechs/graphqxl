@@ -8,7 +8,7 @@ pub(crate) struct DirectiveSynth(pub(crate) Directive);
 impl Synth for DirectiveSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth(
-            "@".to_string() + self.0.name.as_str(),
+            "@".to_string() + self.0.name.id.as_str(),
         ))];
         if let Some(call) = &self.0.call {
             v.push(Box::new(FunctionCallSynth(call.clone())));

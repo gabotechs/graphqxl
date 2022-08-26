@@ -15,7 +15,7 @@ impl Synth for ArgumentsSynth {
             .iter()
             .map(|argument| {
                 let mut v: Vec<Box<dyn Synth>> = vec![
-                    Box::new(StringSynth(argument.name.clone() + ": ")),
+                    Box::new(StringSynth(argument.name.id.clone() + ": ")),
                     Box::new(ValueTypeSynth(argument.value_type.clone())),
                 ];
                 if let Some(default) = &argument.default {

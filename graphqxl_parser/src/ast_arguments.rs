@@ -1,14 +1,15 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
-use crate::ast_identifier::parse_identifier;
+use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::ast_value_data::{parse_value_data, ValueData};
 use crate::parser::Rule;
-use crate::utils::unknown_rule_error;
+use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, parse_value_type, Directive, ValueType};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Argument {
-    pub name: String,
+    pub span: OwnedSpan,
+    pub name: Identifier,
     pub description: String,
     pub value_type: ValueType,
     pub default: Option<ValueData>,
@@ -18,7 +19,8 @@ pub struct Argument {
 impl Argument {
     pub fn build(name: &str, t: ValueType) -> Self {
         Self {
-            name: name.to_string(),
+            span: OwnedSpan::default(),
+            name: Identifier::from(name),
             description: "".to_string(),
             value_type: t,
             default: None,
@@ -65,6 +67,7 @@ impl Argument {
 fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::argument => {
+            let span = OwnedSpan::from(pair.as_span());
             // at this moment we are on [argument]
             let mut childs = pair.into_inner();
             let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
@@ -82,6 +85,7 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
                 }
             }
             Ok(Argument {
+                span,
                 name,
                 description,
                 value_type: value,

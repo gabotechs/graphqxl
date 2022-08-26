@@ -8,16 +8,16 @@ pub(crate) struct SchemaSynth(pub(crate) Schema);
 impl Synth for SchemaSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let mut to_include = Vec::new();
-        if !self.0.query.is_empty() {
-            to_include.push(StringSynth(format!("query: {}", self.0.query)))
+        if !self.0.query.id.is_empty() {
+            to_include.push(StringSynth(format!("query: {}", self.0.query.id)))
         }
-        if !self.0.mutation.is_empty() {
-            to_include.push(StringSynth(format!("mutation: {}", self.0.mutation)))
+        if !self.0.mutation.id.is_empty() {
+            to_include.push(StringSynth(format!("mutation: {}", self.0.mutation.id)))
         }
-        if !self.0.subscription.is_empty() {
+        if !self.0.subscription.id.is_empty() {
             to_include.push(StringSynth(format!(
                 "subscription: {}",
-                self.0.subscription
+                self.0.subscription.id
             )))
         }
         let pair_synth = PairSynth::top_level(

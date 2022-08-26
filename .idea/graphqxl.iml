@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/graphqxl_parser/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/graphqxl_synthesizer/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/graphqxl_validator/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

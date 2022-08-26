@@ -1,31 +1,34 @@
-use crate::ast_identifier::parse_identifier;
-use crate::utils::unknown_rule_error;
+use crate::ast_identifier::{parse_identifier, Identifier};
+use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_function_call, FunctionCall, FunctionInput, Rule, ValueData};
 use pest::iterators::Pair;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Directive {
-    pub name: String,
+    pub span: OwnedSpan,
+    pub name: Identifier,
     pub call: Option<FunctionCall>,
 }
 
 impl Directive {
     pub fn build(name: &str) -> Self {
         Self {
-            name: name.to_string(),
-            call: None,
+            name: Identifier::from(name),
+            ..Default::default()
         }
     }
 
     pub fn input(&mut self, name: &str, value: ValueData) -> Self {
         let input = FunctionInput {
-            name: name.to_string(),
+            span: Default::default(),
+            name: Identifier::from(name),
             value,
         };
         if let Some(call) = self.call.as_mut() {
             call.inputs.push(input);
         } else {
             self.call = Some(FunctionCall {
+                span: Default::default(),
                 inputs: vec![input],
             });
         }
@@ -36,6 +39,7 @@ impl Directive {
 pub(crate) fn parse_directive(pair: Pair<Rule>) -> Result<Directive, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::directive => {
+            let span = OwnedSpan::from(pair.as_span());
             let mut childs = pair.into_inner();
             let name = parse_identifier(childs.next().unwrap())?;
             let maybe_function_call = childs.next();
@@ -43,7 +47,7 @@ pub(crate) fn parse_directive(pair: Pair<Rule>) -> Result<Directive, pest::error
             if let Some(function_call) = maybe_function_call {
                 call = Some(parse_function_call(function_call)?);
             }
-            Ok(Directive { name, call })
+            Ok(Directive { span, name, call })
         }
         _unknown => Err(unknown_rule_error(pair, "directive")),
     }

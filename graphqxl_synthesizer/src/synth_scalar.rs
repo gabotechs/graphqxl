@@ -8,7 +8,7 @@ pub(crate) struct ScalarSynth(pub(crate) Scalar);
 impl Synth for ScalarSynth {
     fn synth(&self, context: &SynthContext) -> String {
         let mut v: Vec<Box<dyn Synth>> =
-            vec![Box::new(StringSynth(format!("scalar {}", self.0.name)))];
+            vec![Box::new(StringSynth(format!("scalar {}", self.0.name.id)))];
         for directive in self.0.directives.iter() {
             v.push(Box::new(StringSynth::from(" ")));
             v.push(Box::new(DirectiveSynth(directive.clone())));

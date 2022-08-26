@@ -56,7 +56,7 @@ impl Synth for DirectiveDefSynth {
             DescriptionSynth::text(&context.config, &self.0.description.as_str()),
             ChainSynth({
                 let mut v: Vec<Box<dyn Synth>> = vec![
-                    Box::new(StringSynth(format!("directive @{}", self.0.name))),
+                    Box::new(StringSynth(format!("directive @{}", self.0.name.id))),
                     Box::new(StringSynth::from(" on ")),
                     Box::new(DirectiveLocationSynth(self.0.locations.clone())),
                 ];

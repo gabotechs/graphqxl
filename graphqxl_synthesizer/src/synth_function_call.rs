@@ -13,7 +13,7 @@ impl Synth for FunctionCallSynth {
             .iter()
             .map(|e| {
                 ChainSynth(vec![
-                    Box::new(StringSynth(format!("{}: ", e.name))),
+                    Box::new(StringSynth(format!("{}: ", e.name.id))),
                     Box::new(ValueDataSynth(e.value.clone())),
                 ])
             })

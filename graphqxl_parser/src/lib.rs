@@ -27,12 +27,13 @@ pub use ast_block_def::*;
 pub use ast_block_field::*;
 use pest::Parser;
 // pub use ast_description::*;
+use crate::parser::GraphqlParser;
+pub use crate::parser::Rule;
+pub use ast_directive::*;
 pub use ast_directive_def::*;
 pub use ast_directive_location::*;
-// pub use ast_identifier::*;
-use crate::parser::{GraphqlParser, Rule};
-pub use ast_directive::*;
 pub use ast_function_call::*;
+pub use ast_identifier::*;
 pub use ast_scalar::*;
 pub use ast_schema::*;
 pub use ast_spec::*;
@@ -41,6 +42,7 @@ pub use ast_value_basic_data::*;
 pub use ast_value_basic_type::*;
 pub use ast_value_data::*;
 pub use ast_value_type::*;
+pub use utils::OwnedSpan;
 
 pub fn parse_graphqxl(input: &str) -> Result<Spec, pest::error::Error<Rule>> {
     let mut pairs = GraphqlParser::parse(Rule::spec, input)?;

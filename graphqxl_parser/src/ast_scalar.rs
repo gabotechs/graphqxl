@@ -1,13 +1,14 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
-use crate::ast_identifier::parse_identifier;
+use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::parser::Rule;
-use crate::utils::unknown_rule_error;
+use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Scalar {
-    pub name: String,
+    pub span: OwnedSpan,
+    pub name: Identifier,
     pub description: String,
     pub directives: Vec<Directive>,
 }
@@ -15,7 +16,7 @@ pub struct Scalar {
 impl Scalar {
     pub fn build(name: &str) -> Self {
         Self {
-            name: name.to_string(),
+            name: Identifier::from(name),
             ..Default::default()
         }
     }
@@ -34,6 +35,7 @@ impl Scalar {
 pub(crate) fn parse_scalar(pair: Pair<Rule>) -> Result<Scalar, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::scalar_def => {
+            let span = OwnedSpan::from(pair.as_span());
             let mut childs = pair.into_inner();
             let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
             let name = parse_identifier(next)?;
@@ -42,6 +44,7 @@ pub(crate) fn parse_scalar(pair: Pair<Rule>) -> Result<Scalar, pest::error::Erro
                 directives.push(parse_directive(child)?);
             }
             Ok(Scalar {
+                span,
                 name,
                 description,
                 directives,

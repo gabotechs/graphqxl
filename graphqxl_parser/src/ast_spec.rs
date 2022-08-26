@@ -55,7 +55,7 @@ impl Spec {
             }
             Rule::type_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.as_str();
+                let name = block_def.name.id.as_str();
                 if self.types.contains_key(name) {
                     Err(already_defined_error(pair, "type", name))
                 } else {
@@ -67,7 +67,7 @@ impl Spec {
             }
             Rule::input_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.as_str();
+                let name = block_def.name.id.as_str();
                 if self.inputs.contains_key(name) {
                     Err(already_defined_error(pair, "input", name))
                 } else {
@@ -79,7 +79,7 @@ impl Spec {
             }
             Rule::enum_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.as_str();
+                let name = block_def.name.id.as_str();
                 if self.enums.contains_key(name) {
                     Err(already_defined_error(pair, "enum", name))
                 } else {
@@ -91,7 +91,7 @@ impl Spec {
             }
             Rule::interface_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.as_str();
+                let name = block_def.name.id.as_str();
                 if self.interfaces.contains_key(name) {
                     Err(already_defined_error(pair, "interface", name))
                 } else {
@@ -103,7 +103,7 @@ impl Spec {
             }
             Rule::scalar_def => {
                 let scalar = parse_scalar(pair.clone())?;
-                let name = scalar.name.as_str();
+                let name = scalar.name.id.as_str();
                 if self.scalars.contains_key(name) {
                     Err(already_defined_error(pair, "scalar", name))
                 } else {
@@ -115,7 +115,7 @@ impl Spec {
             }
             Rule::union_def => {
                 let union = parse_union(pair.clone())?;
-                let name = union.name.as_str();
+                let name = union.name.id.as_str();
                 if self.unions.contains_key(name) {
                     Err(already_defined_error(pair, "union", name))
                 } else {
@@ -127,7 +127,7 @@ impl Spec {
             }
             Rule::directive_def => {
                 let directive = parse_directive_def(pair.clone())?;
-                let name = directive.name.as_str();
+                let name = directive.name.id.as_str();
                 if self.directives.contains_key(name) {
                     Err(already_defined_error(pair, "directive", name))
                 } else {

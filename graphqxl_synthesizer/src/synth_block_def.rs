@@ -4,7 +4,7 @@ use crate::synth_directive::DirectiveSynth;
 use crate::synths::{
     ChainSynth, MultilineListSynth, PairSynth, StringSynth, Synth, SynthConfig, SynthContext,
 };
-use graphqxl_parser::{BlockDef, BlockDefType};
+use graphqxl_parser::{BlockDef, BlockDefType, BlockEntry};
 
 pub(crate) struct BlockDefSynth(pub(crate) BlockDef);
 
@@ -18,23 +18,21 @@ impl Synth for BlockDefSynth {
         };
         let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth(format!(
             "{} {} ",
-            symbol, self.0.name
+            symbol, self.0.name.id
         )))];
         for directive in self.0.directives.iter() {
             v.push(Box::new(DirectiveSynth(directive.clone())));
             v.push(Box::new(StringSynth::from(" ")));
         }
+        let mut inner_synths = Vec::new();
+        for entry in self.0.entries.iter() {
+            if let BlockEntry::Field(block_field) = entry {
+                inner_synths.push(BlockFieldSynth(block_field.clone()));
+            }
+        }
         v.push(Box::new(MultilineListSynth::no_suffix(
             &context.config,
-            (
-                "{",
-                self.0
-                    .fields
-                    .iter()
-                    .map(|e| BlockFieldSynth(e.clone()))
-                    .collect(),
-                "}",
-            ),
+            ("{", inner_synths, "}"),
         )));
         let synth = PairSynth::top_level(
             &context.config,
