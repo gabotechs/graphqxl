@@ -17,6 +17,27 @@ impl Default for SynthConfig {
     }
 }
 
+#[derive(Copy, Clone, Default)]
+pub(crate) struct SynthContext {
+    pub(crate) indent_lvl: usize,
+    pub(crate) config: SynthConfig,
+}
+
+impl SynthContext {
+    pub(crate) fn plus_one_indent_lvl(&self) -> Self {
+        let mut clone = *self;
+        clone.indent_lvl += 1;
+        clone
+    }
+}
+
+pub(crate) trait Synth {
+    fn synth(&self, context: &SynthContext) -> String;
+    fn synth_zero(&self) -> String {
+        self.synth(&SynthContext::default())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -46,37 +67,18 @@ mod tests {
             clone
         }
     }
-}
 
-#[derive(Copy, Clone, Default)]
-pub(crate) struct SynthContext {
-    pub(crate) indent_lvl: usize,
-    pub(crate) config: SynthConfig,
-}
+    impl SynthContext {
+        pub(crate) fn with_indent_lvl(&self, lvl: usize) -> Self {
+            let mut clone = *self;
+            clone.indent_lvl = lvl;
+            clone
+        }
 
-impl SynthContext {
-    pub(crate) fn plus_one_indent_lvl(&self) -> Self {
-        let mut clone = *self;
-        clone.indent_lvl += 1;
-        clone
-    }
-
-    pub(crate) fn with_indent_lvl(&self, lvl: usize) -> Self {
-        let mut clone = *self;
-        clone.indent_lvl = lvl;
-        clone
-    }
-
-    pub(crate) fn with_config(&self, config: SynthConfig) -> Self {
-        let mut clone = *self;
-        clone.config = config;
-        clone
-    }
-}
-
-pub(crate) trait Synth {
-    fn synth(&self, context: &SynthContext) -> String;
-    fn synth_zero(&self) -> String {
-        self.synth(&SynthContext::default())
+        pub(crate) fn with_config(&self, config: SynthConfig) -> Self {
+            let mut clone = *self;
+            clone.config = config;
+            clone
+        }
     }
 }

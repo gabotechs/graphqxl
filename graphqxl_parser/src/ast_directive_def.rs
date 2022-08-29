@@ -4,7 +4,6 @@ use crate::ast_directive_location::{parse_directive_location, DirectiveLocation}
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
-use crate::Rule::spec;
 use pest::iterators::Pair;
 use std::collections::HashSet;
 

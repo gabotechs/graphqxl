@@ -2,7 +2,7 @@ use crate::synth_arguments::ArgumentsSynth;
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
 use crate::synth_value_type::ValueTypeSynth;
-use crate::synths::{ChainSynth, PairSynth, StringSynth, Synth, SynthConfig, SynthContext};
+use crate::synths::{ChainSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::BlockField;
 
 pub(crate) struct BlockFieldSynth(pub(crate) BlockField);
@@ -14,7 +14,8 @@ impl Synth for BlockFieldSynth {
             line_jump_sep: true,
             first: DescriptionSynth::text(&context.config, &self.0.description.as_str()),
             last: ChainSynth({
-                let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth(self.0.name.id.clone()))];
+                let mut v: Vec<Box<dyn Synth>> =
+                    vec![Box::new(StringSynth(self.0.name.id.clone()))];
                 if !self.0.args.is_empty() {
                     v.push(Box::new(ArgumentsSynth(self.0.args.clone())));
                 }

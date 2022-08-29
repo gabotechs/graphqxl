@@ -1,4 +1,3 @@
-use crate::synths::SynthConfig;
 use crate::utils::is_last_iter;
 use crate::{Synth, SynthContext};
 use graphqxl_parser::{ValueBasicData, ValueData};
@@ -90,6 +89,7 @@ impl Synth for ValueDataSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::SynthConfig;
 
     #[test]
     fn test_int() {

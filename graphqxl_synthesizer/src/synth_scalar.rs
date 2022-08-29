@@ -1,6 +1,6 @@
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
-use crate::synths::{ChainSynth, PairSynth, StringSynth, Synth, SynthConfig, SynthContext};
+use crate::synths::{ChainSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::Scalar;
 
 pub(crate) struct ScalarSynth(pub(crate) Scalar);

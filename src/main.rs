@@ -1,8 +1,10 @@
 use clap::Parser;
 use graphqxl_parser::parse_graphqxl;
 use graphqxl_synthesizer::{synth_spec, SynthConfig};
+use graphqxl_transpiler::transpile_spec;
+use graphqxl_validator::validate_spec;
+use std::error::Error;
 use std::fs;
-use std::process::exit;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -17,36 +19,19 @@ struct Args {
     multiline: bool,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    let out_path = if args.input.ends_with("graphql") {
-        args.input[..args.input.len() - 1].to_string() + "xl"
+    let out_path = if args.input.ends_with("graphqxl") {
+        args.input[..args.input.len() - 2].to_string() + "l"
     } else {
         args.input.to_string() + ".graphqxl"
     };
-    let content_or_err = fs::read_to_string(&args.input);
-    if let Ok(content) = content_or_err {
-        let spec_or_err = parse_graphqxl(&content);
-        if let Ok(spec) = spec_or_err {
-            let result = synth_spec(
-                spec,
-                SynthConfig {
-                    indent_spaces: args.indent_spaces.unwrap_or(2),
-                    ..Default::default()
-                },
-            );
-            if let Err(err) = fs::write(&out_path, result) {
-                eprintln!("{}", err);
-                exit(1)
-            } else {
-                println!("Generated file {}", out_path);
-            }
-        } else {
-            eprintln!("{}", spec_or_err.unwrap_err());
-            exit(1);
-        }
-    } else {
-        eprintln!("{}", content_or_err.unwrap_err());
-        exit(1);
-    }
+    let content = fs::read_to_string(&args.input)?;
+    let spec = parse_graphqxl(&content)?;
+    validate_spec(&spec)?;
+    let transpiled = transpile_spec(&spec)?;
+
+    let result = synth_spec(transpiled, SynthConfig::default());
+    fs::write(&out_path, result)?;
+    Ok(())
 }

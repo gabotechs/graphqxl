@@ -1,9 +1,7 @@
 use crate::synth_block_field::BlockFieldSynth;
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
-use crate::synths::{
-    ChainSynth, MultilineListSynth, PairSynth, StringSynth, Synth, SynthConfig, SynthContext,
-};
+use crate::synths::{ChainSynth, MultilineListSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::{BlockDef, BlockDefType, BlockEntry};
 
 pub(crate) struct BlockDefSynth(pub(crate) BlockDef);

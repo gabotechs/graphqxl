@@ -1,5 +1,5 @@
 use crate::synth_value_data::ValueDataSynth;
-use crate::synths::{ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth, SynthConfig};
+use crate::synths::{ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth};
 use crate::{Synth, SynthContext};
 use graphqxl_parser::FunctionCall;
 
@@ -29,6 +29,7 @@ impl Synth for FunctionCallSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::SynthConfig;
     use graphqxl_parser::ValueData;
 
     #[test]

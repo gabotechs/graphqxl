@@ -3,7 +3,7 @@ use crate::synths::{Synth, SynthConfig, SynthContext};
 pub(crate) struct DescriptionSynth {
     pub(crate) text: String,
     pub(crate) is_multiline: bool,
-    pub(crate) indent_spaces: usize
+    pub(crate) indent_spaces: usize,
 }
 
 impl DescriptionSynth {
@@ -11,15 +11,7 @@ impl DescriptionSynth {
         Self {
             text: text.to_string(),
             is_multiline: text.contains('\n'),
-            indent_spaces: config.indent_spaces
-        }
-    }
-
-    pub(crate) fn text_default(text: &str) -> Self {
-        Self {
-            text: text.to_string(),
-            is_multiline: text.contains('\n'),
-            indent_spaces: SynthConfig::default().indent_spaces
+            indent_spaces: config.indent_spaces,
         }
     }
 }
@@ -52,6 +44,16 @@ impl Synth for DescriptionSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    impl DescriptionSynth {
+        pub(crate) fn text_default(text: &str) -> Self {
+            Self {
+                text: text.to_string(),
+                is_multiline: text.contains('\n'),
+                indent_spaces: SynthConfig::default().indent_spaces,
+            }
+        }
+    }
 
     #[test]
     fn test_synth_empty() {

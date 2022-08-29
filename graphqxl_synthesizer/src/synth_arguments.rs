@@ -2,7 +2,7 @@ use crate::synth_directive::DirectiveSynth;
 use crate::synth_value_data::ValueDataSynth;
 use crate::synth_value_type::ValueTypeSynth;
 use crate::synths::{
-    ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth, Synth, SynthConfig, SynthContext,
+    ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth, Synth, SynthContext,
 };
 use graphqxl_parser::Argument;
 
@@ -41,6 +41,7 @@ impl Synth for ArgumentsSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::SynthConfig;
     use graphqxl_parser::{Directive, ValueData};
 
     #[test]

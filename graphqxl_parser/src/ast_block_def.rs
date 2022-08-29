@@ -5,7 +5,6 @@ use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
-use std::process::id;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlockDefType {

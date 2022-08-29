@@ -1,21 +1,18 @@
 use crate::parser::Rule;
 use crate::utils::{already_defined_error, unknown_rule_error};
-use crate::{
-    parse_block_def, parse_directive_def, parse_scalar, parse_schema, parse_union, BlockDef,
-    DirectiveDef, Scalar, Schema, Union,
-};
+use crate::{parse_block_def, parse_directive_def, parse_scalar, parse_schema, parse_union, BlockDef, DirectiveDef, Scalar, Schema, Union, Identifier};
 use pest::iterators::Pair;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DefType {
-    Type(String),
-    Input(String),
-    Enum(String),
-    Interface(String),
-    Scalar(String),
-    Union(String),
-    Directive(String),
+    Type(Identifier),
+    Input(Identifier),
+    Enum(Identifier),
+    Interface(Identifier),
+    Scalar(Identifier),
+    Union(Identifier),
+    Directive(Identifier),
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -55,85 +52,78 @@ impl Spec {
             }
             Rule::type_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.id.as_str();
-                if self.types.contains_key(name) {
-                    Err(already_defined_error(pair, "type", name))
+                let id = block_def.name.clone();
+                if self.types.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "type", &id.id))
                 } else {
-                    let name = name.to_string();
-                    self.types.insert(name.clone(), block_def);
-                    self.order.push(DefType::Type(name));
+                    self.types.insert(id.id.clone(), block_def);
+                    self.order.push(DefType::Type(id));
                     Ok(())
                 }
             }
             Rule::input_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.id.as_str();
-                if self.inputs.contains_key(name) {
-                    Err(already_defined_error(pair, "input", name))
+                let id = block_def.name.clone();
+                if self.inputs.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "input", &id.id))
                 } else {
-                    let name = name.to_string();
-                    self.inputs.insert(name.clone(), block_def);
-                    self.order.push(DefType::Input(name));
+                    self.inputs.insert(id.id.clone(), block_def);
+                    self.order.push(DefType::Input(id));
                     Ok(())
                 }
             }
             Rule::enum_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.id.as_str();
-                if self.enums.contains_key(name) {
-                    Err(already_defined_error(pair, "enum", name))
+                let id = block_def.name.clone();
+                if self.enums.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "enum", &id.id))
                 } else {
-                    let name = name.to_string();
-                    self.enums.insert(name.clone(), block_def);
-                    self.order.push(DefType::Enum(name));
+                    self.enums.insert(id.id.clone(), block_def);
+                    self.order.push(DefType::Enum(id));
                     Ok(())
                 }
             }
             Rule::interface_def => {
                 let block_def = parse_block_def(pair.clone())?;
-                let name = block_def.name.id.as_str();
-                if self.interfaces.contains_key(name) {
-                    Err(already_defined_error(pair, "interface", name))
+                let id = block_def.name.clone();
+                if self.interfaces.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "interface", &id.id))
                 } else {
-                    let name = name.to_string();
-                    self.interfaces.insert(name.clone(), block_def);
-                    self.order.push(DefType::Interface(name));
+                    self.interfaces.insert(id.id.clone(), block_def);
+                    self.order.push(DefType::Interface(id));
                     Ok(())
                 }
             }
             Rule::scalar_def => {
                 let scalar = parse_scalar(pair.clone())?;
-                let name = scalar.name.id.as_str();
-                if self.scalars.contains_key(name) {
-                    Err(already_defined_error(pair, "scalar", name))
+                let id = scalar.name.clone();
+                if self.scalars.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "scalar", &id.id))
                 } else {
-                    let name = name.to_string();
-                    self.scalars.insert(name.clone(), scalar);
-                    self.order.push(DefType::Scalar(name));
+                    self.scalars.insert(id.id.clone(), scalar);
+                    self.order.push(DefType::Scalar(id));
                     Ok(())
                 }
             }
             Rule::union_def => {
                 let union = parse_union(pair.clone())?;
-                let name = union.name.id.as_str();
-                if self.unions.contains_key(name) {
-                    Err(already_defined_error(pair, "union", name))
+                let id = union.name.clone();
+                if self.unions.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "union", &id.id))
                 } else {
-                    let name = name.to_string();
-                    self.unions.insert(name.clone(), union);
-                    self.order.push(DefType::Union(name));
+                    self.unions.insert(id.id.clone(), union);
+                    self.order.push(DefType::Union(id));
                     Ok(())
                 }
             }
             Rule::directive_def => {
                 let directive = parse_directive_def(pair.clone())?;
-                let name = directive.name.id.as_str();
-                if self.directives.contains_key(name) {
-                    Err(already_defined_error(pair, "directive", name))
+                let id = directive.name.clone();
+                if self.directives.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "directive", &id.id))
                 } else {
-                    let name = name.to_string();
-                    self.directives.insert(name.clone(), directive);
-                    self.order.push(DefType::Directive(name));
+                    self.directives.insert(id.id.clone(), directive);
+                    self.order.push(DefType::Directive(id));
                     Ok(())
                 }
             }

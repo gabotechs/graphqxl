@@ -1,5 +1,5 @@
 use crate::synth_description::DescriptionSynth;
-use crate::synths::{ChainSynth, MultilineListSynth, PairSynth, StringSynth, SynthConfig};
+use crate::synths::{ChainSynth, MultilineListSynth, PairSynth, StringSynth};
 use crate::{Synth, SynthContext};
 use graphqxl_parser::Schema;
 
@@ -38,6 +38,7 @@ impl Synth for SchemaSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::SynthConfig;
 
     #[test]
     fn test_with_query() {

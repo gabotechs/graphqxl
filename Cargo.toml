@@ -10,11 +10,14 @@ edition = "2021"
 members = [
     "graphqxl_parser",
     "graphqxl_synthesizer",
+    "graphqxl_transpiler",
     "graphqxl_validator"
 ]
 
 [dependencies]
 clap = { version = "3.2.16", features = ["derive"] }
 graphqxl_parser = { path = "graphqxl_parser" }
+graphqxl_validator = { path = "graphqxl_validator" }
+graphqxl_transpiler = { path = "graphqxl_transpiler" }
 graphqxl_synthesizer = { path = "graphqxl_synthesizer" }
 

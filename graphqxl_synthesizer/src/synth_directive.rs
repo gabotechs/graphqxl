@@ -1,5 +1,5 @@
 use crate::synth_function_call::FunctionCallSynth;
-use crate::synths::{ChainSynth, StringSynth, SynthConfig};
+use crate::synths::{ChainSynth, StringSynth};
 use crate::{Synth, SynthContext};
 use graphqxl_parser::Directive;
 

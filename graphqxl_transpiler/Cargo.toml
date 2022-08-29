@@ -1,0 +1,10 @@
+[package]
+name = "graphqxl_transpiler"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+graphqxl_parser = { path = '../graphqxl_parser' }
+pest = "2.0"

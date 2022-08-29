@@ -1,8 +1,7 @@
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
 use crate::synths::{
-    ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthConfig,
-    SynthContext,
+    ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthContext,
 };
 use graphqxl_parser::{Identifier, Union};
 
@@ -47,6 +46,7 @@ impl Synth for UnionSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::SynthConfig;
     use graphqxl_parser::Directive;
 
     #[test]

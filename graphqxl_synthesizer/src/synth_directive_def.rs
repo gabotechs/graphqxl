@@ -1,8 +1,7 @@
 use crate::synth_arguments::ArgumentsSynth;
 use crate::synth_description::DescriptionSynth;
 use crate::synths::{
-    ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthConfig,
-    SynthContext,
+    ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthContext,
 };
 use graphqxl_parser::{DirectiveDef, DirectiveLocation};
 
@@ -76,6 +75,7 @@ impl Synth for DirectiveDefSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::SynthConfig;
     use graphqxl_parser::Argument;
 
     #[test]

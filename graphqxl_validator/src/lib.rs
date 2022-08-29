@@ -1,9 +1,7 @@
-mod validate_type;
 mod utils;
 
-use graphqxl_parser::Spec;
+use graphqxl_parser::{Rule, Spec};
 
-pub fn validate(spec: Spec) {
-    
+pub fn validate_spec(_spec: &Spec) -> Result<(), pest::error::Error<Rule>> {
+    Ok(())
 }
-
