@@ -48,20 +48,12 @@ jobs:
           args: cargo-workspaces
 
       - name: Config git
-        run: git config --global user.name "Github Actions"
+        run: |
+          git config --global user.email "gabimtme@gmail.com"
+          git config --global user.name "Automatic bumper"
 
       - name: Bump version
         uses: actions-rs/cargo@v1
-        env:
-          GIT_USER: Github Actions
-          GIT_PASS: ${{ secrets.CI_TOKEN }}
         with:
           command: workspaces
-          args: version minor -y --no-git-commit
-
-      - name: push
-        run: |
-          git add .
-          git commit -m "tag"
-          git push 
-          git push --tags
+          args: version minor -y --allow-branch main -m tag
