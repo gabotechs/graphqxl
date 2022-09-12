@@ -47,13 +47,20 @@ jobs:
           command: install
           args: cargo-workspaces
 
-      - name: Config git
-        run: |
-          git config --global user.email "gabimtme@gmail.com"
-          git config --global user.name "Automatic bumper"
-
       - name: Bump version
         uses: actions-rs/cargo@v1
         with:
           command: workspaces
-          args: version minor -y --allow-branch main -m tag
+          args: version minor -y --no-git-commit
+
+      - name: Tag
+        run: |
+          version=`grep '^version = ' Cargo.toml | sed 's/version = //; s/\"//; s/\"//'`
+          git config --global user.email "gabimtme@gmail.com"
+          git config --global user.name "Automatic bumper"
+          git add .
+          git commit -m "tag" 
+          git tag "v$version"
+          git push
+          git push --tags
+
