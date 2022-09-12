@@ -1,0 +1,45 @@
+name: Tag
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.CI_TOKEN }}
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          override: true
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test --all
+
+      - name: Install bump tool
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: cargo-workspaces
+
+      - name: Config git
+        run: git config --global user.name "Github Actions"
+
+      - name: Bump version
+        uses: actions-rs/cargo@v1
+        env:
+          GIT_USER: Github Actions
+          GIT_PASS: ${{ secrets.CI_TOKEN }}
+        with:
+          command: workspaces
+          args: version minor -y
