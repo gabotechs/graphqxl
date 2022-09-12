@@ -7,7 +7,8 @@ on:
       - main
 
 jobs:
-  release:
+  tag:
+    if: github.event.head_commit.message != 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -43,7 +44,11 @@ jobs:
           GIT_PASS: ${{ secrets.CI_TOKEN }}
         with:
           command: workspaces
-          args: version minor -y --no-git-push
+          args: version minor -y --no-git-push --no-git-commit
 
       - name: push
-        run: git push && git push --tags
+        run: |
+          git add .
+          git commit -m "tag"
+          git push 
+          git push --tags
