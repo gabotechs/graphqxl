@@ -1,11 +1,37 @@
 # GraphQXL
 
+> **WIP**: This project is a work in progress and currently does not offer any of the
+> described features
+
 GraphQXL is an extension of the GraphQL language with some additional features
 that are useful for creating scalable server side schemas.
 
 - Object inheritance.
+```graphql
+type MyType {
+    field: String!
+    ...OtherType
+}
+```
 - Import statements.
+```graphql
+import other_file
+
+type MyType {
+    field: OtherFilesType!
+}
+```
 - Generics.
+```graphql
+type MyGenericType<T> {
+    field: T
+}
+
+type MyType {
+    stringField: MyGenericType<String!>
+}
+
+```
 
 ## Install
 
@@ -14,3 +40,7 @@ that are useful for creating scalable server side schemas.
 ## Usage
 
 > TODO
+
+## License
+
+> TOOD
