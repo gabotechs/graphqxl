@@ -58,7 +58,7 @@ jobs:
           GIT_PASS: ${{ secrets.CI_TOKEN }}
         with:
           command: workspaces
-          args: version minor -y --no-git-push --no-git-commit
+          args: version minor -y --no-git-commit
 
       - name: push
         run: |
