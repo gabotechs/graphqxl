@@ -1,5 +1,7 @@
 # GraphQXL
 
+[![Coverage Status](https://coveralls.io/repos/github/gabotechs/graphqxl/badge.svg?branch=master)](https://coveralls.io/github/gabotechs/graphqxl?branch=master)
+
 > **WIP**: This project is a work in progress and currently does not offer any of the
 > described features
 
