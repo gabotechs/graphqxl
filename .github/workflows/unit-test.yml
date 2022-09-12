@@ -2,6 +2,9 @@ name: unit-test
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
 
 env:
   CARGO_TERM_COLOR: always
