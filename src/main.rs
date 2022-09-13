@@ -1,5 +1,5 @@
 use clap::Parser;
-use graphqxl_parser::{parse_graphqxl, parse_spec};
+use graphqxl_parser::parse_spec;
 use graphqxl_synthesizer::{synth_spec, SynthConfig};
 use graphqxl_transpiler::transpile_spec;
 use graphqxl_validator::validate_spec;
