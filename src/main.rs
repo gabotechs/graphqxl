@@ -1,5 +1,5 @@
 use clap::Parser;
-use graphqxl_parser::parse_graphqxl;
+use graphqxl_parser::{parse_graphqxl, parse_spec};
 use graphqxl_synthesizer::{synth_spec, SynthConfig};
 use graphqxl_transpiler::transpile_spec;
 use graphqxl_validator::validate_spec;
@@ -26,8 +26,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         args.input.to_string() + ".graphqxl"
     };
-    let content = fs::read_to_string(&args.input)?;
-    let spec = parse_graphqxl(&content)?;
+    let spec = parse_spec(&args.input)?;
     validate_spec(&spec)?;
     let transpiled = transpile_spec(&spec)?;
 

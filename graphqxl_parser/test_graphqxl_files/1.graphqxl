@@ -1,3 +1,5 @@
+import "2"
+
 type MyType {
     field(arg: String!): String
 }
@@ -16,8 +18,9 @@ interface MyInterface {
 
 scalar MyScalar
 
-type MyType2 {
-    field2: String
+type MyOtherType {
+    ...MyType
+    otherField: String
 }
 
 union MyUnion = MyType | MyType2
