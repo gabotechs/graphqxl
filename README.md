@@ -17,7 +17,7 @@ type MyType {
 ```
 - Import statements.
 ```graphql
-import other_file
+import "other_file"
 
 type MyType {
     field: OtherFilesType!
