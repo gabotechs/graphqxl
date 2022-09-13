@@ -1,8 +1,16 @@
-use crate::parser::Rule;
-use crate::utils::{already_defined_error, unknown_rule_error};
-use crate::{parse_block_def, parse_directive_def, parse_scalar, parse_schema, parse_union, BlockDef, DirectiveDef, Scalar, Schema, Union, Identifier};
+use crate::ast_import::parse_import;
+use crate::parser::{GraphqxlParser, Rule};
+use crate::utils::{already_defined_error, custom_error, unknown_rule_error};
+use crate::{
+    parse_block_def, parse_directive_def, parse_scalar, parse_schema, parse_union, BlockDef,
+    DirectiveDef, Identifier, Scalar, Schema, Union,
+};
 use pest::iterators::Pair;
+use pest::{Parser, Span};
 use std::collections::HashMap;
+use std::error::Error;
+use std::fs;
+use std::path::Path;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DefType {
@@ -32,6 +40,84 @@ pub struct Spec {
 impl Spec {
     fn new() -> Self {
         Self::default()
+    }
+
+    fn merge(&mut self, other: Spec) -> Result<(), pest::error::Error<Rule>> {
+        for el in other.order.iter() {
+            match el {
+                DefType::Type(name) => {
+                    if self.types.contains_key(&name.id) {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated type"));
+                    }
+                    self.order.push(el.clone());
+                    self.types.insert(
+                        name.id.to_string(),
+                        other.types.get(&name.id).unwrap().clone(),
+                    );
+                }
+                DefType::Input(name) => {
+                    if self.inputs.contains_key(&name.id) {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated input"));
+                    }
+                    self.order.push(el.clone());
+                    self.inputs.insert(
+                        name.id.to_string(),
+                        other.inputs.get(&name.id).unwrap().clone(),
+                    );
+                }
+                DefType::Enum(name) => {
+                    if self.enums.contains_key(&name.id) {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated enum"));
+                    }
+                    self.order.push(el.clone());
+                    self.enums.insert(
+                        name.id.to_string(),
+                        other.enums.get(&name.id).unwrap().clone(),
+                    );
+                }
+                DefType::Interface(name) => {
+                    if self.interfaces.contains_key(&name.id) {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated interface"));
+                    }
+                    self.order.push(el.clone());
+                    self.interfaces.insert(
+                        name.id.to_string(),
+                        other.interfaces.get(&name.id).unwrap().clone(),
+                    );
+                }
+                DefType::Scalar(name) => {
+                    if self.scalars.contains_key(&name.id) {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated scalar"));
+                    }
+                    self.order.push(el.clone());
+                    self.scalars.insert(
+                        name.id.to_string(),
+                        other.scalars.get(&name.id).unwrap().clone(),
+                    );
+                }
+                DefType::Union(name) => {
+                    if self.unions.contains_key(&name.id) {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated union"));
+                    }
+                    self.order.push(el.clone());
+                    self.unions.insert(
+                        name.id.to_string(),
+                        other.unions.get(&name.id).unwrap().clone(),
+                    );
+                }
+                DefType::Directive(name) => {
+                    if self.directives.contains_key(&name.id) {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated directive"));
+                    }
+                    self.order.push(el.clone());
+                    self.directives.insert(
+                        name.id.to_string(),
+                        other.directives.get(&name.id).unwrap().clone(),
+                    );
+                }
+            }
+        }
+        Ok(())
     }
 
     fn add(&mut self, pair: Pair<Rule>) -> Result<(), pest::error::Error<Rule>> {
@@ -135,38 +221,54 @@ impl Spec {
     }
 }
 
-pub fn parse_spec(pair: Pair<Rule>) -> Result<Spec, pest::error::Error<Rule>> {
+pub fn parse_spec<P: AsRef<Path>>(path: P) -> Result<Spec, Box<dyn Error>> {
+    let abs_path = fs::canonicalize(path)?;
+
     let mut spec = Spec::new();
+    let content = fs::read_to_string(&abs_path)?;
+    let mut pairs = GraphqxlParser::parse(Rule::spec, &content)?;
+    let pair = pairs.next().unwrap();
     match pair.as_rule() {
         Rule::spec => {
             for child in pair.into_inner() {
                 if let Rule::EOI = &child.as_rule() {
-                    continue;
+                    // nothing to do here
+                } else if let Rule::import = &child.as_rule() {
+                    let import = parse_import(child.clone())?;
+                    let file_name = if import.file_name.ends_with(".graphqxl") {
+                        import.file_name
+                    } else {
+                        import.file_name + ".graphqxl"
+                    };
+                    let file_dir = abs_path.parent().unwrap();
+                    let import_path = Path::new(file_dir).join(&file_name);
+                    if !import_path.exists() {
+                        return Err(Box::new(custom_error(
+                            Span::from(&import.span),
+                            format!("file {:?} does not exist", import_path).as_str(),
+                        )));
+                    }
+                    let imported_spec = parse_spec(import_path)?;
+                    spec.merge(imported_spec)?;
+                } else {
+                    spec.add(child)?;
                 }
-                spec.add(child)?;
             }
             Ok(spec)
         }
-        _unknown => Err(unknown_rule_error(pair, "spec")),
+        _unknown => Err(Box::new(unknown_rule_error(pair, "spec"))),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::utils::parse_full_input;
-    use std::fs;
-
-    fn parse_input(input: &str) -> Result<Spec, pest::error::Error<Rule>> {
-        parse_full_input(input, Rule::spec, parse_spec)
-    }
 
     #[test]
     fn test_parses_spec_1() {
-        let content = fs::read_to_string("test_graphqxl_files/1.graphqxl").unwrap();
-        let spec_or_err = parse_input(content.as_str());
+        let spec_or_err = parse_spec("test_graphqxl_files/1.graphqxl");
         if let Err(err) = spec_or_err {
-            panic!("Error parsing file: {:?}", err)
+            panic!("Error parsing file: {}", err)
         }
     }
 }

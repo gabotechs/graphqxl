@@ -1,4 +1,7 @@
-spec = { SOI ~ def* ~ EOI }
+spec = { SOI ~ import* ~ def* ~ EOI }
+
+import = { "import" ~ filename }
+filename = @{ "\"" ~ (!("\n" | "\r\n") ~ char_no_double_quote)* ~ "\"" }
 
 def = _{ schema_def | type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
 

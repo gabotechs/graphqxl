@@ -1,3 +1,3 @@
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
-pub struct GraphqlParser;
+pub struct GraphqxlParser;

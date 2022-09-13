@@ -1,4 +1,4 @@
-use crate::parser::{GraphqlParser, Rule};
+use crate::parser::{GraphqxlParser, Rule};
 use pest::error::ErrorVariant;
 use pest::iterators::Pair;
 use pest::{Parser, Position};
@@ -9,7 +9,7 @@ pub fn parse_full_input<R>(
     rule: Rule,
     parser: fn(Pair<Rule>) -> Result<R, pest::error::Error<Rule>>,
 ) -> Result<R, pest::error::Error<Rule>> {
-    let pair_or_err = GraphqlParser::parse(rule, input);
+    let pair_or_err = GraphqxlParser::parse(rule, input);
     if let Err(err) = &pair_or_err {
         eprintln!("{}", err);
     }

@@ -11,6 +11,7 @@ mod ast_directive_def;
 mod ast_directive_location;
 mod ast_function_call;
 mod ast_identifier;
+mod ast_import;
 mod ast_scalar;
 mod ast_schema;
 mod ast_spec;
@@ -25,9 +26,7 @@ mod utils;
 pub use ast_arguments::*;
 pub use ast_block_def::*;
 pub use ast_block_field::*;
-use pest::Parser;
 // pub use ast_description::*;
-use crate::parser::GraphqlParser;
 pub use crate::parser::Rule;
 pub use ast_directive::*;
 pub use ast_directive_def::*;
@@ -43,12 +42,3 @@ pub use ast_value_basic_type::*;
 pub use ast_value_data::*;
 pub use ast_value_type::*;
 pub use utils::OwnedSpan;
-
-pub fn parse_graphqxl(input: &str) -> Result<Spec, pest::error::Error<Rule>> {
-    let mut pairs = GraphqlParser::parse(Rule::spec, input)?;
-    if let Some(pair) = pairs.next() {
-        parse_spec(pair)
-    } else {
-        Ok(Spec::default())
-    }
-}
