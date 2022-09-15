@@ -13,9 +13,6 @@ struct Args {
 
     #[clap(long)]
     indent_spaces: Option<usize>,
-
-    #[clap(short, long, action)]
-    multiline: bool,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -23,7 +20,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let out_path = if args.input.ends_with("graphqxl") {
         args.input[..args.input.len() - 2].to_string() + "l"
     } else {
-        args.input.to_string() + ".graphqxl"
+        args.input.to_string() + ".graphql"
     };
     let spec = parse_spec(&args.input)?;
     let transpiled = transpile_spec(&spec)?;
