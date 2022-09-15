@@ -25,7 +25,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let spec = parse_spec(&args.input)?;
     let transpiled = transpile_spec(&spec)?;
 
-    let result = synth_spec(transpiled, SynthConfig::default());
+    let result = synth_spec(
+        transpiled,
+        SynthConfig {
+            indent_spaces: args.indent_spaces.unwrap_or(2),
+            ..Default::default()
+        },
+    );
     fs::write(&out_path, result)?;
     Ok(())
 }
