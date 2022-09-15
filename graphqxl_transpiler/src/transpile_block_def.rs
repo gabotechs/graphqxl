@@ -146,4 +146,15 @@ mod tests {
         let err = transpile_block_def(&Identifier::from("MyType2"), &types, 0).unwrap_err();
         assert!(err.to_string().contains("repeated field"))
     }
+
+    #[test]
+    fn test_undefined_spread_should_fail() {
+        let block_def = BlockDef::type_("MyType2")
+            .spread("MyType")
+            .field(BlockField::build("field").string());
+        let mut types = HashMap::new();
+        types.insert(block_def.name.id.clone(), block_def);
+        let err = transpile_block_def(&Identifier::from("MyType2"), &types, 0).unwrap_err();
+        assert!(err.to_string().contains("undefined"))
+    }
 }
