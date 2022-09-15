@@ -12,7 +12,7 @@ impl Synth for BlockFieldSynth {
         let synth = PairSynth {
             indent_spaces: context.config.indent_spaces,
             line_jump_sep: true,
-            first: DescriptionSynth::text(&context.config, &self.0.description.as_str()),
+            first: DescriptionSynth::text(&context.config, &self.0.description),
             last: ChainSynth({
                 let mut v: Vec<Box<dyn Synth>> =
                     vec![Box::new(StringSynth(self.0.name.id.clone()))];
@@ -37,7 +37,7 @@ impl Synth for BlockFieldSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use graphqxl_parser::{Argument, BlockDef, Directive, ValueType};
+    use graphqxl_parser::{Argument, Directive, ValueType};
 
     #[test]
     fn test_no_description_no_args_no_type() {

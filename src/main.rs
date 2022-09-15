@@ -2,7 +2,6 @@ use clap::Parser;
 use graphqxl_parser::parse_spec;
 use graphqxl_synthesizer::{synth_spec, SynthConfig};
 use graphqxl_transpiler::transpile_spec;
-use graphqxl_validator::validate_spec;
 use std::error::Error;
 use std::fs;
 
@@ -27,7 +26,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         args.input.to_string() + ".graphqxl"
     };
     let spec = parse_spec(&args.input)?;
-    validate_spec(&spec)?;
     let transpiled = transpile_spec(&spec)?;
 
     let result = synth_spec(transpiled, SynthConfig::default());
