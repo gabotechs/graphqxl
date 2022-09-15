@@ -3,14 +3,14 @@ use crate::parser::{GraphqxlParser, Rule};
 use crate::utils::{already_defined_error, custom_error, unknown_rule_error};
 use crate::{
     parse_block_def, parse_directive_def, parse_scalar, parse_schema, parse_union, BlockDef,
-    DirectiveDef, Identifier, Scalar, Schema, Union,
+    DirectiveDef, Identifier, OwnedSpan, Scalar, Schema, Union,
 };
 use pest::iterators::Pair;
 use pest::{Parser, Span};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DefType {
@@ -221,7 +221,37 @@ impl Spec {
     }
 }
 
-pub fn parse_spec<P: AsRef<Path>>(path: P) -> Result<Spec, Box<dyn Error>> {
+fn check_import_loop(import_stack: &Vec<PathBuf>, span: &OwnedSpan) -> Result<(), Box<dyn Error>> {
+    let mut seen = HashSet::new();
+    for import in import_stack {
+        let import_string = import.to_string_lossy();
+        if seen.contains(&import_string) {
+            let mut msg = "".to_string();
+            let mut start_flag = false;
+            for import in import_stack {
+                if import.to_string_lossy() == import_string {
+                    start_flag = true;
+                    msg += &import_string;
+                } else if start_flag {
+                    msg += " -> ";
+                    msg += &import_string;
+                }
+            }
+            return Err(Box::new(custom_error(
+                Span::from(span),
+                &format!("cyclical import {}", msg),
+            )));
+        } else {
+            seen.insert(import_string);
+        }
+    }
+    Ok(())
+}
+
+fn private_parse_spec<P: AsRef<Path>>(
+    path: P,
+    import_stack: Vec<PathBuf>,
+) -> Result<Spec, Box<dyn Error>> {
     let abs_path = fs::canonicalize(path)?;
 
     let mut spec = Spec::new();
@@ -248,7 +278,10 @@ pub fn parse_spec<P: AsRef<Path>>(path: P) -> Result<Spec, Box<dyn Error>> {
                             format!("file {:?} does not exist", import_path).as_str(),
                         )));
                     }
-                    let imported_spec = parse_spec(import_path)?;
+                    let mut stack = import_stack.clone();
+                    stack.push(import_path.clone());
+                    check_import_loop(&stack, &import.span)?;
+                    let imported_spec = private_parse_spec(import_path, stack)?;
                     spec.merge(imported_spec)?;
                 } else {
                     spec.add(child)?;
@@ -258,6 +291,10 @@ pub fn parse_spec<P: AsRef<Path>>(path: P) -> Result<Spec, Box<dyn Error>> {
         }
         _unknown => Err(Box::new(unknown_rule_error(pair, "spec"))),
     }
+}
+
+pub fn parse_spec<P: AsRef<Path>>(path: P) -> Result<Spec, Box<dyn Error>> {
+    private_parse_spec(path, Vec::new())
 }
 
 #[cfg(test)]
@@ -270,5 +307,11 @@ mod tests {
         if let Err(err) = spec_or_err {
             panic!("Error parsing file: {}", err)
         }
+    }
+
+    #[test]
+    fn test_handles_cyclical_imports() {
+        let err = parse_spec("test_graphqxl_files/cyclical1.graphqxl").unwrap_err();
+        assert!(err.to_string().contains("cyclical"))
     }
 }

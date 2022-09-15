@@ -1,0 +1,5 @@
+import "cyclical1"
+
+type DummyType3 {
+    field: String!
+}
