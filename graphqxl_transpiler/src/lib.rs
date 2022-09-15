@@ -48,5 +48,6 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
             }
         }
     }
+    target.schema = spec.schema.clone();
     Ok(target)
 }
