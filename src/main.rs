@@ -1,8 +1,8 @@
+use anyhow::{anyhow, Context, Result};
 use clap::Parser;
 use graphqxl_parser::parse_spec;
 use graphqxl_synthesizer::{synth_spec, SynthConfig};
 use graphqxl_transpiler::transpile_spec;
-use std::error::Error;
 use std::fs;
 
 #[derive(Parser, Debug)]
@@ -15,15 +15,23 @@ struct Args {
     indent_spaces: Option<usize>,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let args = Args::parse();
     let out_path = if args.input.ends_with("graphqxl") {
         args.input[..args.input.len() - 2].to_string() + "l"
     } else {
         args.input.to_string() + ".graphql"
     };
-    let spec = parse_spec(&args.input)?;
-    let transpiled = transpile_spec(&spec)?;
+    let spec_result = parse_spec(&args.input);
+    let spec = if let Ok(spec) = spec_result {
+        spec
+    } else {
+        return Err(anyhow!(
+            "Could not parse graphqxl spec:\n\n{}",
+            spec_result.unwrap_err()
+        ));
+    };
+    let transpiled = transpile_spec(&spec).context("Error transpiling graphqxl file")?;
 
     let result = synth_spec(
         transpiled,
