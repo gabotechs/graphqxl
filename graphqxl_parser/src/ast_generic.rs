@@ -1,19 +1,20 @@
 use pest::iterators::Pair;
-use crate::{Identifier, OwnedSpan, parse_identifier};
+
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
+use crate::{parse_identifier, Identifier, OwnedSpan};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Generic {
     pub span: OwnedSpan,
-    pub args: Vec<Identifier>
+    pub args: Vec<Identifier>,
 }
 
 impl Generic {
     pub fn from(name: &str) -> Self {
         Generic {
             span: OwnedSpan::default(),
-            args: vec![Identifier::from(name)]
+            args: vec![Identifier::from(name)],
         }
     }
 
@@ -33,18 +34,16 @@ pub(crate) fn parse_generic(pair: Pair<Rule>) -> Result<Generic, pest::error::Er
                 args.push(parse_identifier(name)?);
             }
 
-            Ok(Generic {
-                span,
-                args
-            })
-        },
-        _unknown => Err(unknown_rule_error(pair, "scalar_def")),
+            Ok(Generic { span, args })
+        }
+        _unknown => Err(unknown_rule_error(pair, "generic")),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::utils::parse_full_input;
+
     use super::*;
 
     fn parse_input(input: &str) -> Result<Generic, pest::error::Error<Rule>> {
@@ -53,31 +52,22 @@ mod tests {
 
     #[test]
     fn test_parses_one_generic() {
-        assert_eq!(
-            parse_input("<T>"),
-            Ok(Generic::from("T"))
-        )
+        assert_eq!(parse_input("<T>"), Ok(Generic::from("T")))
     }
 
     #[test]
     fn test_parses_two_generics() {
-        assert_eq!(
-            parse_input("<T C>"),
-            Ok(Generic::from("T").arg("C"))
-        )
+        assert_eq!(parse_input("<T C>"), Ok(Generic::from("T").arg("C")))
     }
 
     #[test]
     fn test_parses_two_generics_with_a_comma() {
-        assert_eq!(
-            parse_input("<T, C>"),
-            Ok(Generic::from("T").arg("C"))
-        )
+        assert_eq!(parse_input("<T, C>"), Ok(Generic::from("T").arg("C")))
     }
 
     #[test]
     fn test_do_not_parse_incorrectly_formed_generic() {
-            parse_input("T>").unwrap_err();
+        parse_input("T>").unwrap_err();
     }
 
     #[test]

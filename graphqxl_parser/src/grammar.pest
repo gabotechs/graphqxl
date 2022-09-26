@@ -9,8 +9,10 @@ schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_key = @{ "query" | "mutation" | "subscription" }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
+generic_type_def = { "type " ~ identifier ~ "=" ~ identifier ~ generic_call }
 type_def = { description? ~ "type " ~ identifier ~ generic? ~ directive* ~ type_selection_set }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
+generic_input_def = { "input " ~ identifier ~ "=" ~ identifier ~ generic_call }
 input_def = { description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
     input_selection_set = { "{" ~ (field_without_args | spread_reference)* ~ "}" }
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
@@ -95,6 +97,7 @@ char_no_double_quote = @{
 }
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )* }
 generic = { "<" ~ identifier ~ identifier* ~ ">" }
+generic_call = { "<" ~ value_type ~ value_type* ~ ">" }
 spread_reference = ${ "..." ~ identifier }
 WHITESPACE = _{ " " | "," | "\n" | "\r" | "\t" }
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* ~ "\n" }
