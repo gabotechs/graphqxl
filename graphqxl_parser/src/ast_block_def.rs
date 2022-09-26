@@ -3,7 +3,7 @@ use crate::ast_description::{parse_description_and_continue, DescriptionAndNext}
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
-use crate::{parse_directive, Directive};
+use crate::{parse_directive, Directive, Generic, parse_generic};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -24,6 +24,7 @@ pub enum BlockEntry {
 pub struct BlockDef {
     pub span: OwnedSpan,
     pub name: Identifier,
+    pub generic: Option<Generic>,
     pub description: String,
     pub kind: BlockDefType,
     pub entries: Vec<BlockEntry>,
@@ -35,6 +36,7 @@ impl BlockDef {
         Self {
             span: OwnedSpan::default(),
             name: Identifier::from(name),
+            generic: None,
             description: "".to_string(),
             kind,
             entries: Vec::new(),
@@ -42,20 +44,25 @@ impl BlockDef {
         }
     }
 
-    pub fn type_(name: &str) -> Self {
+    pub fn type_def(name: &str) -> Self {
         Self::build(name, BlockDefType::Type)
     }
 
-    pub fn input(name: &str) -> Self {
+    pub fn input_def(name: &str) -> Self {
         Self::build(name, BlockDefType::Input)
     }
 
-    pub fn enum_(name: &str) -> Self {
+    pub fn enum_def(name: &str) -> Self {
         Self::build(name, BlockDefType::Enum)
     }
 
-    pub fn interface(name: &str) -> Self {
+    pub fn interface_def(name: &str) -> Self {
         Self::build(name, BlockDefType::Interface)
+    }
+
+    pub fn generic(&mut self, generic: Generic) -> Self {
+        self.generic = Some(generic);
+        self.clone()
     }
 
     pub fn description(&mut self, description: &str) -> Self {
@@ -92,8 +99,12 @@ fn _parse_type_or_input(
 
     let mut entries = Vec::new();
     let mut directives = Vec::new();
+    let mut generic: Option<Generic> = None;
     for child in pairs {
         match child.as_rule() {
+            Rule::generic => {
+                generic = Some(parse_generic(child)?);
+            }
             Rule::directive => {
                 directives.push(parse_directive(child)?);
             }
@@ -117,6 +128,7 @@ fn _parse_type_or_input(
     Ok(BlockDef {
         span,
         name,
+        generic,
         description,
         kind,
         entries,
@@ -182,7 +194,7 @@ mod tests {
     fn test_type_description_works() {
         assert_eq!(
             parse_input("\"\"\" my description \"\"\"type MyType { arg: String }"),
-            Ok(BlockDef::type_("MyType")
+            Ok(BlockDef::type_def("MyType")
                 .description("my description")
                 .field(BlockField::build("arg").string()))
         );
@@ -192,7 +204,7 @@ mod tests {
     fn test_input_description_works() {
         assert_eq!(
             parse_input("\"\"\" my description \"\"\"input MyInput { arg: String }"),
-            Ok(BlockDef::input("MyInput")
+            Ok(BlockDef::input_def("MyInput")
                 .description("my description")
                 .field(BlockField::build("arg").string()))
         );
@@ -202,7 +214,7 @@ mod tests {
     fn test_enum_description_works() {
         assert_eq!(
             parse_input("\"\"\" my description \"\"\"enum MyEnum { arg }"),
-            Ok(BlockDef::enum_("MyEnum")
+            Ok(BlockDef::enum_def("MyEnum")
                 .description("my description")
                 .field(BlockField::build("arg")))
         );
@@ -212,7 +224,7 @@ mod tests {
     fn test_interface_description_works() {
         assert_eq!(
             parse_input("\"\"\" my description \"\"\"interface MyInterface { arg: String }"),
-            Ok(BlockDef::interface("MyInterface")
+            Ok(BlockDef::interface_def("MyInterface")
                 .description("my description")
                 .field(BlockField::build("arg").string()))
         );
@@ -222,7 +234,7 @@ mod tests {
     fn parses_empty_type() {
         assert_eq!(
             parse_input("type MyType { }"),
-            Ok(BlockDef::type_("MyType"))
+            Ok(BlockDef::type_def("MyType"))
         );
     }
 
@@ -230,7 +242,7 @@ mod tests {
     fn parses_empty_input() {
         assert_eq!(
             parse_input("input MyInput { }"),
-            Ok(BlockDef::input("MyInput"))
+            Ok(BlockDef::input_def("MyInput"))
         );
     }
 
@@ -238,7 +250,7 @@ mod tests {
     fn parses_empty_enum() {
         assert_eq!(
             parse_input("enum MyEnum { }"),
-            Ok(BlockDef::enum_("MyEnum"))
+            Ok(BlockDef::enum_def("MyEnum"))
         );
     }
 
@@ -246,7 +258,7 @@ mod tests {
     fn parses_type_with_spread() {
         assert_eq!(
             parse_input("type MyType { field1: String ...Type field2: String }"),
-            Ok(BlockDef::type_("MyType")
+            Ok(BlockDef::type_def("MyType")
                 .field(BlockField::build("field1").string())
                 .spread("Type")
                 .field(BlockField::build("field2").string()))
@@ -257,7 +269,7 @@ mod tests {
     fn parses_input_with_spread() {
         assert_eq!(
             parse_input("input MyInput { field1: String ...Input field2: String }"),
-            Ok(BlockDef::input("MyInput")
+            Ok(BlockDef::input_def("MyInput")
                 .field(BlockField::build("field1").string())
                 .spread("Input")
                 .field(BlockField::build("field2").string()))
@@ -268,7 +280,7 @@ mod tests {
     fn parses_enum_with_spread() {
         assert_eq!(
             parse_input("enum MyEnum { field1 ...Enum field2 }"),
-            Ok(BlockDef::enum_("MyEnum")
+            Ok(BlockDef::enum_def("MyEnum")
                 .field(BlockField::build("field1"))
                 .spread("Enum")
                 .field(BlockField::build("field2")))
@@ -279,7 +291,7 @@ mod tests {
     fn parses_filled_with_spaces_type() {
         assert_eq!(
             parse_input("type MyType { field: String }"),
-            Ok(BlockDef::type_("MyType").field(BlockField::build("field").string()))
+            Ok(BlockDef::type_def("MyType").field(BlockField::build("field").string()))
         );
     }
 
@@ -287,7 +299,7 @@ mod tests {
     fn parses_filled_with_line_jumps_type() {
         assert_eq!(
             parse_input("type MyType { \nfield: String\n }"),
-            Ok(BlockDef::type_("MyType").field(BlockField::build("field").string()))
+            Ok(BlockDef::type_def("MyType").field(BlockField::build("field").string()))
         );
     }
 
@@ -295,7 +307,7 @@ mod tests {
     fn test_parses_enum() {
         assert_eq!(
             parse_input("enum MyEnum { Field }"),
-            Ok(BlockDef::enum_("MyEnum").field(BlockField::build("Field")))
+            Ok(BlockDef::enum_def("MyEnum").field(BlockField::build("Field")))
         );
     }
 
@@ -303,7 +315,7 @@ mod tests {
     fn test_parses_enum_multiple_fields() {
         assert_eq!(
             parse_input("enum MyEnum { Field1\n field2 }"),
-            Ok(BlockDef::enum_("MyEnum")
+            Ok(BlockDef::enum_def("MyEnum")
                 .field(BlockField::build("Field1"))
                 .field(BlockField::build("field2")))
         );
@@ -313,7 +325,7 @@ mod tests {
     fn test_accept_directives() {
         assert_eq!(
             parse_input("enum MyEnum @dir1 @dir2 { Field }"),
-            Ok(BlockDef::enum_("MyEnum")
+            Ok(BlockDef::enum_def("MyEnum")
                 .field(BlockField::build("Field"))
                 .directive(Directive::build("dir1"))
                 .directive(Directive::build("dir2")))
@@ -324,7 +336,7 @@ mod tests {
     fn test_accept_directives_in_fields_indented() {
         assert_eq!(
             parse_input("type MyType {\n  Field1: String!\n  Field2: Int @dir\n}"),
-            Ok(BlockDef::type_("MyType")
+            Ok(BlockDef::type_def("MyType")
                 .field(BlockField::build("Field1").value_type(ValueType::string().non_nullable()))
                 .field(
                     BlockField::build("Field2")
@@ -332,6 +344,29 @@ mod tests {
                         .directive(Directive::build("dir"))
                 ))
         );
+    }
+
+    #[test]
+    fn test_type_accepts_a_generic_arg() {
+        assert_eq!(
+            parse_input("type MyType<T> { field: String }"),
+            Ok(BlockDef::type_def("MyType")
+                .generic(Generic::from("T"))
+                .field(BlockField::build("field").string())
+            )
+        )
+    }
+
+
+    #[test]
+    fn test_input_accepts_a_generic_arg() {
+        assert_eq!(
+            parse_input("input MyInput<T> { field: String }"),
+            Ok(BlockDef::input_def("MyInput")
+                .generic(Generic::from("T"))
+                .field(BlockField::build("field").string())
+            )
+        )
     }
 
     #[test]

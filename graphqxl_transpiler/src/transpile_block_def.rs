@@ -63,8 +63,8 @@ mod tests {
 
     #[test]
     fn test_transpiles_one() {
-        let block_def = BlockDef::type_("MyType").field(BlockField::build("field").string());
-        let block_def_with_spread = BlockDef::type_("MyType2")
+        let block_def = BlockDef::type_def("MyType").field(BlockField::build("field").string());
+        let block_def_with_spread = BlockDef::type_def("MyType2")
             .spread(&block_def.name.id)
             .field(BlockField::build("field2").string());
         let mut types = HashMap::new();
@@ -73,7 +73,7 @@ mod tests {
         let transpiled = transpile_block_def(&Identifier::from("MyType2"), &types, 0).unwrap();
         assert_eq!(
             transpiled,
-            BlockDef::type_("MyType2")
+            BlockDef::type_def("MyType2")
                 .field(BlockField::build("field").string())
                 .field(BlockField::build("field2").string())
         )
@@ -81,11 +81,11 @@ mod tests {
 
     #[test]
     fn test_transpiles_multiple() {
-        let block_def = BlockDef::type_("MyType").field(BlockField::build("field").string());
-        let block_def_with_spread = BlockDef::type_("MyType2")
+        let block_def = BlockDef::type_def("MyType").field(BlockField::build("field").string());
+        let block_def_with_spread = BlockDef::type_def("MyType2")
             .spread(&block_def.name.id)
             .field(BlockField::build("field2").string());
-        let another_block_def_with_spread = BlockDef::type_("MyType3")
+        let another_block_def_with_spread = BlockDef::type_def("MyType3")
             .spread(&block_def_with_spread.name.id)
             .field(BlockField::build("field3").string());
 
@@ -99,7 +99,7 @@ mod tests {
         let transpiled = transpile_block_def(&Identifier::from("MyType3"), &types, 0).unwrap();
         assert_eq!(
             transpiled,
-            BlockDef::type_("MyType3")
+            BlockDef::type_def("MyType3")
                 .field(BlockField::build("field").string())
                 .field(BlockField::build("field2").string())
                 .field(BlockField::build("field3").string())
@@ -108,10 +108,10 @@ mod tests {
 
     #[test]
     fn test_stops_on_spread_loop() {
-        let block_def = BlockDef::type_("MyType")
+        let block_def = BlockDef::type_def("MyType")
             .spread("MyType2")
             .field(BlockField::build("field").string());
-        let block_def_with_spread = BlockDef::type_("MyType2")
+        let block_def_with_spread = BlockDef::type_def("MyType2")
             .spread("MyType")
             .field(BlockField::build("field2").string());
         let mut types = HashMap::new();
@@ -123,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_does_not_allow_repeated_fields_in_the_same_type() {
-        let block_def = BlockDef::type_("MyType")
+        let block_def = BlockDef::type_def("MyType")
             .field(BlockField::build("field").string())
             .field(BlockField::build("field").string());
 
@@ -135,9 +135,9 @@ mod tests {
 
     #[test]
     fn test_does_not_allow_repeated_fields_in_different_types() {
-        let block_def = BlockDef::type_("MyType").field(BlockField::build("field").string());
+        let block_def = BlockDef::type_def("MyType").field(BlockField::build("field").string());
 
-        let block_def_2 = BlockDef::type_("MyType2")
+        let block_def_2 = BlockDef::type_def("MyType2")
             .spread("MyType")
             .field(BlockField::build("field").string());
         let mut types = HashMap::new();
@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_undefined_spread_should_fail() {
-        let block_def = BlockDef::type_("MyType2")
+        let block_def = BlockDef::type_def("MyType2")
             .spread("MyType")
             .field(BlockField::build("field").string());
         let mut types = HashMap::new();
