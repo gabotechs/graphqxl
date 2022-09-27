@@ -66,7 +66,10 @@ pub(crate) fn parse_generic_block_def(
     match pair.as_rule() {
         Rule::generic_type_def => _parse_generic_block_def(BlockDefType::Type, pair),
         Rule::generic_input_def => _parse_generic_block_def(BlockDefType::Input, pair),
-        _unknown => Err(unknown_rule_error(pair, "generic_block_def")),
+        _unknown => Err(unknown_rule_error(
+            pair,
+            "generic_type_def, generic_input_def",
+        )),
     }
 }
 
@@ -92,7 +95,7 @@ mod tests {
             Ok(GenericBlockDef::type_def(
                 "MyType",
                 "OtherType",
-                ValueType::string()
+                ValueType::string(),
             ))
         )
     }
@@ -105,6 +108,19 @@ mod tests {
                 GenericBlockDef::input_def("MyType", "OtherType", ValueType::string())
                     .arg(ValueType::int())
             )
+        )
+    }
+
+    #[test]
+    fn test_parses_generic_input_def_with_two_args_and_comma() {
+        assert_eq!(
+            parse_input("type Instanced = Template<[Float!]! Boolean>"),
+            Ok(GenericBlockDef::type_def(
+                "Instanced",
+                "Template",
+                ValueType::float().non_nullable().array().non_nullable(),
+            )
+            .arg(ValueType::boolean()))
         )
     }
 

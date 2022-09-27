@@ -3,7 +3,7 @@ spec = { SOI ~ import* ~ def* ~ EOI }
 import = { "import" ~ filename }
 filename = @{ "\"" ~ (!("\n" | "\r\n") ~ char_no_double_quote)* ~ "\"" }
 
-def = _{ schema_def | type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
+def = _{ schema_def | type_def | generic_type_def | input_def | generic_input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
 
 schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_key = @{ "query" | "mutation" | "subscription" }
