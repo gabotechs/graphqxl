@@ -47,7 +47,7 @@ mod tests {
     use graphqxl_parser::{Argument, BlockField, Directive, ValueData};
 
     fn test_most_simple_block_def_factory() -> BlockDef {
-        BlockDef::type_("MyType").field(BlockField::build("field").string())
+        BlockDef::type_def("MyType").field(BlockField::build("field").string())
     }
 
     #[test]

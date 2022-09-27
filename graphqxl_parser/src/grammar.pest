@@ -3,15 +3,17 @@ spec = { SOI ~ import* ~ def* ~ EOI }
 import = { "import" ~ filename }
 filename = @{ "\"" ~ (!("\n" | "\r\n") ~ char_no_double_quote)* ~ "\"" }
 
-def = _{ schema_def | type_def | input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
+def = _{ schema_def | type_def | generic_type_def | input_def | generic_input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
 
 schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_key = @{ "query" | "mutation" | "subscription" }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
-type_def = { description? ~ "type " ~ identifier ~ directive* ~ type_selection_set }
+generic_type_def = { "type " ~ identifier ~ "=" ~ identifier ~ generic_call }
+type_def = { description? ~ "type " ~ identifier ~ generic? ~ directive* ~ type_selection_set }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
-input_def = { description? ~ "input " ~ identifier ~ directive* ~ input_selection_set }
+generic_input_def = { "input " ~ identifier ~ "=" ~ identifier ~ generic_call }
+input_def = { description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
     input_selection_set = { "{" ~ (field_without_args | spread_reference)* ~ "}" }
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
     enum_selection_set = { "{" ~ (field_without_args_without_value | spread_reference)* ~ "}" }
@@ -94,6 +96,8 @@ char_no_double_quote = @{
     | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )* }
+generic = { "<" ~ identifier ~ identifier* ~ ">" }
+generic_call = { "<" ~ value_type ~ value_type* ~ ">" }
 spread_reference = ${ "..." ~ identifier }
 WHITESPACE = _{ " " | "," | "\n" | "\r" | "\t" }
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* ~ "\n" }

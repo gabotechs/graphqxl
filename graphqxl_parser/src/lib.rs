@@ -22,6 +22,9 @@ mod ast_value_data;
 mod ast_value_type;
 mod parser;
 mod utils;
+mod ast_generic;
+mod ast_generic_block_def;
+mod ast_generic_call;
 
 pub use ast_arguments::*;
 pub use ast_block_def::*;
@@ -41,4 +44,7 @@ pub use ast_value_basic_data::*;
 pub use ast_value_basic_type::*;
 pub use ast_value_data::*;
 pub use ast_value_type::*;
+pub use ast_generic::*;
+pub use ast_generic_call::*;
+pub use ast_generic_block_def::*;
 pub use utils::OwnedSpan;
