@@ -1,10 +1,11 @@
+use graphqxl_parser::{DefType, Spec};
+
 use crate::synth_block_def::BlockDefSynth;
 use crate::synth_directive_def::DirectiveDefSynth;
 use crate::synth_scalar::ScalarSynth;
 use crate::synth_schema::SchemaSynth;
 use crate::synth_union::UnionSynth;
 use crate::synths::{Synth, SynthContext};
-use graphqxl_parser::{DefType, Spec};
 
 pub(crate) struct SpecSynth(pub(crate) Spec);
 
@@ -40,6 +41,9 @@ impl Synth for SpecSynth {
                 DefType::Directive(name) => {
                     let def = self.0.directives.get(&name.id).unwrap().to_owned();
                     result += &DirectiveDefSynth(def).synth(context);
+                }
+                _ => {
+                    // nothing to synth
                 }
             }
             result += "\n\n";

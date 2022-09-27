@@ -2,8 +2,9 @@ use crate::ast_import::parse_import;
 use crate::parser::{GraphqxlParser, Rule};
 use crate::utils::{already_defined_error, custom_error, unknown_rule_error};
 use crate::{
-    parse_block_def, parse_directive_def, parse_scalar, parse_schema, parse_union, BlockDef,
-    DirectiveDef, Identifier, OwnedSpan, Scalar, Schema, Union,
+    parse_block_def, parse_directive_def, parse_generic_block_def, parse_scalar, parse_schema,
+    parse_union, BlockDef, DirectiveDef, GenericBlockDef, Identifier, OwnedSpan, Scalar, Schema,
+    Union,
 };
 use pest::iterators::Pair;
 use pest::{Parser, Span};
@@ -15,7 +16,9 @@ use std::path::{Path, PathBuf};
 #[derive(Debug, Clone, PartialEq)]
 pub enum DefType {
     Type(Identifier),
+    GenericType(Identifier),
     Input(Identifier),
+    GenericInput(Identifier),
     Enum(Identifier),
     Interface(Identifier),
     Scalar(Identifier),
@@ -26,7 +29,9 @@ pub enum DefType {
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Spec {
     pub types: HashMap<String, BlockDef>,
+    pub generic_types: HashMap<String, GenericBlockDef>,
     pub inputs: HashMap<String, BlockDef>,
+    pub generic_inputs: HashMap<String, GenericBlockDef>,
     pub enums: HashMap<String, BlockDef>,
     pub interfaces: HashMap<String, BlockDef>,
     pub scalars: HashMap<String, Scalar>,
@@ -46,7 +51,9 @@ impl Spec {
         for el in other.order.iter() {
             match el {
                 DefType::Type(name) => {
-                    if self.types.contains_key(&name.id) {
+                    if self.types.contains_key(&name.id)
+                        || self.generic_types.contains_key(&name.id)
+                    {
                         return Err(custom_error(Span::from(&name.span), "Duplicated type"));
                     }
                     self.order.push(el.clone());
@@ -55,14 +62,40 @@ impl Spec {
                         other.types.get(&name.id).unwrap().clone(),
                     );
                 }
+                DefType::GenericType(name) => {
+                    if self.generic_types.contains_key(&name.id)
+                        || self.types.contains_key(&name.id)
+                    {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated type"));
+                    }
+                    self.order.push(el.clone());
+                    self.generic_types.insert(
+                        name.id.to_string(),
+                        other.generic_types.get(&name.id).unwrap().clone(),
+                    );
+                }
                 DefType::Input(name) => {
-                    if self.inputs.contains_key(&name.id) {
+                    if self.inputs.contains_key(&name.id)
+                        && self.generic_inputs.contains_key(&name.id)
+                    {
                         return Err(custom_error(Span::from(&name.span), "Duplicated input"));
                     }
                     self.order.push(el.clone());
                     self.inputs.insert(
                         name.id.to_string(),
                         other.inputs.get(&name.id).unwrap().clone(),
+                    );
+                }
+                DefType::GenericInput(name) => {
+                    if self.generic_inputs.contains_key(&name.id)
+                        || self.inputs.contains_key(&name.id)
+                    {
+                        return Err(custom_error(Span::from(&name.span), "Duplicated input"));
+                    }
+                    self.order.push(el.clone());
+                    self.generic_inputs.insert(
+                        name.id.to_string(),
+                        other.generic_inputs.get(&name.id).unwrap().clone(),
                     );
                 }
                 DefType::Enum(name) => {
@@ -139,7 +172,7 @@ impl Spec {
             Rule::type_def => {
                 let block_def = parse_block_def(pair.clone())?;
                 let id = block_def.name.clone();
-                if self.types.contains_key(&id.id) {
+                if self.types.contains_key(&id.id) || self.generic_types.contains_key(&id.id) {
                     Err(already_defined_error(pair, "type", &id.id))
                 } else {
                     self.types.insert(id.id.clone(), block_def);
@@ -147,14 +180,36 @@ impl Spec {
                     Ok(())
                 }
             }
+            Rule::generic_type_def => {
+                let generic_block_def = parse_generic_block_def(pair.clone())?;
+                let id = generic_block_def.name.clone();
+                if self.generic_types.contains_key(&id.id) || self.types.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "type", &id.id))
+                } else {
+                    self.generic_types.insert(id.id.clone(), generic_block_def);
+                    self.order.push(DefType::GenericType(id));
+                    Ok(())
+                }
+            }
             Rule::input_def => {
                 let block_def = parse_block_def(pair.clone())?;
                 let id = block_def.name.clone();
-                if self.inputs.contains_key(&id.id) {
+                if self.inputs.contains_key(&id.id) || self.generic_inputs.contains_key(&id.id) {
                     Err(already_defined_error(pair, "input", &id.id))
                 } else {
                     self.inputs.insert(id.id.clone(), block_def);
                     self.order.push(DefType::Input(id));
+                    Ok(())
+                }
+            }
+            Rule::generic_input_def => {
+                let generic_block_def = parse_generic_block_def(pair.clone())?;
+                let id = generic_block_def.name.clone();
+                if self.generic_inputs.contains_key(&id.id) || self.inputs.contains_key(&id.id) {
+                    Err(already_defined_error(pair, "input", &id.id))
+                } else {
+                    self.generic_inputs.insert(id.id.clone(), generic_block_def);
+                    self.order.push(DefType::GenericInput(id));
                     Ok(())
                 }
             }

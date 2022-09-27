@@ -42,6 +42,14 @@ impl ValueType {
     pub fn array(&mut self) -> Self {
         ValueType::Array(Box::new(self.clone()))
     }
+    
+    pub fn retrieve_basic_type(&self) -> &ValueBasicType {
+        match self {
+            ValueType::Basic(b) => b,
+            ValueType::Array(a) => ValueType::retrieve_basic_type(a),
+            ValueType::NonNullable(a) => ValueType::retrieve_basic_type(a),
+        }
+    }
 }
 
 pub(crate) fn parse_value_type(pair: Pair<Rule>) -> Result<ValueType, pest::error::Error<Rule>> {
