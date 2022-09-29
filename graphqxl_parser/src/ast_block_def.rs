@@ -1,9 +1,10 @@
 use crate::ast_block_field::{parse_block_field, BlockField};
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::{parse_identifier, Identifier};
+use crate::ast_implements::{parse_implements, Implements};
 use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
-use crate::{parse_directive, Directive, Generic, parse_generic};
+use crate::{parse_directive, parse_generic, Directive, Generic};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -25,6 +26,7 @@ pub struct BlockDef {
     pub span: OwnedSpan,
     pub name: Identifier,
     pub generic: Option<Generic>,
+    pub implements: Option<Implements>,
     pub description: String,
     pub kind: BlockDefType,
     pub entries: Vec<BlockEntry>,
@@ -37,6 +39,7 @@ impl BlockDef {
             span: OwnedSpan::default(),
             name: Identifier::from(name),
             generic: None,
+            implements: None,
             description: "".to_string(),
             kind,
             entries: Vec::new(),
@@ -65,6 +68,11 @@ impl BlockDef {
         self.clone()
     }
 
+    pub fn implements(&mut self, implements: Implements) -> Self {
+        self.implements = Some(implements);
+        self.clone()
+    }
+
     pub fn description(&mut self, description: &str) -> Self {
         self.description = description.to_string();
         self.clone()
@@ -87,7 +95,7 @@ impl BlockDef {
     }
 }
 
-fn _parse_type_or_input(
+fn _parse_block_def(
     pair: Pair<Rule>,
     kind: BlockDefType,
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
@@ -100,10 +108,14 @@ fn _parse_type_or_input(
     let mut entries = Vec::new();
     let mut directives = Vec::new();
     let mut generic: Option<Generic> = None;
+    let mut implements: Option<Implements> = None;
     for child in pairs {
         match child.as_rule() {
             Rule::generic => {
                 generic = Some(parse_generic(child)?);
+            }
+            Rule::implements => {
+                implements = Some(parse_implements(child)?);
             }
             Rule::directive => {
                 directives.push(parse_directive(child)?);
@@ -129,6 +141,7 @@ fn _parse_type_or_input(
         span,
         name,
         generic,
+        implements,
         description,
         kind,
         entries,
@@ -138,10 +151,10 @@ fn _parse_type_or_input(
 
 pub(crate) fn parse_block_def(pair: Pair<Rule>) -> Result<BlockDef, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::type_def => _parse_type_or_input(pair, BlockDefType::Type),
-        Rule::input_def => _parse_type_or_input(pair, BlockDefType::Input),
-        Rule::enum_def => _parse_type_or_input(pair, BlockDefType::Enum),
-        Rule::interface_def => _parse_type_or_input(pair, BlockDefType::Interface),
+        Rule::type_def => _parse_block_def(pair, BlockDefType::Type),
+        Rule::input_def => _parse_block_def(pair, BlockDefType::Input),
+        Rule::enum_def => _parse_block_def(pair, BlockDefType::Enum),
+        Rule::interface_def => _parse_block_def(pair, BlockDefType::Interface),
         _unknown => Err(unknown_rule_error(
             pair,
             "type_def, input_def, enum_def or interface_def",
@@ -347,25 +360,33 @@ mod tests {
     }
 
     #[test]
-    fn test_type_accepts_a_generic_arg() {
+    fn test_type_accepts_generic_arg() {
         assert_eq!(
             parse_input("type MyType<T> { field: String }"),
             Ok(BlockDef::type_def("MyType")
                 .generic(Generic::from("T"))
-                .field(BlockField::build("field").string())
-            )
+                .field(BlockField::build("field").string()))
         )
     }
 
+    #[test]
+    fn test_type_accepts_generic_arg_and_implements() {
+        assert_eq!(
+            parse_input("type MyType<T> implements One & Two { field: String }"),
+            Ok(BlockDef::type_def("MyType")
+                .generic(Generic::from("T"))
+                .implements(Implements::from("One").interface("Two"))
+                .field(BlockField::build("field").string()))
+        )
+    }
 
     #[test]
-    fn test_input_accepts_a_generic_arg() {
+    fn test_input_accepts_generic_arg() {
         assert_eq!(
             parse_input("input MyInput<T> { field: String }"),
             Ok(BlockDef::input_def("MyInput")
                 .generic(Generic::from("T"))
-                .field(BlockField::build("field").string())
-            )
+                .field(BlockField::build("field").string()))
         )
     }
 

@@ -18,6 +18,14 @@ impl Synth for BlockDefSynth {
             "{} {} ",
             symbol, self.0.name.id
         )))];
+        if let Some(implements) = &self.0.implements {
+            let first = implements.interfaces.get(0).unwrap();
+            v.push(Box::new(StringSynth(format!("implements {} ", first.id))));
+            for i in 1..implements.interfaces.len() {
+                let implement = implements.interfaces.get(i).unwrap();
+                v.push(Box::new(StringSynth(format!("& {} ", implement.id))));
+            }
+        }
         for directive in self.0.directives.iter() {
             v.push(Box::new(DirectiveSynth(directive.clone())));
             v.push(Box::new(StringSynth::from(" ")));
@@ -34,7 +42,7 @@ impl Synth for BlockDefSynth {
         )));
         let synth = PairSynth::top_level(
             &context.config,
-            DescriptionSynth::text(&context.config, &self.0.description.as_str()),
+            DescriptionSynth::text(&context.config, &self.0.description),
             ChainSynth(v),
         );
         synth.synth(context)
@@ -44,7 +52,7 @@ impl Synth for BlockDefSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use graphqxl_parser::{Argument, BlockField, Directive, ValueData};
+    use graphqxl_parser::{Argument, BlockField, Directive, Implements, ValueData};
 
     fn test_most_simple_block_def_factory() -> BlockDef {
         BlockDef::type_def("MyType").field(BlockField::build("field").string())
@@ -126,5 +134,17 @@ type MyType @dir1(arg: 1) @dir2 {
   ): String
 }"
         );
+    }
+
+    #[test]
+    fn test_with_implements() {
+        let synth = BlockDefSynth(
+            test_most_simple_block_def_factory()
+                .implements(Implements::from("One").interface("Two")),
+        );
+        assert_eq!(
+            synth.synth_zero(),
+            "type MyType implements One & Two {\n  field: String\n}"
+        )
     }
 }
