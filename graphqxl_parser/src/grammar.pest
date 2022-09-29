@@ -10,7 +10,8 @@ schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
 generic_type_def = { "type " ~ identifier ~ "=" ~ identifier ~ generic_call }
-type_def = { description? ~ "type " ~ identifier ~ generic? ~ directive* ~ type_selection_set }
+type_def = { description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
+    implements = { "implements" ~ identifier ~ ("&" ~ identifier)* }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
 generic_input_def = { "input " ~ identifier ~ "=" ~ identifier ~ generic_call }
 input_def = { description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
