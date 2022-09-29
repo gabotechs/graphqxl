@@ -43,7 +43,7 @@ type MyType {
 import "other_file"
 
 type MyType {
-foo: OtherType!
+    foo: OtherType!
 }
 ```
 
@@ -73,7 +73,7 @@ type MyType {
 
 ```graphql
 type MyGenericType<T> {
-foo: T
+    foo: T
 }
 
 type MyStringType = MyGenericType<String!>
