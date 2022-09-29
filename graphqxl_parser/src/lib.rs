@@ -40,6 +40,7 @@ pub use ast_generic::*;
 pub use ast_generic_block_def::*;
 pub use ast_generic_call::*;
 pub use ast_identifier::*;
+pub use ast_implements::*;
 pub use ast_scalar::*;
 pub use ast_schema::*;
 pub use ast_spec::*;
