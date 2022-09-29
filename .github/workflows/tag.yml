@@ -7,7 +7,7 @@ on:
 
 jobs:
   tag:
-    if: github.event.head_commit.message != 'tag'
+    if: ${{ !startsWith(github.event.head_commit.message, 'tag') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -59,7 +59,7 @@ jobs:
           git config --global user.email "gabimtme@gmail.com"
           git config --global user.name "Automatic bumper"
           git add .
-          git commit -m "tag" 
+          git commit -m "tag: v$version" 
           git tag "v$version"
           git push
           git push --tags
