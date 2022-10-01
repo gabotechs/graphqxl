@@ -22,7 +22,7 @@ impl Synth for ValueDataSynth {
                     res
                 }
                 ValueBasicData::Boolean(v) => v.to_string(),
-                ValueBasicData::String(v) => format!("\"{v}\""),
+                ValueBasicData::String(v) => format!("\"{}\"", v.replace('\"', "\\\"").as_str()),
             },
             ValueData::List(items) => {
                 let mut summed = "[".to_string();
