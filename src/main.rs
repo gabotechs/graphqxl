@@ -12,6 +12,9 @@ struct Args {
     input: String,
 
     #[clap(long)]
+    output: Option<String>,
+
+    #[clap(long)]
     indent_spaces: Option<usize>,
 
     #[clap(long)]
@@ -20,7 +23,9 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let out_path = if args.input.ends_with("graphqxl") {
+    let out_path = if let Some(out_path) = args.output {
+        out_path
+    } else if args.input.ends_with("graphqxl") {
         args.input[..args.input.len() - 2].to_string() + "l"
     } else {
         args.input.to_string() + ".graphql"
