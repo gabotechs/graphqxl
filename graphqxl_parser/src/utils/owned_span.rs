@@ -26,6 +26,16 @@ impl Default for OwnedSpan {
     }
 }
 
+impl OwnedSpan {
+    pub fn make_error(&self, msg: &str) -> pest::error::Error<Rule> {
+        let mut err = self.err_placeholder.clone();
+        err.variant = pest::error::ErrorVariant::CustomError {
+            message: msg.to_string(),
+        };
+        err
+    }
+}
+
 // FIXME: this implementation is only for the tests, It should be behind a #[cfg(Test)],
 //  but then I don't know how to make the real implementation available only for no test
 impl PartialEq for OwnedSpan {
@@ -47,11 +57,5 @@ impl<'a> From<Span<'a>> for OwnedSpan {
             start: span.start(),
             end: span.end(),
         }
-    }
-}
-
-impl<'a> From<&'a OwnedSpan> for Span<'a> {
-    fn from(span: &'a OwnedSpan) -> Self {
-        Span::new(span.input.as_str(), span.start, span.end).unwrap()
     }
 }

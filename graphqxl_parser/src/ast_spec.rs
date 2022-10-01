@@ -1,13 +1,13 @@
 use crate::ast_import::parse_import;
 use crate::parser::{GraphqxlParser, Rule};
-use crate::utils::{already_defined_error, custom_error, unknown_rule_error};
+use crate::utils::{already_defined_error, unknown_rule_error};
 use crate::{
     parse_block_def, parse_directive_def, parse_generic_block_def, parse_scalar, parse_schema,
     parse_union, BlockDef, DirectiveDef, GenericBlockDef, Identifier, OwnedSpan, Scalar, Schema,
     Union,
 };
 use pest::iterators::Pair;
-use pest::{Parser, Span};
+use pest::Parser;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs;
@@ -54,7 +54,7 @@ impl Spec {
                     if self.types.contains_key(&name.id)
                         || self.generic_types.contains_key(&name.id)
                     {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated type"));
+                        return Err(name.span.make_error("Duplicated type"));
                     }
                     self.order.push(el.clone());
                     self.types.insert(
@@ -66,7 +66,7 @@ impl Spec {
                     if self.generic_types.contains_key(&name.id)
                         || self.types.contains_key(&name.id)
                     {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated type"));
+                        return Err(name.span.make_error("Duplicated type"));
                     }
                     self.order.push(el.clone());
                     self.generic_types.insert(
@@ -78,7 +78,7 @@ impl Spec {
                     if self.inputs.contains_key(&name.id)
                         && self.generic_inputs.contains_key(&name.id)
                     {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated input"));
+                        return Err(name.span.make_error("Duplicated input"));
                     }
                     self.order.push(el.clone());
                     self.inputs.insert(
@@ -90,7 +90,7 @@ impl Spec {
                     if self.generic_inputs.contains_key(&name.id)
                         || self.inputs.contains_key(&name.id)
                     {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated input"));
+                        return Err(name.span.make_error("Duplicated input"));
                     }
                     self.order.push(el.clone());
                     self.generic_inputs.insert(
@@ -100,7 +100,7 @@ impl Spec {
                 }
                 DefType::Enum(name) => {
                     if self.enums.contains_key(&name.id) {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated enum"));
+                        return Err(name.span.make_error("Duplicated enum"));
                     }
                     self.order.push(el.clone());
                     self.enums.insert(
@@ -110,7 +110,7 @@ impl Spec {
                 }
                 DefType::Interface(name) => {
                     if self.interfaces.contains_key(&name.id) {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated interface"));
+                        return Err(name.span.make_error("Duplicated interface"));
                     }
                     self.order.push(el.clone());
                     self.interfaces.insert(
@@ -120,7 +120,7 @@ impl Spec {
                 }
                 DefType::Scalar(name) => {
                     if self.scalars.contains_key(&name.id) {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated scalar"));
+                        return Err(name.span.make_error("Duplicated scalar"));
                     }
                     self.order.push(el.clone());
                     self.scalars.insert(
@@ -130,7 +130,7 @@ impl Spec {
                 }
                 DefType::Union(name) => {
                     if self.unions.contains_key(&name.id) {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated union"));
+                        return Err(name.span.make_error("Duplicated union"));
                     }
                     self.order.push(el.clone());
                     self.unions.insert(
@@ -140,7 +140,7 @@ impl Spec {
                 }
                 DefType::Directive(name) => {
                     if self.directives.contains_key(&name.id) {
-                        return Err(custom_error(Span::from(&name.span), "Duplicated directive"));
+                        return Err(name.span.make_error("Duplicated directive"));
                     }
                     self.order.push(el.clone());
                     self.directives.insert(
@@ -292,10 +292,9 @@ fn check_import_loop(import_stack: &Vec<PathBuf>, span: &OwnedSpan) -> Result<()
                     msg += &import_string;
                 }
             }
-            return Err(Box::new(custom_error(
-                Span::from(span),
-                &format!("cyclical import {}", msg),
-            )));
+            return Err(Box::new(
+                span.make_error(&format!("cyclical import {}", msg)),
+            ));
         } else {
             seen.insert(import_string);
         }
@@ -328,8 +327,7 @@ fn private_parse_spec<P: AsRef<Path>>(
                     let file_dir = abs_path.parent().unwrap();
                     let import_path = Path::new(file_dir).join(&file_name);
                     if !import_path.exists() {
-                        return Err(Box::new(custom_error(
-                            Span::from(&import.span),
+                        return Err(Box::new(import.span.make_error(
                             format!("file {:?} does not exist", import_path).as_str(),
                         )));
                     }

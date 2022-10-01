@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef, Rule, ValueBasicType};
 
-use crate::utils::custom_error;
-
 pub(crate) fn transpile_generic_block_def(
     generic_block_def: &GenericBlockDef,
     store: &HashMap<String, BlockDef>,
@@ -11,31 +9,28 @@ pub(crate) fn transpile_generic_block_def(
     let unresolved_block_def = match store.get(&generic_block_def.block_def.id) {
         Some(block_def) => block_def,
         None => {
-            return Err(custom_error(
-                &generic_block_def.block_def.span,
-                &format!("{} is undefined", &generic_block_def.block_def.id),
-            ));
+            return Err(generic_block_def
+                .block_def
+                .span
+                .make_error(&format!("{} is undefined", &generic_block_def.block_def.id)));
         }
     };
 
     let generic = match &unresolved_block_def.generic {
         Some(generic) => generic,
         None => {
-            return Err(custom_error(
-                &generic_block_def.block_def.span,
-                &format!(
-                    "{} is not a generic block template",
-                    &generic_block_def.block_def.id
-                ),
-            ));
+            return Err(generic_block_def.block_def.span.make_error(&format!(
+                "{} is not a generic block template",
+                &generic_block_def.block_def.id
+            )));
         }
     };
 
     if generic.args.len() != generic_block_def.generic_call.args.len() {
-        return Err(custom_error(
-            &generic_block_def.block_def.span,
-            "generic arguments length does not match",
-        ));
+        return Err(generic_block_def
+            .block_def
+            .span
+            .make_error("generic arguments length does not match"));
     }
 
     let mut generic_map = HashMap::new();
