@@ -1,4 +1,3 @@
-use crate::utils::custom_error;
 use graphqxl_parser::{BlockDef, BlockEntry, Identifier, OwnedSpan, Rule};
 use std::collections::{HashMap, HashSet};
 
@@ -23,16 +22,15 @@ pub(crate) fn transpile_block_def(
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
     // todo: where does this come from
     if stack_count > 100 {
-        return Err(custom_error(
-            identifier.span(),
-            "maximum nested spread operator surpassed",
-        ));
+        return Err(identifier
+            .span()
+            .make_error("maximum nested spread operator surpassed"));
     }
     let block_def = match identifier {
         IdOrBlock::Id(id) => match store.get(&id.id) {
             Some(block_def) => block_def.clone(),
             None => {
-                return Err(custom_error(&id.span, &format!("{} is undefined", &id.id)));
+                return Err(id.span.make_error(&format!("{} is undefined", &id.id)));
             }
         },
         IdOrBlock::Block(block_def) => block_def,
@@ -47,7 +45,7 @@ pub(crate) fn transpile_block_def(
         |block_entry: &BlockEntry| -> Result<(), pest::error::Error<Rule>> {
             if let BlockEntry::Field(field) = block_entry {
                 if seen.contains(&field.name.id) {
-                    return Err(custom_error(&field.span, "repeated field"));
+                    return Err(field.span.make_error("repeated field"));
                 } else {
                     seen.insert(field.name.id.clone());
                     transpiled_block_def.entries.push(block_entry.clone());

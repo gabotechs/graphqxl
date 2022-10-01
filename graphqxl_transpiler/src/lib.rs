@@ -2,11 +2,9 @@ use graphqxl_parser::{DefType, Rule, Spec};
 
 use crate::transpile_block_def::{transpile_block_def, IdOrBlock};
 use crate::transpile_generic_block_def::transpile_generic_block_def;
-use crate::utils::custom_error;
 
 mod transpile_block_def;
 mod transpile_generic_block_def;
-mod utils;
 
 // TODO: we should not need to mutate the spec here
 pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
@@ -26,7 +24,7 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
                 let generic_type = if let Some(generic_type) = spec.generic_types.get(&name.id) {
                     generic_type
                 } else {
-                    return Err(custom_error(&name.span, "generic type not found"));
+                    return Err(name.span.make_error("generic type not found"));
                 };
                 let resolved = transpile_generic_block_def(generic_type, &types)?;
                 let transpiled = transpile_block_def(IdOrBlock::Block(resolved), &types, 0)?;
@@ -43,7 +41,7 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
                 let generic_input = if let Some(generic_input) = spec.generic_inputs.get(&name.id) {
                     generic_input
                 } else {
-                    return Err(custom_error(&name.span, "generic input not found"));
+                    return Err(name.span.make_error("generic input not found"));
                 };
                 let resolved = transpile_generic_block_def(generic_input, &inputs)?;
                 let transpiled = transpile_block_def(IdOrBlock::Block(resolved), &inputs, 0)?;
