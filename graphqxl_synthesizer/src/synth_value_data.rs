@@ -1,4 +1,4 @@
-use crate::utils::is_last_iter;
+use crate::utils::{escape_non_escaped_quotes, is_last_iter};
 use crate::{Synth, SynthContext};
 use graphqxl_parser::{ValueBasicData, ValueData};
 
@@ -22,7 +22,7 @@ impl Synth for ValueDataSynth {
                     res
                 }
                 ValueBasicData::Boolean(v) => v.to_string(),
-                ValueBasicData::String(v) => format!("\"{}\"", v.replace('\"', "\\\"").as_str()),
+                ValueBasicData::String(v) => format!("\"{}\"", escape_non_escaped_quotes(v)),
             },
             ValueData::List(items) => {
                 let mut summed = "[".to_string();
