@@ -17,15 +17,21 @@ impl Synth for SpecSynth {
                 DefType::Type(name) => {
                     let def = self.0.types.get(&name.id).unwrap().to_owned();
                     if def.generic.is_none() {
-                        result += &BlockDefSynth(def).synth(context);
-                        result += "\n\n";
+                        let block_def_string = &BlockDefSynth(def).synth(context);
+                        if !block_def_string.is_empty() {
+                            result += block_def_string;
+                            result += "\n\n";
+                        }
                     }
                 }
                 DefType::Input(name) => {
                     let def = self.0.inputs.get(&name.id).unwrap().to_owned();
                     if def.generic.is_none() {
-                        result += &BlockDefSynth(def).synth(context);
-                        result += "\n\n";
+                        let block_def_string = &BlockDefSynth(def).synth(context);
+                        if !block_def_string.is_empty() {
+                            result += block_def_string;
+                            result += "\n\n";
+                        }
                     }
                 }
                 DefType::Enum(name) => {

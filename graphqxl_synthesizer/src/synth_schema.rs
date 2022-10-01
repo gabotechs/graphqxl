@@ -20,9 +20,12 @@ impl Synth for SchemaSynth {
                 self.0.subscription.id
             )))
         }
+        if to_include.is_empty() {
+            return "".to_string();
+        }
         let pair_synth = PairSynth::top_level(
             &context.config,
-            DescriptionSynth::text(&context.config, &self.0.description.as_str()),
+            DescriptionSynth::text(&context.config, &self.0.description),
             ChainSynth(vec![
                 Box::new(StringSynth("schema ".to_string())),
                 Box::new(MultilineListSynth::no_suffix(

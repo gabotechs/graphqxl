@@ -8,6 +8,10 @@ pub(crate) struct BlockDefSynth(pub(crate) BlockDef);
 
 impl Synth for BlockDefSynth {
     fn synth(&self, context: &SynthContext) -> String {
+        if self.0.name.id.starts_with(&context.config.private_prefix) {
+            return "".to_string();
+        }
+
         let symbol = match self.0.kind {
             BlockDefType::Type => "type",
             BlockDefType::Input => "input",
