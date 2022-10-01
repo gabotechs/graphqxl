@@ -1,4 +1,5 @@
 use crate::synths::{Synth, SynthConfig, SynthContext};
+use crate::utils::escape_non_escaped_quotes;
 
 pub(crate) struct DescriptionSynth {
     pub(crate) text: String,
@@ -27,14 +28,14 @@ impl Synth for DescriptionSynth {
             for line in self.text.split('\n') {
                 result += "\n";
                 result += &" ".repeat(context.indent_lvl * self.indent_spaces);
-                result += &line.replace('\"', "\\\"");
+                result += &escape_non_escaped_quotes(line);
             }
             result += "\n";
             result += &" ".repeat(context.indent_lvl * self.indent_spaces);
             result += "\"\"\"";
         } else {
             result += "\"";
-            result += &self.text.replace('\"', "\\\"");
+            result += &escape_non_escaped_quotes(&self.text);
             result += "\"";
         }
         result
