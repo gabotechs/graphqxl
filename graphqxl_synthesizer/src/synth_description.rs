@@ -27,14 +27,14 @@ impl Synth for DescriptionSynth {
             for line in self.text.split('\n') {
                 result += "\n";
                 result += &" ".repeat(context.indent_lvl * self.indent_spaces);
-                result += line;
+                result += &line.replace('\"', "\\\"");
             }
             result += "\n";
             result += &" ".repeat(context.indent_lvl * self.indent_spaces);
             result += "\"\"\"";
         } else {
             result += "\"";
-            result += &self.text;
+            result += &self.text.replace('\"', "\\\"");
             result += "\"";
         }
         result
