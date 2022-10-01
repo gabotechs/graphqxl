@@ -1,9 +1,10 @@
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct SynthConfig {
     pub indent_spaces: usize,
     pub max_one_line_args: usize,
     pub max_one_line_ors: usize,
     pub allow_multiline_values: bool,
+    pub private_prefix: String,
 }
 
 impl Default for SynthConfig {
@@ -13,11 +14,12 @@ impl Default for SynthConfig {
             max_one_line_args: 2,
             max_one_line_ors: 2,
             allow_multiline_values: false,
+            private_prefix: "_".to_string(),
         }
     }
 }
 
-#[derive(Copy, Clone, Default)]
+#[derive(Clone, Default)]
 pub(crate) struct SynthContext {
     pub(crate) indent_lvl: usize,
     pub(crate) config: SynthConfig,
@@ -25,7 +27,7 @@ pub(crate) struct SynthContext {
 
 impl SynthContext {
     pub(crate) fn plus_one_indent_lvl(&self) -> Self {
-        let mut clone = *self;
+        let mut clone = self.clone();
         clone.indent_lvl += 1;
         clone
     }
@@ -44,25 +46,25 @@ mod tests {
 
     impl SynthConfig {
         pub(crate) fn indent_spaces(&self, n: usize) -> Self {
-            let mut clone = *self;
+            let mut clone = self.clone();
             clone.indent_spaces = n;
             clone
         }
 
         pub(crate) fn max_one_line_args(&self, n: usize) -> Self {
-            let mut clone = *self;
+            let mut clone = self.clone();
             clone.max_one_line_args = n;
             clone
         }
 
         pub(crate) fn max_one_line_ors(&self, n: usize) -> Self {
-            let mut clone = *self;
+            let mut clone = self.clone();
             clone.max_one_line_ors = n;
             clone
         }
 
         pub(crate) fn allow_multiline_values(&self) -> Self {
-            let mut clone = *self;
+            let mut clone = self.clone();
             clone.allow_multiline_values = true;
             clone
         }
@@ -70,13 +72,13 @@ mod tests {
 
     impl SynthContext {
         pub(crate) fn with_indent_lvl(&self, lvl: usize) -> Self {
-            let mut clone = *self;
+            let mut clone = self.clone();
             clone.indent_lvl = lvl;
             clone
         }
 
         pub(crate) fn with_config(&self, config: SynthConfig) -> Self {
-            let mut clone = *self;
+            let mut clone = self.clone();
             clone.config = config;
             clone
         }

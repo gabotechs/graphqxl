@@ -13,6 +13,9 @@ struct Args {
 
     #[clap(long)]
     indent_spaces: Option<usize>,
+
+    #[clap(long)]
+    private_prefix: Option<String>,
 }
 
 fn main() -> Result<()> {
@@ -37,6 +40,7 @@ fn main() -> Result<()> {
         transpiled,
         SynthConfig {
             indent_spaces: args.indent_spaces.unwrap_or(2),
+            private_prefix: args.private_prefix.unwrap_or_else(|| "_".to_string()),
             ..Default::default()
         },
     );

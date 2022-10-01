@@ -1,10 +1,29 @@
+use crate::Rule;
 use pest::Span;
 
-#[derive(Clone, Default, Debug)]
+#[derive(Clone, Debug)]
 pub struct OwnedSpan {
+    pub err_placeholder: pest::error::Error<Rule>,
     pub input: String,
     pub start: usize,
     pub end: usize,
+}
+
+impl Default for OwnedSpan {
+    fn default() -> Self {
+        let err = pest::error::Error::new_from_span(
+            pest::error::ErrorVariant::CustomError {
+                message: "".to_string(),
+            },
+            Span::new("", 0, 0).unwrap(),
+        );
+        Self {
+            err_placeholder: err,
+            input: "".to_string(),
+            start: 0,
+            end: 0,
+        }
+    }
 }
 
 // FIXME: this implementation is only for the tests, It should be behind a #[cfg(Test)],
@@ -18,19 +37,15 @@ impl PartialEq for OwnedSpan {
 impl<'a> From<Span<'a>> for OwnedSpan {
     fn from(span: Span<'a>) -> Self {
         Self {
+            err_placeholder: pest::error::Error::new_from_span(
+                pest::error::ErrorVariant::CustomError {
+                    message: "".to_string(),
+                },
+                span,
+            ),
             input: span.as_str().to_string(),
             start: span.start(),
             end: span.end(),
-        }
-    }
-}
-
-impl From<(&str, usize, usize)> for OwnedSpan {
-    fn from(spec: (&str, usize, usize)) -> Self {
-        Self {
-            input: spec.0.to_string(),
-            start: spec.1,
-            end: spec.2,
         }
     }
 }
