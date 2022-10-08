@@ -1,8 +1,5 @@
-<p align="center" style="display: flex; align-items: center; justify-content: center">
-    <span>
-        <a style="color: #e535abff; font-size: 60px">GraphQ</a><a style="color: #323232ff; font-size: 60px">X</a><a style="color: #e535abff ; font-size: 60px">L</a>
-    </span>
-    <span style="width: 40px"></span>
+<p align="center">
+    <img alt="" height="200" src="./docs/assets/graphqxl-name.svg">
     <img alt="" height="200" src="./docs/assets/graphqxl.svg">
 </p>
 
