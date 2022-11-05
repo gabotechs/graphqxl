@@ -1,0 +1,11 @@
+[31mapollo-compiler validation error[0m
+
+  [31m×[0m cannot find type `Bar` in this document
+   ╭─[1:1]
+ [2m1[0m │ type Type {
+ [2m2[0m │   foo: Bar!
+   · [31;1m       ─┬─[0m
+   ·         [31;1m╰── [31;1mnot found in this scope[0m[0m
+ [2m3[0m │ }
+   ╰────
+

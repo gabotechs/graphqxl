@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context, Result};
+use apollo_compiler::ApolloCompiler;
 use clap::Parser;
 use graphqxl_parser::parse_spec;
 use graphqxl_synthesizer::{synth_spec, SynthConfig};
@@ -21,10 +22,9 @@ struct Args {
     private_prefix: Option<String>,
 }
 
-fn main() -> Result<()> {
-    let args = Args::parse();
-    let out_path = if let Some(out_path) = args.output {
-        out_path
+fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
+    let out_path = if let Some(out_path) = &args.output {
+        out_path.to_string()
     } else if args.input.ends_with("graphqxl") {
         args.input[..args.input.len() - 2].to_string() + "l"
     } else {
@@ -45,10 +45,63 @@ fn main() -> Result<()> {
         transpiled,
         SynthConfig {
             indent_spaces: args.indent_spaces.unwrap_or(2),
-            private_prefix: args.private_prefix.unwrap_or_else(|| "_".to_string()),
+            private_prefix: args
+                .private_prefix
+                .clone()
+                .unwrap_or_else(|| "_".to_string()),
             ..Default::default()
         },
     );
+    let ctx = ApolloCompiler::new(&result);
+    let diagnostics = ctx.validate();
+    for diagnostic in diagnostics {
+        if diagnostic.is_error() {
+            return Err(anyhow!("{}", diagnostic));
+        }
+    }
+    Ok((result, out_path))
+}
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+    let (result, out_path) = graphqxl_to_graphql(&args)?;
     fs::write(&out_path, result)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_graphqxl_to_graphql() {
+        let test_dir = Path::new("src").join("test");
+        let paths = fs::read_dir(&test_dir).unwrap();
+        for dir_entry in paths {
+            let file_name = dir_entry.unwrap().file_name();
+            let path = file_name.to_str().unwrap();
+            if path.starts_with('_') || path.ends_with("result") {
+                continue;
+            }
+            let result = graphqxl_to_graphql(&Args {
+                input: test_dir.join(path).to_str().unwrap().to_string(),
+                output: None,
+                indent_spaces: None,
+                private_prefix: None,
+            });
+            let result = if let Ok((result, _)) = result {
+                result
+            } else {
+                format!("{}", result.unwrap_err())
+            };
+            let out_path = test_dir.join(path.to_string() + ".result");
+            if out_path.exists() {
+                let expected = fs::read_to_string(out_path).unwrap();
+                assert_eq!(expected, result)
+            } else {
+                fs::write(out_path, result).unwrap();
+            }
+        }
+    }
 }

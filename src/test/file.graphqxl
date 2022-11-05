@@ -1,0 +1,8 @@
+import "_other"
+
+type _Instanced = Template<String! [Int!]!>
+
+type MyType {
+    field: String
+    ..._Instanced
+}
