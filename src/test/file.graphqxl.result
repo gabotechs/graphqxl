@@ -1,0 +1,9 @@
+type MyType {
+  field: String
+  "This is the first generic arg"
+  t: String!
+  "And this is the second one"
+  u: [Int!]!
+}
+
+

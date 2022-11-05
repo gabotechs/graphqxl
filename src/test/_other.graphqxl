@@ -1,0 +1,8 @@
+type Template<T, U> {
+    "This is the first generic arg"
+    t: T
+    """
+    And this is the second one
+    """
+    u: U
+}
