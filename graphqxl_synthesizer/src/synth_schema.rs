@@ -6,7 +6,7 @@ use graphqxl_parser::Schema;
 pub(crate) struct SchemaSynth(pub(crate) Schema);
 
 impl Synth for SchemaSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let mut to_include = Vec::new();
         if !self.0.query.id.is_empty() {
             to_include.push(StringSynth(format!("query: {}", self.0.query.id)))
@@ -21,17 +21,13 @@ impl Synth for SchemaSynth {
             )))
         }
         if to_include.is_empty() {
-            return "".to_string();
+            return false;
         }
         let pair_synth = PairSynth::top_level(
-            &context.config,
             DescriptionSynth::text(&context.config, &self.0.description),
             ChainSynth(vec![
                 Box::new(StringSynth("schema ".to_string())),
-                Box::new(MultilineListSynth::no_suffix(
-                    &context.config,
-                    ("{", to_include, "}"),
-                )),
+                Box::new(MultilineListSynth::no_suffix(("{", to_include, "}"))),
             ]),
         );
         pair_synth.synth(context)
@@ -76,10 +72,11 @@ schema {
                 .mutation("Mutation")
                 .subscription("Subscription"),
         );
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().indent_spaces(4));
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default().with_config(SynthConfig::default().indent_spaces(4))
-            ),
+            context.result,
             "\
 schema {
     query: Query

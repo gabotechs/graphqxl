@@ -18,27 +18,26 @@ impl DescriptionSynth {
 }
 
 impl Synth for DescriptionSynth {
-    fn synth(&self, context: &SynthContext) -> String {
-        let mut result = "".to_string();
+    fn synth(&self, context: &mut SynthContext) -> bool {
         if self.text.is_empty() {
-            return result;
+            return false;
         }
         if self.is_multiline {
-            result += "\"\"\"";
+            context.write("\"\"\"");
             for line in self.text.split('\n') {
-                result += "\n";
-                result += &" ".repeat(context.indent_lvl * self.indent_spaces);
-                result += &escape_non_escaped_quotes(line);
+                context.write_line_jump();
+                context.write(&" ".repeat(context.indent_lvl * self.indent_spaces));
+                context.write(&escape_non_escaped_quotes(line));
             }
-            result += "\n";
-            result += &" ".repeat(context.indent_lvl * self.indent_spaces);
-            result += "\"\"\"";
+            context.write_line_jump();
+            context.write(&" ".repeat(context.indent_lvl * self.indent_spaces));
+            context.write("\"\"\"");
         } else {
-            result += "\"";
-            result += &escape_non_escaped_quotes(&self.text);
-            result += "\"";
+            context.write("\"");
+            context.write(&escape_non_escaped_quotes(&self.text));
+            context.write("\"");
         }
-        result
+        true
     }
 }
 
@@ -84,8 +83,11 @@ hi!
     #[test]
     fn test_synth_multiline_indented() {
         let synth = DescriptionSynth::text_default("These are two lines\nhi!");
+        let mut context = SynthContext::default();
+        context.push_indent_level();
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(&SynthContext::default().plus_one_indent_lvl()),
+            context.result,
             "\
 \"\"\"
   These are two lines

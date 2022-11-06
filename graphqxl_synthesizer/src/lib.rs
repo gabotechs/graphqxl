@@ -20,8 +20,14 @@ mod synths;
 mod utils;
 
 pub fn synth_spec(spec: Spec, config: SynthConfig) -> String {
-    SpecSynth(spec).synth(&SynthContext {
+    let mut context = SynthContext {
+        result: "".to_string(),
         indent_lvl: 0,
+        offset: 0,
+        line: 0,
+        col: 0,
         config,
-    })
+    };
+    SpecSynth(spec).synth(&mut context);
+    context.result
 }

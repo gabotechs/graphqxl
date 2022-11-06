@@ -6,7 +6,7 @@ use graphqxl_parser::Directive;
 pub(crate) struct DirectiveSynth(pub(crate) Directive);
 
 impl Synth for DirectiveSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth(
             "@".to_string() + self.0.name.id.as_str(),
         ))];

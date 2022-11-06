@@ -10,22 +10,23 @@ pub(crate) struct UnionSynth(pub(crate) Union);
 struct UnionTypesSynth(pub(crate) Vec<Identifier>);
 
 impl Synth for UnionTypesSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let inner_synths = self
             .0
             .iter()
             .map(|t| StringSynth::from(t.id.as_str()))
             .collect();
         if self.0.len() > context.config.max_one_line_ors {
-            MultilineListSynth::or_suffix(&context.config, ("", inner_synths, "")).synth(context)
+            MultilineListSynth::or_suffix(("", inner_synths, "")).synth(context);
         } else {
-            OneLineListSynth::or(("", inner_synths, "")).synth(context)
+            OneLineListSynth::or(("", inner_synths, "")).synth(context);
         }
+        true
     }
 }
 
 impl Synth for UnionSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let mut v: Vec<Box<dyn Synth>> =
             vec![Box::new(StringSynth(format!("union {}", self.0.name.id)))];
         for directive in self.0.directives.iter() {
@@ -35,7 +36,6 @@ impl Synth for UnionSynth {
         v.push(Box::new(StringSynth::from(" = ")));
         v.push(Box::new(UnionTypesSynth(self.0.types.clone())));
         let pair_synth = PairSynth::top_level(
-            &context.config,
             DescriptionSynth::text(&context.config, self.0.description.as_str()),
             ChainSynth(v),
         );
@@ -83,10 +83,11 @@ union MyUnion = MyType1 | MyType2"
     #[test]
     fn test_indented() {
         let synth = UnionSynth(Union::build("MyUnion").type_("MyType1").type_("MyType2"));
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().max_one_line_ors(1));
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default().with_config(SynthConfig::default().max_one_line_ors(1))
-            ),
+            context.result,
             "\
 union MyUnion = 
   MyType1 |
@@ -103,10 +104,11 @@ union MyUnion =
                 .directive(Directive::build("dir1"))
                 .directive(Directive::build("dir2")),
         );
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().max_one_line_ors(1));
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default().with_config(SynthConfig::default().max_one_line_ors(1))
-            ),
+            context.result,
             "\
 union MyUnion @dir1 @dir2 = 
   MyType1 |

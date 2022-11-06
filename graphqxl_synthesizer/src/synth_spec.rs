@@ -10,62 +10,59 @@ use crate::synths::{Synth, SynthContext};
 pub(crate) struct SpecSynth(pub(crate) Spec);
 
 impl Synth for SpecSynth {
-    fn synth(&self, context: &SynthContext) -> String {
-        let mut result = "".to_string();
+    fn synth(&self, context: &mut SynthContext) -> bool {
         for def_name in &self.0.order {
             match def_name {
                 DefType::Type(name) => {
                     let def = self.0.types.get(&name.id).unwrap().to_owned();
                     if def.generic.is_none() {
-                        let block_def_string = &BlockDefSynth(def).synth(context);
-                        if !block_def_string.is_empty() {
-                            result += block_def_string;
-                            result += "\n\n";
+                        let has_written = BlockDefSynth(def).synth(context);
+                        if has_written {
+                            context.write_double_line_jump();
                         }
                     }
                 }
                 DefType::Input(name) => {
                     let def = self.0.inputs.get(&name.id).unwrap().to_owned();
                     if def.generic.is_none() {
-                        let block_def_string = &BlockDefSynth(def).synth(context);
-                        if !block_def_string.is_empty() {
-                            result += block_def_string;
-                            result += "\n\n";
+                        let has_written = BlockDefSynth(def).synth(context);
+                        if has_written {
+                            context.write_double_line_jump();
                         }
                     }
                 }
                 DefType::Enum(name) => {
                     let def = self.0.enums.get(&name.id).unwrap().to_owned();
-                    result += &BlockDefSynth(def).synth(context);
-                    result += "\n\n";
+                    BlockDefSynth(def).synth(context);
+                    context.write_double_line_jump();
                 }
                 DefType::Interface(name) => {
                     let def = self.0.interfaces.get(&name.id).unwrap().to_owned();
-                    result += &BlockDefSynth(def).synth(context);
-                    result += "\n\n";
+                    BlockDefSynth(def).synth(context);
+                    context.write_double_line_jump();
                 }
                 DefType::Union(name) => {
                     let def = self.0.unions.get(&name.id).unwrap().to_owned();
-                    result += &UnionSynth(def).synth(context);
-                    result += "\n\n";
+                    UnionSynth(def).synth(context);
+                    context.write_double_line_jump();
                 }
                 DefType::Scalar(name) => {
                     let def = self.0.scalars.get(&name.id).unwrap().to_owned();
-                    result += &ScalarSynth(def).synth(context);
-                    result += "\n\n";
+                    ScalarSynth(def).synth(context);
+                    context.write_double_line_jump();
                 }
                 DefType::Directive(name) => {
                     let def = self.0.directives.get(&name.id).unwrap().to_owned();
-                    result += &DirectiveDefSynth(def).synth(context);
-                    result += "\n\n";
+                    DirectiveDefSynth(def).synth(context);
+                    context.write_double_line_jump();
                 }
                 _ => {
                     // nothing to synth
                 }
             }
         }
-        result += &SchemaSynth(self.0.schema.clone()).synth(context);
-        result += "\n";
-        result
+        SchemaSynth(self.0.schema.clone()).synth(context);
+        context.write_line_jump();
+        true
     }
 }

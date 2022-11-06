@@ -34,24 +34,24 @@ fn print_directive_location(directive_location: &DirectiveLocation) -> String {
 struct DirectiveLocationSynth(pub(crate) Vec<DirectiveLocation>);
 
 impl Synth for DirectiveLocationSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let inner_synths = self
             .0
             .iter()
             .map(|t| StringSynth(print_directive_location(t)))
             .collect();
         if self.0.len() > context.config.max_one_line_ors {
-            MultilineListSynth::or_suffix(&context.config, ("", inner_synths, "")).synth(context)
+            MultilineListSynth::or_suffix(("", inner_synths, "")).synth(context);
         } else {
-            OneLineListSynth::or(("", inner_synths, "")).synth(context)
+            OneLineListSynth::or(("", inner_synths, "")).synth(context);
         }
+        true
     }
 }
 
 impl Synth for DirectiveDefSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let synth = PairSynth::top_level(
-            &context.config,
             DescriptionSynth::text(&context.config, &self.0.description.as_str()),
             ChainSynth({
                 let mut v: Vec<Box<dyn Synth>> = vec![
@@ -143,10 +143,11 @@ directive @dir(arg: String) repeatable on ENUM"
                 .location(DirectiveLocation::ArgumentDefinition)
                 .location(DirectiveLocation::Interface),
         );
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().max_one_line_ors(3));
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default().with_config(SynthConfig::default().max_one_line_ors(3))
-            ),
+            context.result,
             "\
 \"my description\"
 directive @dir(arg: String) repeatable on ENUM | ARGUMENT_DEFINITION | INTERFACE"

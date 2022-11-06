@@ -6,7 +6,7 @@ use graphqxl_parser::Scalar;
 pub(crate) struct ScalarSynth(pub(crate) Scalar);
 
 impl Synth for ScalarSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let mut v: Vec<Box<dyn Synth>> =
             vec![Box::new(StringSynth(format!("scalar {}", self.0.name.id)))];
         for directive in self.0.directives.iter() {
@@ -14,7 +14,6 @@ impl Synth for ScalarSynth {
             v.push(Box::new(DirectiveSynth(directive.clone())));
         }
         let pair_synth = PairSynth::top_level(
-            &context.config,
             DescriptionSynth::text(&context.config, &self.0.description.as_str()),
             ChainSynth(v),
         );

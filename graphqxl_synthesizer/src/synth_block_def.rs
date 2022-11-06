@@ -7,9 +7,9 @@ use graphqxl_parser::{BlockDef, BlockDefType, BlockEntry};
 pub(crate) struct BlockDefSynth(pub(crate) BlockDef);
 
 impl Synth for BlockDefSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         if self.0.name.id.starts_with(&context.config.private_prefix) {
-            return "".to_string();
+            return false;
         }
 
         let symbol = match self.0.kind {
@@ -40,16 +40,17 @@ impl Synth for BlockDefSynth {
                 inner_synths.push(BlockFieldSynth(block_field.clone()));
             }
         }
-        v.push(Box::new(MultilineListSynth::no_suffix(
-            &context.config,
-            ("{", inner_synths, "}"),
-        )));
+        v.push(Box::new(MultilineListSynth::no_suffix((
+            "{",
+            inner_synths,
+            "}",
+        ))));
         let synth = PairSynth::top_level(
-            &context.config,
             DescriptionSynth::text(&context.config, &self.0.description),
             ChainSynth(v),
         );
-        synth.synth(context)
+        synth.synth(context);
+        true
     }
 }
 

@@ -4,22 +4,40 @@ use graphqxl_parser::{ValueBasicType, ValueType};
 pub(crate) struct ValueTypeSynth(pub(crate) ValueType);
 
 impl Synth for ValueTypeSynth {
-    fn synth(&self, _context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         match &self.0 {
             ValueType::Basic(basic) => match &basic {
-                ValueBasicType::Int => "Int".to_string(),
-                ValueBasicType::Float => "Float".to_string(),
-                ValueBasicType::String => "String".to_string(),
-                ValueBasicType::Boolean => "Boolean".to_string(),
-                ValueBasicType::Object(name) => name.clone(),
+                ValueBasicType::Int => {
+                    context.write("Int");
+                    true
+                }
+                ValueBasicType::Float => {
+                    context.write("Float");
+                    true
+                }
+                ValueBasicType::String => {
+                    context.write("String");
+                    true
+                }
+                ValueBasicType::Boolean => {
+                    context.write("Boolean");
+                    true
+                }
+                ValueBasicType::Object(name) => {
+                    context.write(name);
+                    true
+                }
             },
             ValueType::NonNullable(value_type) => {
-                let synth = ValueTypeSynth(*value_type.clone());
-                format!("{}!", synth.synth_zero(),)
+                ValueTypeSynth(*value_type.clone()).synth(context);
+                context.write("!");
+                true
             }
             ValueType::Array(value_type) => {
-                let synth = ValueTypeSynth(*value_type.clone());
-                format!("[{}]", synth.synth_zero(),)
+                context.write("[");
+                ValueTypeSynth(*value_type.clone()).synth(context);
+                context.write("]");
+                true
             }
         }
     }

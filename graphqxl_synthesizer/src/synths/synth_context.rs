@@ -19,24 +19,50 @@ impl Default for SynthConfig {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub(crate) struct SynthContext {
+    pub(crate) result: String,
     pub(crate) indent_lvl: usize,
+    pub(crate) offset: usize,
+    pub(crate) line: usize,
+    pub(crate) col: usize,
     pub(crate) config: SynthConfig,
 }
 
 impl SynthContext {
-    pub(crate) fn plus_one_indent_lvl(&self) -> Self {
-        let mut clone = self.clone();
-        clone.indent_lvl += 1;
-        clone
+    pub(crate) fn push_indent_level(&mut self) {
+        self.indent_lvl += 1
+    }
+
+    pub(crate) fn pop_indent_level(&mut self) {
+        self.indent_lvl -= 1
+    }
+
+    pub(crate) fn write<'a>(&mut self, text: &'a str) -> &'a str {
+        self.result += text;
+        text
+    }
+
+    pub(crate) fn write_line_jump(&mut self) {
+        self.result += "\n";
+    }
+
+    pub(crate) fn write_double_line_jump(&mut self) {
+        self.write_line_jump();
+        self.write_line_jump();
+    }
+
+    pub(crate) fn write_indent(&mut self, indent_lvl: usize) {
+        self.result += &" ".repeat(indent_lvl * self.config.indent_spaces)
     }
 }
 
 pub(crate) trait Synth {
-    fn synth(&self, context: &SynthContext) -> String;
+    fn synth(&self, context: &mut SynthContext) -> bool;
     fn synth_zero(&self) -> String {
-        self.synth(&SynthContext::default())
+        let mut context = SynthContext::default();
+        self.synth(&mut context);
+        context.result
     }
 }
 
@@ -71,16 +97,12 @@ mod tests {
     }
 
     impl SynthContext {
-        pub(crate) fn with_indent_lvl(&self, lvl: usize) -> Self {
-            let mut clone = self.clone();
-            clone.indent_lvl = lvl;
-            clone
+        pub(crate) fn with_indent_lvl(&mut self, lvl: usize) {
+            self.indent_lvl = lvl;
         }
 
-        pub(crate) fn with_config(&self, config: SynthConfig) -> Self {
-            let mut clone = self.clone();
-            clone.config = config;
-            clone
+        pub(crate) fn with_config(&mut self, config: SynthConfig) {
+            self.config = config;
         }
     }
 }
