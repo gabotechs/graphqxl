@@ -44,8 +44,8 @@ impl Argument {
         Self::build(name, ValueType::boolean())
     }
 
-    pub fn object(name: &str, object_name: &str) -> Self {
-        Self::build(name, ValueType::object(object_name))
+    pub fn object(name: &str, identifier: Identifier) -> Self {
+        Self::build(name, ValueType::object(identifier))
     }
 
     pub fn description(&mut self, description: &str) -> Self {

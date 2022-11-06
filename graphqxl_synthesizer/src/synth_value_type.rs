@@ -1,3 +1,4 @@
+use crate::synth_identifier::IdentifierSynth;
 use crate::synths::{Synth, SynthContext};
 use graphqxl_parser::{ValueBasicType, ValueType};
 
@@ -24,7 +25,7 @@ impl Synth for ValueTypeSynth {
                     true
                 }
                 ValueBasicType::Object(name) => {
-                    context.write(name);
+                    IdentifierSynth(name.clone()).synth(context);
                     true
                 }
             },
@@ -46,6 +47,7 @@ impl Synth for ValueTypeSynth {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use graphqxl_parser::Identifier;
 
     #[test]
     fn test_nullable_int() {
@@ -86,7 +88,7 @@ mod tests {
     #[test]
     fn test_non_nullable_array_non_nullable_object() {
         let synth = ValueTypeSynth(
-            ValueType::object("MyObject")
+            ValueType::object(Identifier::from("MyObject"))
                 .non_nullable()
                 .array()
                 .non_nullable(),

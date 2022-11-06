@@ -50,8 +50,8 @@ impl BlockField {
         self.clone()
     }
 
-    pub fn object(&mut self, object_name: &str) -> Self {
-        self.value_type = Some(ValueType::object(object_name));
+    pub fn object(&mut self, identifier: Identifier) -> Self {
+        self.value_type = Some(ValueType::object(identifier));
         self.clone()
     }
 

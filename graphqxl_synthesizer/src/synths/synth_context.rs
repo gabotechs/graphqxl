@@ -1,3 +1,5 @@
+use graphqxl_parser::OwnedSpan;
+
 #[derive(Clone)]
 pub struct SynthConfig {
     pub indent_spaces: usize,
@@ -19,9 +21,18 @@ impl Default for SynthConfig {
     }
 }
 
+pub struct SourceMapEntry {
+    pub line: usize,
+    pub col: usize,
+    pub start: usize,
+    pub stop: usize,
+    pub span: OwnedSpan,
+}
+
 #[derive(Default)]
 pub(crate) struct SynthContext {
     pub(crate) result: String,
+    pub(crate) source_map: Vec<SourceMapEntry>,
     pub(crate) indent_lvl: usize,
     pub(crate) offset: usize,
     pub(crate) line: usize,
@@ -39,11 +50,28 @@ impl SynthContext {
     }
 
     pub(crate) fn write<'a>(&mut self, text: &'a str) -> &'a str {
+        self.offset += text.len();
         self.result += text;
         text
     }
 
+    pub(crate) fn write_with_source<'a>(&mut self, text: &'a str, span: OwnedSpan) -> &'a str {
+        let start = self.offset;
+        self.write(text);
+        let stop = self.offset;
+        self.source_map.push(SourceMapEntry {
+            line: self.line,
+            col: self.col,
+            start,
+            stop,
+            span,
+        });
+        text
+    }
+
     pub(crate) fn write_line_jump(&mut self) {
+        self.line += 1;
+        self.col = 0;
         self.result += "\n";
     }
 
@@ -53,7 +81,7 @@ impl SynthContext {
     }
 
     pub(crate) fn write_indent(&mut self, indent_lvl: usize) {
-        self.result += &" ".repeat(indent_lvl * self.config.indent_spaces)
+        self.write(&" ".repeat(indent_lvl * self.config.indent_spaces));
     }
 }
 

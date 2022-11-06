@@ -10,5 +10,5 @@ pub(crate) use multiline_list_synth::*;
 pub(crate) use one_line_list_synth::*;
 pub(crate) use pair_synth::*;
 pub(crate) use string_synth::*;
-pub use synth_context::SynthConfig;
+pub use synth_context::{SynthConfig, SourceMapEntry};
 pub(crate) use synth_context::*;

@@ -1,5 +1,5 @@
 use crate::synths::synth_context::Synth;
-use crate::synths::{SynthConfig, SynthContext};
+use crate::synths::SynthContext;
 
 pub(crate) struct PairSynth<T1: Synth, T2: Synth> {
     pub(crate) first: T1,

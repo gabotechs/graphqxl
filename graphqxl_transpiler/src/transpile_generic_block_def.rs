@@ -67,7 +67,7 @@ fn resolve_block_def(
                 // ...and that type is an object...
                 if let ValueBasicType::Object(object) = basic_value_type {
                     // ...which is stored in the generic map...
-                    if let Some(generic_replacement) = generic_map.get(object) {
+                    if let Some(generic_replacement) = generic_map.get(&object.id) {
                         let replacement = *generic_replacement;
                         // ...then replace it
                         block_field.value_type = Some(replacement.clone());
@@ -98,7 +98,9 @@ mod tests {
         let generic = GenericBlockDef::type_def("Type", "Template", ValueType::string());
         let store = build_store(vec![BlockDef::type_def("Template")
             .generic(Generic::from("T"))
-            .field(BlockField::build("field").value_type(ValueType::object("T")))]);
+            .field(
+                BlockField::build("field").value_type(ValueType::object(Identifier::from("T"))),
+            )]);
         let block_def = transpile_generic_block_def(&generic, &store).unwrap();
 
         assert_eq!(

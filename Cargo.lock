@@ -254,6 +254,7 @@ dependencies = [
  "graphqxl_parser",
  "graphqxl_synthesizer",
  "graphqxl_transpiler",
+ "regex",
 ]
 
 [[package]]

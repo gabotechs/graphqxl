@@ -1,6 +1,7 @@
 use crate::ast_value_basic_type::{parse_value_basic_type, ValueBasicType};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
+use crate::Identifier;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,8 +32,8 @@ impl ValueType {
         Self::build(ValueBasicType::Boolean)
     }
 
-    pub fn object(name: &str) -> Self {
-        Self::build(ValueBasicType::Object(name.to_string()))
+    pub fn object(identifier: Identifier) -> Self {
+        Self::build(ValueBasicType::Object(identifier))
     }
 
     pub fn non_nullable(&mut self) -> Self {
