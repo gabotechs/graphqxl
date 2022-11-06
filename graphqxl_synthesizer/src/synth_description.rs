@@ -1,4 +1,4 @@
-use crate::synths::{Synth, SynthConfig, SynthContext};
+use crate::synths::{Synth, SynthContext};
 use crate::utils::escape_non_escaped_quotes;
 
 pub(crate) struct DescriptionSynth {

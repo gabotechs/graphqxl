@@ -74,6 +74,12 @@ mod tests {
     }
 
     #[test]
+    fn test_multiline_description_accepts_escaped_double_quote() {
+        let description = parse_input("\"\"\" This is a \\\"description 123 \"\"\"").unwrap();
+        assert_eq!(description, "This is a \\\"description 123");
+    }
+
+    #[test]
     fn test_parses_multiline_description_trimming_indent_spaces() {
         let description = parse_input("\"\"\" This is a \n    description 123 \"\"\"").unwrap();
         assert_eq!(description, "This is a\ndescription 123");
