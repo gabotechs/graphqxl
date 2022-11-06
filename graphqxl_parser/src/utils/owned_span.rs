@@ -36,7 +36,7 @@ impl OwnedSpan {
     pub fn make_error(&self, msg: &str) -> pest::error::Error<Rule> {
         let mut err = self.err_placeholder.clone();
         err.variant = pest::error::ErrorVariant::CustomError {
-            message: msg.to_string(),
+            message: format!("{}:{} {}", self.file, self.line, msg),
         };
         err
     }
