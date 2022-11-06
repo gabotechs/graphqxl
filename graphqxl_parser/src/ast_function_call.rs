@@ -33,17 +33,18 @@ impl FunctionCall {
 
 pub(crate) fn parse_function_call(
     pair: Pair<Rule>,
+    file: &str,
 ) -> Result<FunctionCall, pest::error::Error<Rule>> {
-    let span = OwnedSpan::from(pair.as_span());
+    let span = OwnedSpan::from(pair.as_span(), file);
     match pair.as_rule() {
         Rule::function_call => {
             let mut inputs = Vec::new();
             for function_input in pair.into_inner() {
-                let span = OwnedSpan::from(function_input.as_span());
+                let span = OwnedSpan::from(function_input.as_span(), file);
                 // [identifier, value_data]
                 let mut childs = function_input.into_inner();
-                let name = parse_identifier(childs.next().unwrap())?;
-                let value = parse_value_data(childs.next().unwrap())?;
+                let name = parse_identifier(childs.next().unwrap(), file)?;
+                let value = parse_value_data(childs.next().unwrap(), file)?;
                 inputs.push(FunctionInput { span, name, value })
             }
             Ok(FunctionCall { span, inputs })

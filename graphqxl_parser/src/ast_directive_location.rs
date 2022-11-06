@@ -27,6 +27,7 @@ pub enum DirectiveLocation {
 
 pub(crate) fn parse_directive_location(
     pair: Pair<Rule>,
+    _file: &str,
 ) -> Result<DirectiveLocation, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::directive_location => {

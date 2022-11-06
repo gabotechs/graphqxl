@@ -36,16 +36,19 @@ impl Directive {
     }
 }
 
-pub(crate) fn parse_directive(pair: Pair<Rule>) -> Result<Directive, pest::error::Error<Rule>> {
+pub(crate) fn parse_directive(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Directive, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::directive => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let mut childs = pair.into_inner();
-            let name = parse_identifier(childs.next().unwrap())?;
+            let name = parse_identifier(childs.next().unwrap(), file)?;
             let maybe_function_call = childs.next();
             let mut call = None;
             if let Some(function_call) = maybe_function_call {
-                call = Some(parse_function_call(function_call)?);
+                call = Some(parse_function_call(function_call, file)?);
             }
             Ok(Directive { span, name, call })
         }

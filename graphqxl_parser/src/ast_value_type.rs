@@ -42,7 +42,7 @@ impl ValueType {
     pub fn array(&mut self) -> Self {
         ValueType::Array(Box::new(self.clone()))
     }
-    
+
     pub fn retrieve_basic_type(&self) -> &ValueBasicType {
         match self {
             ValueType::Basic(b) => b,
@@ -52,15 +52,20 @@ impl ValueType {
     }
 }
 
-pub(crate) fn parse_value_type(pair: Pair<Rule>) -> Result<ValueType, pest::error::Error<Rule>> {
+pub(crate) fn parse_value_type(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<ValueType, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::value_type => parse_value_type(pair.into_inner().next().unwrap()),
-        Rule::value_basic_type => Ok(ValueType::Basic(parse_value_basic_type(pair)?)),
+        Rule::value_type => parse_value_type(pair.into_inner().next().unwrap(), file),
+        Rule::value_basic_type => Ok(ValueType::Basic(parse_value_basic_type(pair, file)?)),
         Rule::value_non_nullable => Ok(ValueType::NonNullable(Box::new(parse_value_type(
             pair.into_inner().next().unwrap(),
+            file,
         )?))),
         Rule::value_array => Ok(ValueType::Array(Box::new(parse_value_type(
             pair.into_inner().next().unwrap(),
+            file,
         )?))),
         _unknown => Err(unknown_rule_error(
             pair,

@@ -32,16 +32,20 @@ impl Scalar {
     }
 }
 
-pub(crate) fn parse_scalar(pair: Pair<Rule>) -> Result<Scalar, pest::error::Error<Rule>> {
+pub(crate) fn parse_scalar(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Scalar, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::scalar_def => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let mut childs = pair.into_inner();
-            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
-            let name = parse_identifier(next)?;
+            let DescriptionAndNext(description, next) =
+                parse_description_and_continue(&mut childs, file);
+            let name = parse_identifier(next, file)?;
             let mut directives = Vec::new();
             for child in childs {
-                directives.push(parse_directive(child)?);
+                directives.push(parse_directive(child, file)?);
             }
             Ok(Scalar {
                 span,

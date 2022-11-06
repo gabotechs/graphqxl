@@ -98,12 +98,13 @@ impl BlockDef {
 fn _parse_block_def(
     pair: Pair<Rule>,
     kind: BlockDefType,
+    file: &str,
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
-    let span = OwnedSpan::from(pair.as_span());
+    let span = OwnedSpan::from(pair.as_span(), file);
     let mut pairs = pair.into_inner();
     // [description?, identifier, directives*, selection_set]
-    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
-    let name = parse_identifier(next)?;
+    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs, file);
+    let name = parse_identifier(next, file)?;
 
     let mut entries = Vec::new();
     let mut directives = Vec::new();
@@ -112,24 +113,24 @@ fn _parse_block_def(
     for child in pairs {
         match child.as_rule() {
             Rule::generic => {
-                generic = Some(parse_generic(child)?);
+                generic = Some(parse_generic(child, file)?);
             }
             Rule::implements => {
-                implements = Some(parse_implements(child)?);
+                implements = Some(parse_implements(child, file)?);
             }
             Rule::directive => {
-                directives.push(parse_directive(child)?);
+                directives.push(parse_directive(child, file)?);
             }
             // this means selection_set or spread_reference
             _ => {
                 for pair in child.into_inner() {
                     match pair.as_rule() {
                         Rule::spread_reference => {
-                            let spread = parse_identifier(pair.into_inner().next().unwrap())?;
+                            let spread = parse_identifier(pair.into_inner().next().unwrap(), file)?;
                             entries.push(BlockEntry::SpreadRef(spread))
                         }
                         _ => {
-                            let field = parse_block_field(pair.clone())?;
+                            let field = parse_block_field(pair.clone(), file)?;
                             entries.push(BlockEntry::Field(field));
                         }
                     }
@@ -149,12 +150,15 @@ fn _parse_block_def(
     })
 }
 
-pub(crate) fn parse_block_def(pair: Pair<Rule>) -> Result<BlockDef, pest::error::Error<Rule>> {
+pub(crate) fn parse_block_def(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<BlockDef, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::type_def => _parse_block_def(pair, BlockDefType::Type),
-        Rule::input_def => _parse_block_def(pair, BlockDefType::Input),
-        Rule::enum_def => _parse_block_def(pair, BlockDefType::Enum),
-        Rule::interface_def => _parse_block_def(pair, BlockDefType::Interface),
+        Rule::type_def => _parse_block_def(pair, BlockDefType::Type, file),
+        Rule::input_def => _parse_block_def(pair, BlockDefType::Input, file),
+        Rule::enum_def => _parse_block_def(pair, BlockDefType::Enum, file),
+        Rule::interface_def => _parse_block_def(pair, BlockDefType::Interface, file),
         _unknown => Err(unknown_rule_error(
             pair,
             "type_def, input_def, enum_def or interface_def",

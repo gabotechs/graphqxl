@@ -4,6 +4,9 @@ use pest::Span;
 #[derive(Clone, Debug)]
 pub struct OwnedSpan {
     pub err_placeholder: pest::error::Error<Rule>,
+    pub file: String,
+    pub line: usize,
+    pub col: usize,
     pub input: String,
     pub start: usize,
     pub end: usize,
@@ -20,6 +23,9 @@ impl Default for OwnedSpan {
         Self {
             err_placeholder: err,
             input: "".to_string(),
+            file: "".to_string(),
+            line: 0,
+            col: 0,
             start: 0,
             end: 0,
         }
@@ -44,8 +50,9 @@ impl PartialEq for OwnedSpan {
     }
 }
 
-impl<'a> From<Span<'a>> for OwnedSpan {
-    fn from(span: Span<'a>) -> Self {
+impl<'a> OwnedSpan {
+    pub fn from(span: Span<'a>, file: &str) -> Self {
+        let (line, col) = span.start_pos().line_col();
         Self {
             err_placeholder: pest::error::Error::new_from_span(
                 pest::error::ErrorVariant::CustomError {
@@ -53,6 +60,9 @@ impl<'a> From<Span<'a>> for OwnedSpan {
                 },
                 span,
             ),
+            file: file.to_string(),
+            line,
+            col,
             input: span.as_str().to_string(),
             start: span.start(),
             end: span.end(),

@@ -46,7 +46,7 @@ enum SchemaKey {
     Subscription,
 }
 
-fn parse_schema_key(pair: Pair<Rule>) -> Result<SchemaKey, pest::error::Error<Rule>> {
+fn parse_schema_key(pair: Pair<Rule>, _file: &str) -> Result<SchemaKey, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::schema_key => {
             return match pair.as_str() {
@@ -60,19 +60,23 @@ fn parse_schema_key(pair: Pair<Rule>) -> Result<SchemaKey, pest::error::Error<Ru
     }
 }
 
-pub(crate) fn parse_schema(pair: Pair<Rule>) -> Result<Schema, pest::error::Error<Rule>> {
+pub(crate) fn parse_schema(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Schema, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::schema_def => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let mut childs = pair.into_inner();
-            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
+            let DescriptionAndNext(description, next) =
+                parse_description_and_continue(&mut childs, file);
             let mut query = Identifier::from("");
             let mut mutation = Identifier::from("");
             let mut subscription = Identifier::from("");
             for field in next.into_inner() {
                 let mut field_parts = field.into_inner();
-                let key = parse_schema_key(field_parts.next().unwrap())?;
-                let value = parse_identifier(field_parts.next().unwrap())?;
+                let key = parse_schema_key(field_parts.next().unwrap(), file)?;
+                let value = parse_identifier(field_parts.next().unwrap(), file)?;
                 match key {
                     SchemaKey::Query => query = value,
                     SchemaKey::Mutation => mutation = value,

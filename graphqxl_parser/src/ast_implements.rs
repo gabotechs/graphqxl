@@ -23,13 +23,16 @@ impl Implements {
     }
 }
 
-pub(crate) fn parse_implements(pair: Pair<Rule>) -> Result<Implements, pest::error::Error<Rule>> {
+pub(crate) fn parse_implements(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Implements, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::implements => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let mut interfaces = Vec::new();
             for child in pair.into_inner() {
-                interfaces.push(parse_identifier(child)?);
+                interfaces.push(parse_identifier(child, file)?);
             }
 
             Ok(Implements { span, interfaces })

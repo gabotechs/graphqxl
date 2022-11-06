@@ -11,7 +11,10 @@ pub enum ValueBasicType {
     Object(String),
 }
 
-fn _parse_value_basic_type(pair: Pair<Rule>) -> Result<ValueBasicType, pest::error::Error<Rule>> {
+fn _parse_value_basic_type(
+    pair: Pair<Rule>,
+    _file: &str,
+) -> Result<ValueBasicType, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::int => Ok(ValueBasicType::Int),
         Rule::float => Ok(ValueBasicType::Float),
@@ -27,9 +30,10 @@ fn _parse_value_basic_type(pair: Pair<Rule>) -> Result<ValueBasicType, pest::err
 
 pub(crate) fn parse_value_basic_type(
     pair: Pair<Rule>,
+    file: &str,
 ) -> Result<ValueBasicType, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::value_basic_type => _parse_value_basic_type(pair.into_inner().next().unwrap()),
+        Rule::value_basic_type => _parse_value_basic_type(pair.into_inner().next().unwrap(), file),
         _unknown => Err(unknown_rule_error(pair, "value_type")),
     }
 }

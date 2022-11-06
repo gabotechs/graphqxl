@@ -153,7 +153,7 @@ impl Spec {
         Ok(())
     }
 
-    fn add(&mut self, pair: Pair<Rule>) -> Result<(), pest::error::Error<Rule>> {
+    fn add(&mut self, pair: Pair<Rule>, file: &str) -> Result<(), pest::error::Error<Rule>> {
         match pair.as_rule() {
             Rule::schema_def => {
                 if self.schema_already_defined {
@@ -165,12 +165,12 @@ impl Spec {
                     ))
                 } else {
                     self.schema_already_defined = true;
-                    self.schema = parse_schema(pair)?;
+                    self.schema = parse_schema(pair, file)?;
                     Ok(())
                 }
             }
             Rule::type_def => {
-                let block_def = parse_block_def(pair.clone())?;
+                let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.types.contains_key(&id.id) || self.generic_types.contains_key(&id.id) {
                     Err(already_defined_error(pair, "type", &id.id))
@@ -181,7 +181,7 @@ impl Spec {
                 }
             }
             Rule::generic_type_def => {
-                let generic_block_def = parse_generic_block_def(pair.clone())?;
+                let generic_block_def = parse_generic_block_def(pair.clone(), file)?;
                 let id = generic_block_def.name.clone();
                 if self.generic_types.contains_key(&id.id) || self.types.contains_key(&id.id) {
                     Err(already_defined_error(pair, "type", &id.id))
@@ -192,7 +192,7 @@ impl Spec {
                 }
             }
             Rule::input_def => {
-                let block_def = parse_block_def(pair.clone())?;
+                let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.inputs.contains_key(&id.id) || self.generic_inputs.contains_key(&id.id) {
                     Err(already_defined_error(pair, "input", &id.id))
@@ -203,7 +203,7 @@ impl Spec {
                 }
             }
             Rule::generic_input_def => {
-                let generic_block_def = parse_generic_block_def(pair.clone())?;
+                let generic_block_def = parse_generic_block_def(pair.clone(), file)?;
                 let id = generic_block_def.name.clone();
                 if self.generic_inputs.contains_key(&id.id) || self.inputs.contains_key(&id.id) {
                     Err(already_defined_error(pair, "input", &id.id))
@@ -214,7 +214,7 @@ impl Spec {
                 }
             }
             Rule::enum_def => {
-                let block_def = parse_block_def(pair.clone())?;
+                let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.enums.contains_key(&id.id) {
                     Err(already_defined_error(pair, "enum", &id.id))
@@ -225,7 +225,7 @@ impl Spec {
                 }
             }
             Rule::interface_def => {
-                let block_def = parse_block_def(pair.clone())?;
+                let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.interfaces.contains_key(&id.id) {
                     Err(already_defined_error(pair, "interface", &id.id))
@@ -236,7 +236,7 @@ impl Spec {
                 }
             }
             Rule::scalar_def => {
-                let scalar = parse_scalar(pair.clone())?;
+                let scalar = parse_scalar(pair.clone(), file)?;
                 let id = scalar.name.clone();
                 if self.scalars.contains_key(&id.id) {
                     Err(already_defined_error(pair, "scalar", &id.id))
@@ -247,7 +247,7 @@ impl Spec {
                 }
             }
             Rule::union_def => {
-                let union = parse_union(pair.clone())?;
+                let union = parse_union(pair.clone(), file)?;
                 let id = union.name.clone();
                 if self.unions.contains_key(&id.id) {
                     Err(already_defined_error(pair, "union", &id.id))
@@ -258,7 +258,7 @@ impl Spec {
                 }
             }
             Rule::directive_def => {
-                let directive = parse_directive_def(pair.clone())?;
+                let directive = parse_directive_def(pair.clone(), file)?;
                 let id = directive.name.clone();
                 if self.directives.contains_key(&id.id) {
                     Err(already_defined_error(pair, "directive", &id.id))
@@ -307,6 +307,7 @@ fn private_parse_spec<P: AsRef<Path>>(
     import_stack: Vec<PathBuf>,
 ) -> Result<Spec, Box<dyn Error>> {
     let abs_path = fs::canonicalize(path)?;
+    let file = abs_path.to_str().unwrap();
 
     let mut spec = Spec::new();
     let content = fs::read_to_string(&abs_path)?;
@@ -318,7 +319,7 @@ fn private_parse_spec<P: AsRef<Path>>(
                 if let Rule::EOI = &child.as_rule() {
                     // nothing to do here
                 } else if let Rule::import = &child.as_rule() {
-                    let import = parse_import(child.clone())?;
+                    let import = parse_import(child.clone(), file)?;
                     let file_name = if import.file_name.ends_with(".graphqxl") {
                         import.file_name
                     } else {
@@ -337,7 +338,7 @@ fn private_parse_spec<P: AsRef<Path>>(
                     let imported_spec = private_parse_spec(import_path, stack)?;
                     spec.merge(imported_spec)?;
                 } else {
-                    spec.add(child)?;
+                    spec.add(child, file)?;
                 }
             }
             Ok(spec)

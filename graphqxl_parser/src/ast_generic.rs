@@ -24,14 +24,17 @@ impl Generic {
     }
 }
 
-pub(crate) fn parse_generic(pair: Pair<Rule>) -> Result<Generic, pest::error::Error<Rule>> {
+pub(crate) fn parse_generic(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Generic, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::generic => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let childs = pair.into_inner();
             let mut args = Vec::new();
             for name in childs {
-                args.push(parse_identifier(name)?);
+                args.push(parse_identifier(name, file)?);
             }
 
             Ok(Generic { span, args })
