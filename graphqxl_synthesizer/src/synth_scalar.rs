@@ -1,5 +1,6 @@
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
+use crate::synth_identifier::IdentifierSynth;
 use crate::synths::{ChainSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::Scalar;
 
@@ -7,16 +8,16 @@ pub(crate) struct ScalarSynth(pub(crate) Scalar);
 
 impl Synth for ScalarSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        let mut v: Vec<Box<dyn Synth>> =
-            vec![Box::new(StringSynth(format!("scalar {}", self.0.name.id)))];
+        let mut v: Vec<Box<dyn Synth>> = vec![
+            Box::new(StringSynth::from("scalar ")),
+            Box::new(IdentifierSynth(self.0.name.clone())),
+        ];
         for directive in self.0.directives.iter() {
             v.push(Box::new(StringSynth::from(" ")));
             v.push(Box::new(DirectiveSynth(directive.clone())));
         }
-        let pair_synth = PairSynth::top_level(
-            DescriptionSynth::text(&context.config, &self.0.description.as_str()),
-            ChainSynth(v),
-        );
+        let pair_synth =
+            PairSynth::top_level(DescriptionSynth::text(&self.0.description), ChainSynth(v));
         pair_synth.synth(context)
     }
 }

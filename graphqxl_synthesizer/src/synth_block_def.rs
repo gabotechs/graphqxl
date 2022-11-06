@@ -1,6 +1,7 @@
 use crate::synth_block_field::BlockFieldSynth;
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
+use crate::synth_identifier::IdentifierSynth;
 use crate::synths::{ChainSynth, MultilineListSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::{BlockDef, BlockDefType, BlockEntry};
 
@@ -18,16 +19,22 @@ impl Synth for BlockDefSynth {
             BlockDefType::Enum => "enum",
             BlockDefType::Interface => "interface",
         };
-        let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth(format!(
-            "{} {} ",
-            symbol, self.0.name.id
-        )))];
+        let mut v: Vec<Box<dyn Synth>> = vec![
+            Box::new(StringSynth::from(symbol)),
+            Box::new(StringSynth::from(" ")),
+            Box::new(IdentifierSynth(self.0.name.clone())),
+            Box::new(StringSynth::from(" ")),
+        ];
         if let Some(implements) = &self.0.implements {
             let first = implements.interfaces.get(0).unwrap();
-            v.push(Box::new(StringSynth(format!("implements {} ", first.id))));
+            v.push(Box::new(StringSynth::from("implements ")));
+            v.push(Box::new(IdentifierSynth(first.clone())));
+            v.push(Box::new(StringSynth::from(" ")));
             for i in 1..implements.interfaces.len() {
                 let implement = implements.interfaces.get(i).unwrap();
-                v.push(Box::new(StringSynth(format!("& {} ", implement.id))));
+                v.push(Box::new(StringSynth::from("& ")));
+                v.push(Box::new(IdentifierSynth(implement.clone())));
+                v.push(Box::new(StringSynth::from(" ")));
             }
         }
         for directive in self.0.directives.iter() {
@@ -45,10 +52,8 @@ impl Synth for BlockDefSynth {
             inner_synths,
             "}",
         ))));
-        let synth = PairSynth::top_level(
-            DescriptionSynth::text(&context.config, &self.0.description),
-            ChainSynth(v),
-        );
+        let synth =
+            PairSynth::top_level(DescriptionSynth::text(&self.0.description), ChainSynth(v));
         synth.synth(context);
         true
     }

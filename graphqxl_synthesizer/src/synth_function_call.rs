@@ -1,3 +1,4 @@
+use crate::synth_identifier::IdentifierSynth;
 use crate::synth_value_data::ValueDataSynth;
 use crate::synths::{ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth};
 use crate::{Synth, SynthContext};
@@ -13,7 +14,8 @@ impl Synth for FunctionCallSynth {
             .iter()
             .map(|e| {
                 ChainSynth(vec![
-                    Box::new(StringSynth(format!("{}: ", e.name.id))),
+                    Box::new(IdentifierSynth(e.name.clone())),
+                    Box::new(StringSynth::from(": ")),
                     Box::new(ValueDataSynth(e.value.clone())),
                 ])
             })

@@ -18,6 +18,7 @@ mod synth_value_data;
 mod synth_value_type;
 mod synths;
 mod utils;
+mod synth_identifier;
 
 pub fn synth_spec(spec: Spec, config: SynthConfig) -> String {
     let mut context = SynthContext {

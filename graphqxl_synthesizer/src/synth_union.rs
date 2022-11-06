@@ -1,5 +1,6 @@
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
+use crate::synth_identifier::IdentifierSynth;
 use crate::synths::{
     ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthContext,
 };
@@ -11,11 +12,7 @@ struct UnionTypesSynth(pub(crate) Vec<Identifier>);
 
 impl Synth for UnionTypesSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        let inner_synths = self
-            .0
-            .iter()
-            .map(|t| StringSynth::from(t.id.as_str()))
-            .collect();
+        let inner_synths = self.0.iter().map(|t| IdentifierSynth(t.clone())).collect();
         if self.0.len() > context.config.max_one_line_ors {
             MultilineListSynth::or_suffix(("", inner_synths, "")).synth(context);
         } else {
@@ -27,8 +24,10 @@ impl Synth for UnionTypesSynth {
 
 impl Synth for UnionSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        let mut v: Vec<Box<dyn Synth>> =
-            vec![Box::new(StringSynth(format!("union {}", self.0.name.id)))];
+        let mut v: Vec<Box<dyn Synth>> = vec![
+            Box::new(StringSynth::from("union ")),
+            Box::new(IdentifierSynth(self.0.name.clone())),
+        ];
         for directive in self.0.directives.iter() {
             v.push(Box::new(StringSynth::from(" ")));
             v.push(Box::new(DirectiveSynth(directive.clone())));
@@ -36,7 +35,7 @@ impl Synth for UnionSynth {
         v.push(Box::new(StringSynth::from(" = ")));
         v.push(Box::new(UnionTypesSynth(self.0.types.clone())));
         let pair_synth = PairSynth::top_level(
-            DescriptionSynth::text(&context.config, self.0.description.as_str()),
+            DescriptionSynth::text(self.0.description.as_str()),
             ChainSynth(v),
         );
         pair_synth.synth(context)

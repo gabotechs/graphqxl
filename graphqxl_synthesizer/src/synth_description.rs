@@ -1,18 +1,16 @@
-use crate::synths::{Synth, SynthConfig, SynthContext};
+use crate::synths::{Synth, SynthContext};
 use crate::utils::escape_non_escaped_quotes;
 
 pub(crate) struct DescriptionSynth {
     pub(crate) text: String,
     pub(crate) is_multiline: bool,
-    pub(crate) indent_spaces: usize,
 }
 
 impl DescriptionSynth {
-    pub(crate) fn text(config: &SynthConfig, text: &str) -> Self {
+    pub(crate) fn text(text: &str) -> Self {
         Self {
             text: text.to_string(),
             is_multiline: text.contains('\n'),
-            indent_spaces: config.indent_spaces,
         }
     }
 }
@@ -26,11 +24,11 @@ impl Synth for DescriptionSynth {
             context.write("\"\"\"");
             for line in self.text.split('\n') {
                 context.write_line_jump();
-                context.write(&" ".repeat(context.indent_lvl * self.indent_spaces));
+                context.write(&" ".repeat(context.indent_lvl * context.config.indent_spaces));
                 context.write(&escape_non_escaped_quotes(line));
             }
             context.write_line_jump();
-            context.write(&" ".repeat(context.indent_lvl * self.indent_spaces));
+            context.write(&" ".repeat(context.indent_lvl * context.config.indent_spaces));
             context.write("\"\"\"");
         } else {
             context.write("\"");
@@ -50,7 +48,6 @@ mod tests {
             Self {
                 text: text.to_string(),
                 is_multiline: text.contains('\n'),
-                indent_spaces: SynthConfig::default().indent_spaces,
             }
         }
     }

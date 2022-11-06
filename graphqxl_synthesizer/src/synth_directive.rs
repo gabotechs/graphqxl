@@ -1,4 +1,5 @@
 use crate::synth_function_call::FunctionCallSynth;
+use crate::synth_identifier::IdentifierSynth;
 use crate::synths::{ChainSynth, StringSynth};
 use crate::{Synth, SynthContext};
 use graphqxl_parser::Directive;
@@ -7,9 +8,10 @@ pub(crate) struct DirectiveSynth(pub(crate) Directive);
 
 impl Synth for DirectiveSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth(
-            "@".to_string() + self.0.name.id.as_str(),
-        ))];
+        let mut v: Vec<Box<dyn Synth>> = vec![
+            Box::new(StringSynth::from("@")),
+            Box::new(IdentifierSynth(self.0.name.clone())),
+        ];
         if let Some(call) = &self.0.call {
             v.push(Box::new(FunctionCallSynth(call.clone())));
         }

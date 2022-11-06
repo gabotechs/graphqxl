@@ -24,9 +24,9 @@ impl Synth for SchemaSynth {
             return false;
         }
         let pair_synth = PairSynth::top_level(
-            DescriptionSynth::text(&context.config, &self.0.description),
+            DescriptionSynth::text(&self.0.description),
             ChainSynth(vec![
-                Box::new(StringSynth("schema ".to_string())),
+                Box::new(StringSynth::from("schema ")),
                 Box::new(MultilineListSynth::no_suffix(("{", to_include, "}"))),
             ]),
         );
