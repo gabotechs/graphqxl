@@ -44,8 +44,8 @@ impl Argument {
         Self::build(name, ValueType::boolean())
     }
 
-    pub fn object(name: &str, object_name: &str) -> Self {
-        Self::build(name, ValueType::object(object_name))
+    pub fn object(name: &str, identifier: Identifier) -> Self {
+        Self::build(name, ValueType::object(identifier))
     }
 
     pub fn description(&mut self, description: &str) -> Self {
@@ -64,24 +64,25 @@ impl Argument {
     }
 }
 
-fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>> {
+fn parse_argument(pair: Pair<Rule>, file: &str) -> Result<Argument, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::argument => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             // at this moment we are on [argument]
             let mut childs = pair.into_inner();
-            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
+            let DescriptionAndNext(description, next) =
+                parse_description_and_continue(&mut childs, file);
             // at this moment we are on [identifier, value]
-            let name = parse_identifier(next)?;
-            let value = parse_value_type(childs.next().unwrap())?;
+            let name = parse_identifier(next, file)?;
+            let value = parse_value_type(childs.next().unwrap(), file)?;
             let mut default = None;
             let mut directives = Vec::new();
             if let Some(pair) = childs.next() {
                 if let Rule::value_data = pair.as_rule() {
-                    default = Some(parse_value_data(pair)?)
+                    default = Some(parse_value_data(pair, file)?)
                 }
                 for directive in childs {
-                    directives.push(parse_directive(directive)?);
+                    directives.push(parse_directive(directive, file)?);
                 }
             }
             Ok(Argument {
@@ -97,12 +98,15 @@ fn parse_argument(pair: Pair<Rule>) -> Result<Argument, pest::error::Error<Rule>
     }
 }
 
-pub(crate) fn parse_arguments(pair: Pair<Rule>) -> Result<Vec<Argument>, pest::error::Error<Rule>> {
+pub(crate) fn parse_arguments(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Vec<Argument>, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::arguments => {
             let mut arguments = Vec::new();
             for argument in pair.into_inner() {
-                arguments.push(parse_argument(argument)?);
+                arguments.push(parse_argument(argument, file)?);
             }
             Ok(arguments)
         }

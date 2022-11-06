@@ -44,12 +44,13 @@ impl GenericBlockDef {
 fn _parse_generic_block_def(
     kind: BlockDefType,
     pair: Pair<Rule>,
+    file: &str,
 ) -> Result<GenericBlockDef, pest::error::Error<Rule>> {
-    let span = OwnedSpan::from(pair.as_span());
+    let span = OwnedSpan::from(pair.as_span(), file);
     let mut childs = pair.into_inner();
-    let name = parse_identifier(childs.next().unwrap())?;
-    let block_def = parse_identifier(childs.next().unwrap())?;
-    let generic_call = parse_generic_call(childs.next().unwrap())?;
+    let name = parse_identifier(childs.next().unwrap(), file)?;
+    let block_def = parse_identifier(childs.next().unwrap(), file)?;
+    let generic_call = parse_generic_call(childs.next().unwrap(), file)?;
 
     Ok(GenericBlockDef {
         kind,
@@ -62,10 +63,11 @@ fn _parse_generic_block_def(
 
 pub(crate) fn parse_generic_block_def(
     pair: Pair<Rule>,
+    file: &str,
 ) -> Result<GenericBlockDef, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::generic_type_def => _parse_generic_block_def(BlockDefType::Type, pair),
-        Rule::generic_input_def => _parse_generic_block_def(BlockDefType::Input, pair),
+        Rule::generic_type_def => _parse_generic_block_def(BlockDefType::Type, pair, file),
+        Rule::generic_input_def => _parse_generic_block_def(BlockDefType::Input, pair, file),
         _unknown => Err(unknown_rule_error(
             pair,
             "generic_type_def, generic_input_def",

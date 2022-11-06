@@ -57,7 +57,7 @@ function_call = { "(" ~ function_input+ ~ ")" }
     function_input = { identifier ~ ":" ~ value_data }
 
 description = @{ multiline_description | one_line_description }
-    multiline_description = @{ "\"\"\"" ~ (!"\"\"\"" ~ char_double_quote)*  ~ "\"\"\"" }
+    multiline_description = @{ "\"\"\"" ~ (!"\"\"\"" ~ ANY)*  ~ "\"\"\"" }
     one_line_description = @{ "\"" ~ (!("\n" | "\r\n") ~ char_no_double_quote)* ~ "\"" }
 
 directive = { "@" ~ identifier ~ function_call? }
@@ -84,12 +84,6 @@ value_data = { object_data | list_data | basic_data }
         float_data = @{ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+}
         string_data = @{ "\"" ~ char_no_double_quote* ~ "\"" }
         boolean_data = @{ "false" | "true" }
-
-char_double_quote = @{
-    !("\\") ~ ANY
-    | "\\" ~ ("\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
 
 char_no_double_quote = @{
     !("\"" | "\\") ~ ANY

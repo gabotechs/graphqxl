@@ -38,21 +38,22 @@ impl Union {
     }
 }
 
-pub(crate) fn parse_union(pair: Pair<Rule>) -> Result<Union, pest::error::Error<Rule>> {
+pub(crate) fn parse_union(pair: Pair<Rule>, file: &str) -> Result<Union, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::union_def => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let mut childs = pair.into_inner();
             // [description?, identifier, ...types]
-            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
-            let name = parse_identifier(next)?;
+            let DescriptionAndNext(description, next) =
+                parse_description_and_continue(&mut childs, file);
+            let name = parse_identifier(next, file)?;
             let mut types = Vec::new();
             let mut directives = Vec::new();
             for child in childs {
                 if let Rule::directive = child.as_rule() {
-                    directives.push(parse_directive(child)?);
+                    directives.push(parse_directive(child, file)?);
                 } else {
-                    let name = parse_identifier(child.clone())?;
+                    let name = parse_identifier(child.clone(), file)?;
                     types.push(name);
                 }
             }

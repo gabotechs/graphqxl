@@ -48,18 +48,20 @@ impl DirectiveDef {
 
 pub(crate) fn parse_directive_def(
     pair: Pair<Rule>,
+    file: &str,
 ) -> Result<DirectiveDef, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::directive_def => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             // [identifier, arguments?, repeatable?, ...locations]
             let mut childs = pair.into_inner();
-            let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs);
-            let name = parse_identifier(next)?;
+            let DescriptionAndNext(description, next) =
+                parse_description_and_continue(&mut childs, file);
+            let name = parse_identifier(next, file)?;
             let mut next = childs.next().unwrap();
             let mut arguments = Vec::new();
             if let Rule::arguments = next.as_rule() {
-                arguments = parse_arguments(next)?;
+                arguments = parse_arguments(next, file)?;
                 next = childs.next().unwrap();
             }
             let mut is_repeatable = false;
@@ -71,7 +73,7 @@ pub(crate) fn parse_directive_def(
             let mut seen_locations = HashSet::new();
             if let Rule::directive_location = next.as_rule() {
                 seen_locations.insert(next.as_str());
-                locations.push(parse_directive_location(next)?)
+                locations.push(parse_directive_location(next, file)?)
             }
             for child in childs {
                 if seen_locations.contains(child.as_str()) {
@@ -84,7 +86,7 @@ pub(crate) fn parse_directive_def(
                 } else {
                     seen_locations.insert(child.as_str());
                 }
-                locations.push(parse_directive_location(child)?);
+                locations.push(parse_directive_location(child, file)?);
             }
             Ok(DirectiveDef {
                 span,

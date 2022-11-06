@@ -21,3 +21,5 @@ graphqxl_parser = { path = "graphqxl_parser" }
 graphqxl_transpiler = { path = "graphqxl_transpiler" }
 graphqxl_synthesizer = { path = "graphqxl_synthesizer" }
 
+[dev-dependencies]
+regex = "1.7.0"

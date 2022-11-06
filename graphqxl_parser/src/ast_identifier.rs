@@ -17,11 +17,14 @@ impl From<&str> for Identifier {
     }
 }
 
-pub(crate) fn parse_identifier(pair: Pair<Rule>) -> Result<Identifier, pest::error::Error<Rule>> {
+pub(crate) fn parse_identifier(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Identifier, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::identifier => Ok(Identifier {
             id: pair.as_str().to_string(),
-            span: OwnedSpan::from(pair.as_span()),
+            span: OwnedSpan::from(pair.as_span(), file),
         }),
         _unknown => Err(unknown_rule_error(pair, "identifier")),
     }

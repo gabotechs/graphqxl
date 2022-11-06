@@ -56,15 +56,18 @@ impl ValueData {
     }
 }
 
-pub(crate) fn parse_value_data(pair: Pair<Rule>) -> Result<ValueData, pest::error::Error<Rule>> {
+pub(crate) fn parse_value_data(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<ValueData, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::value_data => parse_value_data(pair.into_inner().next().unwrap()),
+        Rule::value_data => parse_value_data(pair.into_inner().next().unwrap(), file),
         Rule::object_data => {
             let mut data = IndexMap::new();
             for entry in pair.into_inner() {
                 let mut childs = entry.into_inner();
-                let name = parse_identifier(childs.next().unwrap())?;
-                let value = parse_value_data(childs.next().unwrap())?;
+                let name = parse_identifier(childs.next().unwrap(), file)?;
+                let value = parse_value_data(childs.next().unwrap(), file)?;
                 data.insert(name.id, value);
             }
             Ok(ValueData::Object(data))
@@ -72,12 +75,12 @@ pub(crate) fn parse_value_data(pair: Pair<Rule>) -> Result<ValueData, pest::erro
         Rule::list_data => {
             let mut data = Vec::new();
             for entry in pair.into_inner() {
-                let value = parse_value_data(entry)?;
+                let value = parse_value_data(entry, file)?;
                 data.push(value);
             }
             Ok(ValueData::List(data))
         }
-        Rule::basic_data => Ok(ValueData::Basic(parse_basic_data(pair)?)),
+        Rule::basic_data => Ok(ValueData::Basic(parse_basic_data(pair, file)?)),
         _unknown => Err(unknown_rule_error(pair, "value_data")),
     }
 }

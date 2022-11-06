@@ -1,5 +1,6 @@
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
+use crate::{Identifier, OwnedSpan};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -8,16 +9,22 @@ pub enum ValueBasicType {
     Float,
     Boolean,
     String,
-    Object(String),
+    Object(Identifier),
 }
 
-fn _parse_value_basic_type(pair: Pair<Rule>) -> Result<ValueBasicType, pest::error::Error<Rule>> {
+fn _parse_value_basic_type(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<ValueBasicType, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::int => Ok(ValueBasicType::Int),
         Rule::float => Ok(ValueBasicType::Float),
         Rule::string => Ok(ValueBasicType::String),
         Rule::boolean => Ok(ValueBasicType::Boolean),
-        Rule::object => Ok(ValueBasicType::Object(String::from(pair.as_str()))),
+        Rule::object => Ok(ValueBasicType::Object(Identifier {
+            id: pair.as_str().to_string(),
+            span: OwnedSpan::from(pair.as_span(), file),
+        })),
         _unknown => Err(unknown_rule_error(
             pair,
             "int, float, string, boolean or object",
@@ -27,9 +34,10 @@ fn _parse_value_basic_type(pair: Pair<Rule>) -> Result<ValueBasicType, pest::err
 
 pub(crate) fn parse_value_basic_type(
     pair: Pair<Rule>,
+    file: &str,
 ) -> Result<ValueBasicType, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::value_basic_type => _parse_value_basic_type(pair.into_inner().next().unwrap()),
+        Rule::value_basic_type => _parse_value_basic_type(pair.into_inner().next().unwrap(), file),
         _unknown => Err(unknown_rule_error(pair, "value_type")),
     }
 }
@@ -67,7 +75,7 @@ mod tests {
     fn test_object_1() {
         assert_eq!(
             parse_input("IntMyType"),
-            Ok(ValueBasicType::Object("IntMyType".to_string()))
+            Ok(ValueBasicType::Object(Identifier::from("IntMyType")))
         );
     }
 
@@ -75,7 +83,7 @@ mod tests {
     fn test_object_2() {
         assert_eq!(
             parse_input("MyType"),
-            Ok(ValueBasicType::Object("MyType".to_string()))
+            Ok(ValueBasicType::Object(Identifier::from("MyType")))
         );
     }
 

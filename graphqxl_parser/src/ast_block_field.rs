@@ -50,8 +50,8 @@ impl BlockField {
         self.clone()
     }
 
-    pub fn object(&mut self, object_name: &str) -> Self {
-        self.value_type = Some(ValueType::object(object_name));
+    pub fn object(&mut self, identifier: Identifier) -> Self {
+        self.value_type = Some(ValueType::object(identifier));
         self.clone()
     }
 
@@ -71,13 +71,16 @@ impl BlockField {
     }
 }
 
-fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
-    let span = OwnedSpan::from(pair.as_span());
+fn _parse_block_field(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<BlockField, pest::error::Error<Rule>> {
+    let span = OwnedSpan::from(pair.as_span(), file);
     // at this moment we are on [type_field|input_field], both will work
     let mut pairs = pair.into_inner();
     // at this moment we are on [description?, identifier, args?, value?]
-    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs);
-    let name = parse_identifier(next)?;
+    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs, file);
+    let name = parse_identifier(next, file)?;
     let mut block_field = BlockField {
         span,
         name,
@@ -88,26 +91,29 @@ fn _parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error
     if let Some(value_or_args) = value_or_args_or_nothing {
         let mut value = value_or_args.clone();
         if let Rule::arguments = value_or_args.as_rule() {
-            block_field.args = parse_arguments(value_or_args)?;
+            block_field.args = parse_arguments(value_or_args, file)?;
             value = pairs.next().unwrap();
         }
         if let Rule::value_type = value.as_rule() {
-            block_field.value_type = Some(parse_value_type(value)?)
+            block_field.value_type = Some(parse_value_type(value, file)?)
         } else if let Rule::directive = value.as_rule() {
-            block_field.directives.push(parse_directive(value)?);
+            block_field.directives.push(parse_directive(value, file)?);
         }
     }
     for child in pairs {
-        block_field.directives.push(parse_directive(child)?);
+        block_field.directives.push(parse_directive(child, file)?);
     }
     Ok(block_field)
 }
 
-pub(crate) fn parse_block_field(pair: Pair<Rule>) -> Result<BlockField, pest::error::Error<Rule>> {
+pub(crate) fn parse_block_field(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<BlockField, pest::error::Error<Rule>> {
     match pair.as_rule() {
-        Rule::field_with_args => _parse_block_field(pair),
-        Rule::field_without_args => _parse_block_field(pair),
-        Rule::field_without_args_without_value => _parse_block_field(pair),
+        Rule::field_with_args => _parse_block_field(pair, file),
+        Rule::field_without_args => _parse_block_field(pair, file),
+        Rule::field_without_args_without_value => _parse_block_field(pair, file),
         _unknown => Err(unknown_rule_error(pair, "field")),
     }
 }

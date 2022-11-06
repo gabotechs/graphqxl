@@ -1,5 +1,5 @@
-use crate::synths::synth::Synth;
-use crate::synths::{SynthContext};
+use crate::synths::synth_context::Synth;
+use crate::synths::SynthContext;
 use crate::utils::is_last_iter;
 
 pub(crate) struct OneLineListSynth<T: Synth> {
@@ -9,15 +9,16 @@ pub(crate) struct OneLineListSynth<T: Synth> {
 }
 
 impl<T: Synth> Synth for OneLineListSynth<T> {
-    fn synth(&self, context: &SynthContext) -> String {
-        let mut result = self.wrapper.0.clone();
+    fn synth(&self, context: &mut SynthContext) -> bool {
+        context.write(&self.wrapper.0);
         for (is_last, item) in is_last_iter(self.items.iter()) {
-            result += &item.synth(context);
+            item.synth(context);
             if !is_last {
-                result += &self.sep;
+                context.write(&self.sep);
             }
         }
-        result + &self.wrapper.1
+        context.write(&self.wrapper.1);
+        true
     }
 }
 

@@ -5,82 +5,86 @@ use graphqxl_parser::{ValueBasicData, ValueData};
 pub(crate) struct ValueDataSynth(pub(crate) ValueData);
 
 impl Synth for ValueDataSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         // TODO: for now, lets not allow any value to be multiline,
         //  chances that someone wants a multiline value are very low
         let multiline = false;
 
         match &self.0 {
             ValueData::Basic(value) => match value {
-                ValueBasicData::Int(v) => v.to_string(),
+                ValueBasicData::Int(v) => {
+                    context.write(&v.to_string());
+                    true
+                }
                 ValueBasicData::Float(v) => {
                     // FIXME: improve this formatting
                     let mut res = v.to_string();
                     if !res.contains('.') {
                         res += ".0";
                     }
-                    res
+                    context.write(&res);
+                    true
                 }
-                ValueBasicData::Boolean(v) => v.to_string(),
-                ValueBasicData::String(v) => format!("\"{}\"", escape_non_escaped_quotes(v)),
+                ValueBasicData::Boolean(v) => {
+                    context.write(&v.to_string());
+                    true
+                }
+                ValueBasicData::String(v) => {
+                    context.write(&format!("\"{}\"", escape_non_escaped_quotes(v)));
+                    true
+                }
             },
             ValueData::List(items) => {
-                let mut summed = "[".to_string();
+                context.write("[");
                 for (is_last, value) in is_last_iter(items.iter()) {
                     if multiline {
-                        summed += "\n";
-                        summed += " "
-                            .repeat(context.config.indent_spaces * (context.indent_lvl + 1))
-                            .as_str();
+                        context.write_line_jump();
+                        context.write_indent(context.indent_lvl + 1);
                     } else {
-                        summed += " ";
+                        context.write(" ");
                     }
-                    summed += ValueDataSynth(value.clone())
-                        .synth(&context.plus_one_indent_lvl())
-                        .as_str();
+                    context.push_indent_level();
+                    ValueDataSynth(value.clone()).synth(context);
+                    context.pop_indent_level();
                     if !is_last && !multiline {
-                        summed += ","
+                        context.write(",");
                     }
                 }
                 if multiline {
-                    summed += "\n";
-                    summed += " "
-                        .repeat(context.config.indent_spaces * context.indent_lvl)
-                        .as_str();
+                    context.write_line_jump();
+                    context.write_indent(context.indent_lvl);
                 } else {
-                    summed += " ";
+                    context.write(" ");
                 }
-                summed + "]"
+                context.write("]");
+                true
             }
             ValueData::Object(key_values) => {
-                let mut summed = "{".to_string();
+                context.write("{");
                 for (is_last, (key, value)) in is_last_iter(key_values.iter()) {
                     if multiline {
-                        summed += "\n";
-                        summed += " "
-                            .repeat(context.config.indent_spaces * (context.indent_lvl + 1))
-                            .as_str();
+                        context.write_line_jump();
+                        context.write_indent(context.indent_lvl + 1);
                     } else {
-                        summed += " ";
+                        context.write(" ");
                     }
-                    summed += key;
-                    summed += ": ";
-                    summed += ValueDataSynth(value.clone())
-                        .synth(&context.plus_one_indent_lvl())
-                        .as_str();
+                    context.write(key);
+                    context.write(": ");
+                    context.push_indent_level();
+                    ValueDataSynth(value.clone()).synth(context);
+                    context.pop_indent_level();
                     if !is_last && !multiline {
-                        summed += ","
+                        context.write(",");
                     }
                 }
                 if multiline {
-                    summed += "\n";
-                    summed += " "
-                        .repeat(context.config.indent_spaces * context.indent_lvl)
-                        .as_str();
+                    context.write_line_jump();
+                    context.write_indent(context.indent_lvl);
                 } else {
-                    summed += " ";
+                    context.write(" ");
                 }
-                summed + "}"
+                context.write("}");
+                true
             }
         }
     }
@@ -125,11 +129,11 @@ mod tests {
     #[test]
     fn test_list_multiline() {
         let synth = ValueDataSynth(ValueData::int(1).list().push(ValueData::int(2)));
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().allow_multiline_values());
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default()
-                    .with_config(SynthConfig::default().allow_multiline_values())
-            ),
+            context.result,
             "\
 [
   1
@@ -142,12 +146,12 @@ mod tests {
     #[test]
     fn test_list_multiline_indented() {
         let synth = ValueDataSynth(ValueData::int(1).list().push(ValueData::int(2)));
+        let mut context = SynthContext::default();
+        context.with_indent_lvl(4);
+        context.with_config(SynthConfig::default().allow_multiline_values());
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default()
-                    .with_indent_lvl(4)
-                    .with_config(SynthConfig::default().allow_multiline_values())
-            ),
+            context.result,
             "\
 [
           1
@@ -174,11 +178,11 @@ mod tests {
                 .to_object("a")
                 .insert("b", ValueData::int(2)),
         );
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().allow_multiline_values());
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default()
-                    .with_config(SynthConfig::default().allow_multiline_values())
-            ),
+            context.result,
             "\
 {
   a: 1
@@ -195,12 +199,12 @@ mod tests {
                 .to_object("a")
                 .insert("b", ValueData::int(2)),
         );
+        let mut context = SynthContext::default();
+        context.with_indent_lvl(4);
+        context.with_config(SynthConfig::default().allow_multiline_values());
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default()
-                    .with_indent_lvl(4)
-                    .with_config(SynthConfig::default().allow_multiline_values())
-            ),
+            context.result,
             "\
 {
           a: 1
@@ -235,11 +239,11 @@ mod tests {
                 .to_object("a")
                 .insert("b", ValueData::int(2)),
         );
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().allow_multiline_values());
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default()
-                    .with_config(SynthConfig::default().allow_multiline_values())
-            ),
+            context.result,
             "\
 {
   a: [

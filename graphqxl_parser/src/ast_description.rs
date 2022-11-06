@@ -2,7 +2,10 @@ use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use pest::iterators::{Pair, Pairs};
 
-pub(crate) fn parse_description(pair: Pair<Rule>) -> Result<String, pest::error::Error<Rule>> {
+pub(crate) fn parse_description(
+    pair: Pair<Rule>,
+    _file: &str,
+) -> Result<String, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::description => {
             let mut result = "".to_string();
@@ -22,11 +25,12 @@ pub(crate) struct DescriptionAndNext<'a>(pub(crate) String, pub(crate) Pair<'a, 
 
 pub(crate) fn parse_description_and_continue<'a>(
     pairs: &mut Pairs<'a, Rule>,
+    file: &str,
 ) -> DescriptionAndNext<'a> {
     let mut pair = pairs.next().unwrap();
     let mut description = "".to_string();
     if let Rule::description = pair.as_rule() {
-        description = parse_description(pair).unwrap();
+        description = parse_description(pair, file).unwrap();
         pair = pairs.next().unwrap();
     }
     DescriptionAndNext(description, pair)
@@ -67,6 +71,12 @@ mod tests {
     fn test_multiline_description_accepts_double_quote() {
         let description = parse_input("\"\"\" This is a \"description 123 \"\"\"").unwrap();
         assert_eq!(description, "This is a \"description 123");
+    }
+
+    #[test]
+    fn test_multiline_description_accepts_escaped_double_quote() {
+        let description = parse_input("\"\"\" This is a \\\"description 123 \"\"\"").unwrap();
+        assert_eq!(description, "This is a \\\"description 123");
     }
 
     #[test]

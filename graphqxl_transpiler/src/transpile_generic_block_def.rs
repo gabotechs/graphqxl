@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef, Rule, ValueBasicType};
+use graphqxl_parser::{
+    BlockDef, BlockEntry, GenericBlockDef, Identifier, Rule, ValueBasicType, ValueType,
+};
 
 pub(crate) fn transpile_generic_block_def(
     generic_block_def: &GenericBlockDef,
@@ -41,9 +43,21 @@ pub(crate) fn transpile_generic_block_def(
         );
     }
 
+    Ok(resolve_block_def(
+        unresolved_block_def,
+        &generic_block_def.name,
+        generic_map,
+    ))
+}
+
+fn resolve_block_def(
+    unresolved_block_def: &BlockDef,
+    name: &Identifier,
+    generic_map: HashMap<&String, &ValueType>,
+) -> BlockDef {
     let mut resolved_block_def = unresolved_block_def.clone();
     resolved_block_def.generic = None;
-    resolved_block_def.name = generic_block_def.name.clone();
+    resolved_block_def.name = name.clone();
     for entry in resolved_block_def.entries.iter_mut() {
         // if it is a field...
         if let BlockEntry::Field(block_field) = entry {
@@ -53,7 +67,7 @@ pub(crate) fn transpile_generic_block_def(
                 // ...and that type is an object...
                 if let ValueBasicType::Object(object) = basic_value_type {
                     // ...which is stored in the generic map...
-                    if let Some(generic_replacement) = generic_map.get(object) {
+                    if let Some(generic_replacement) = generic_map.get(&object.id) {
                         let replacement = *generic_replacement;
                         // ...then replace it
                         block_field.value_type = Some(replacement.clone());
@@ -62,8 +76,7 @@ pub(crate) fn transpile_generic_block_def(
             }
         }
     }
-
-    Ok(resolved_block_def)
+    resolved_block_def
 }
 
 #[cfg(test)]
@@ -85,7 +98,9 @@ mod tests {
         let generic = GenericBlockDef::type_def("Type", "Template", ValueType::string());
         let store = build_store(vec![BlockDef::type_def("Template")
             .generic(Generic::from("T"))
-            .field(BlockField::build("field").value_type(ValueType::object("T")))]);
+            .field(
+                BlockField::build("field").value_type(ValueType::object(Identifier::from("T"))),
+            )]);
         let block_def = transpile_generic_block_def(&generic, &store).unwrap();
 
         assert_eq!(

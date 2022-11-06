@@ -26,14 +26,15 @@ impl GenericCall {
 
 pub(crate) fn parse_generic_call(
     pair: Pair<Rule>,
+    file: &str,
 ) -> Result<GenericCall, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::generic_call => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let childs = pair.into_inner();
             let mut args = Vec::new();
             for name in childs {
-                args.push(parse_value_type(name)?);
+                args.push(parse_value_type(name, file)?);
             }
 
             Ok(GenericCall { span, args })

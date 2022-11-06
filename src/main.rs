@@ -1,3 +1,6 @@
+mod apollo_diagnostic_source;
+
+use crate::apollo_diagnostic_source::reverse_diagnostic_map;
 use anyhow::{anyhow, Context, Result};
 use apollo_compiler::ApolloCompiler;
 use clap::Parser;
@@ -41,7 +44,7 @@ fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
     };
     let transpiled = transpile_spec(&spec).context("Error transpiling graphqxl file")?;
 
-    let result = synth_spec(
+    let (result, source_map) = synth_spec(
         transpiled,
         SynthConfig {
             indent_spaces: args.indent_spaces.unwrap_or(2),
@@ -56,7 +59,7 @@ fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
     let diagnostics = ctx.validate();
     for diagnostic in diagnostics {
         if diagnostic.is_error() {
-            return Err(anyhow!("{}", diagnostic));
+            reverse_diagnostic_map(&diagnostic, &source_map)?;
         }
     }
     Ok((result, out_path))
@@ -72,6 +75,7 @@ fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use regex::Regex;
     use std::path::Path;
 
     #[test]
@@ -93,7 +97,9 @@ mod tests {
             let result = if let Ok((result, _)) = result {
                 result
             } else {
-                format!("{}", result.unwrap_err())
+                let err = format!("{}", result.unwrap_err());
+                let re = Regex::new(r"(/.+)+\.graphqxl").unwrap();
+                re.replace_all(&err, "").to_string()
             };
             let out_path = test_dir.join(path.to_string() + ".result");
             if out_path.exists() {

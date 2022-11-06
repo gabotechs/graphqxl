@@ -18,10 +18,13 @@ impl From<&str> for Import {
     }
 }
 
-pub(crate) fn parse_import(pair: Pair<Rule>) -> Result<Import, pest::error::Error<Rule>> {
+pub(crate) fn parse_import(
+    pair: Pair<Rule>,
+    file: &str,
+) -> Result<Import, pest::error::Error<Rule>> {
     match pair.as_rule() {
         Rule::import => {
-            let span = OwnedSpan::from(pair.as_span());
+            let span = OwnedSpan::from(pair.as_span(), file);
             let rule = pair.into_inner().next().unwrap();
 
             Ok(Import {

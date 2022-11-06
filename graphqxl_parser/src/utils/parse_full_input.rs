@@ -7,7 +7,7 @@ use pest::{Parser, Position};
 pub fn parse_full_input<R>(
     input: &str,
     rule: Rule,
-    parser: fn(Pair<Rule>) -> Result<R, pest::error::Error<Rule>>,
+    parser: fn(Pair<Rule>, file: &str) -> Result<R, pest::error::Error<Rule>>,
 ) -> Result<R, pest::error::Error<Rule>> {
     let pair_or_err = GraphqxlParser::parse(rule, input);
     if let Err(err) = &pair_or_err {
@@ -29,7 +29,7 @@ pub fn parse_full_input<R>(
         eprintln!("{}", err);
         return Err(err);
     }
-    let res = parser(parsed);
+    let res = parser(parsed, "");
     if let Err(err) = &res {
         eprintln!("{}", err);
     }

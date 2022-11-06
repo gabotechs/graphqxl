@@ -9,7 +9,7 @@ use graphqxl_parser::Argument;
 pub(crate) struct ArgumentsSynth(pub(crate) Vec<Argument>);
 
 impl Synth for ArgumentsSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let inner_synths = self
             .0
             .iter()
@@ -31,10 +31,11 @@ impl Synth for ArgumentsSynth {
             .collect();
 
         if self.0.len() > context.config.max_one_line_args {
-            MultilineListSynth::no_suffix(&context.config, ("(", inner_synths, ")")).synth(context)
+            MultilineListSynth::no_suffix(("(", inner_synths, ")")).synth(context);
         } else {
-            OneLineListSynth::comma(("(", inner_synths, ")")).synth(context)
+            OneLineListSynth::comma(("(", inner_synths, ")")).synth(context);
         }
+        true
     }
 }
 
@@ -59,12 +60,10 @@ mod tests {
     #[test]
     fn test_two_arguments_indent() {
         let synth = ArgumentsSynth(vec![Argument::string("arg"), Argument::string("arg2")]);
-        assert_eq!(
-            synth.synth(
-                &SynthContext::default().with_config(SynthConfig::default().max_one_line_args(1))
-            ),
-            "(\n  arg: String\n  arg2: String\n)"
-        )
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().max_one_line_args(1));
+        synth.synth(&mut context);
+        assert_eq!(context.result, "(\n  arg: String\n  arg2: String\n)")
     }
 
     #[test]

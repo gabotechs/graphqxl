@@ -1,6 +1,7 @@
 use crate::synth_arguments::ArgumentsSynth;
 use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
+use crate::synth_identifier::IdentifierSynth;
 use crate::synth_value_type::ValueTypeSynth;
 use crate::synths::{ChainSynth, PairSynth, StringSynth, Synth, SynthContext};
 use graphqxl_parser::BlockField;
@@ -8,14 +9,13 @@ use graphqxl_parser::BlockField;
 pub(crate) struct BlockFieldSynth(pub(crate) BlockField);
 
 impl Synth for BlockFieldSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let synth = PairSynth {
-            indent_spaces: context.config.indent_spaces,
             line_jump_sep: true,
-            first: DescriptionSynth::text(&context.config, &self.0.description),
+            first: DescriptionSynth::text(&self.0.description),
             last: ChainSynth({
                 let mut v: Vec<Box<dyn Synth>> =
-                    vec![Box::new(StringSynth(self.0.name.id.clone()))];
+                    vec![Box::new(IdentifierSynth(self.0.name.clone()))];
                 if !self.0.args.is_empty() {
                     v.push(Box::new(ArgumentsSynth(self.0.args.clone())));
                 }
@@ -118,8 +118,11 @@ field(arg: String): String"
                 .arg(Argument::string("arg2"))
                 .directive(Directive::build("dir1")),
         );
+        let mut context = SynthContext::default();
+        context.with_indent_lvl(2);
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(&SynthContext::default().with_indent_lvl(2)),
+            context.result,
             "\
 \"my description\"
     field(arg1: String, arg2: String): String @dir1"

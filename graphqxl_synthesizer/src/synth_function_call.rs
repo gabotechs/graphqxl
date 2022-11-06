@@ -1,3 +1,4 @@
+use crate::synth_identifier::IdentifierSynth;
 use crate::synth_value_data::ValueDataSynth;
 use crate::synths::{ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth};
 use crate::{Synth, SynthContext};
@@ -6,23 +7,25 @@ use graphqxl_parser::FunctionCall;
 pub(crate) struct FunctionCallSynth(pub(crate) FunctionCall);
 
 impl Synth for FunctionCallSynth {
-    fn synth(&self, context: &SynthContext) -> String {
+    fn synth(&self, context: &mut SynthContext) -> bool {
         let inner_synths = self
             .0
             .inputs
             .iter()
             .map(|e| {
                 ChainSynth(vec![
-                    Box::new(StringSynth(format!("{}: ", e.name.id))),
+                    Box::new(IdentifierSynth(e.name.clone())),
+                    Box::new(StringSynth::from(": ")),
                     Box::new(ValueDataSynth(e.value.clone())),
                 ])
             })
             .collect();
         if self.0.inputs.len() > context.config.max_one_line_args {
-            MultilineListSynth::no_suffix(&context.config, ("(", inner_synths, ")")).synth(context)
+            MultilineListSynth::no_suffix(("(", inner_synths, ")")).synth(context);
         } else {
-            OneLineListSynth::comma(("(", inner_synths, ")")).synth(context)
+            OneLineListSynth::comma(("(", inner_synths, ")")).synth(context);
         }
+        true
     }
 }
 
@@ -41,12 +44,10 @@ mod tests {
     #[test]
     fn test_one_argument_multiline() {
         let synth = FunctionCallSynth(FunctionCall::build().input("arg", ValueData::int(1)));
-        assert_eq!(
-            synth.synth(
-                &SynthContext::default().with_config(SynthConfig::default().max_one_line_args(0))
-            ),
-            "(\n  arg: 1\n)"
-        )
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().max_one_line_args(0));
+        synth.synth(&mut context);
+        assert_eq!(context.result, "(\n  arg: 1\n)")
     }
 
     #[test]
@@ -66,10 +67,11 @@ mod tests {
                 .input("arg1", ValueData::int(1))
                 .input("arg2", ValueData::float(1.0).list()),
         );
+        let mut context = SynthContext::default();
+        context.with_config(SynthConfig::default().max_one_line_args(1));
+        synth.synth(&mut context);
         assert_eq!(
-            synth.synth(
-                &SynthContext::default().with_config(SynthConfig::default().max_one_line_args(1))
-            ),
+            context.result,
             "\
 (
   arg1: 1
