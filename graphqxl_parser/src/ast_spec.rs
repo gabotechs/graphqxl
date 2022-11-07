@@ -313,8 +313,6 @@ fn private_parse_spec<P: AsRef<Path>>(
     let mut spec = Spec::new();
     if already_imported.contains(&abs_path) {
         return Ok(spec);
-    } else {
-        already_imported.insert(abs_path.clone());
     }
     let content = fs::read_to_string(&abs_path)?;
     let mut pairs = GraphqxlParser::parse(Rule::spec, &content)?;
@@ -347,6 +345,7 @@ fn private_parse_spec<P: AsRef<Path>>(
                     spec.add(child, file)?;
                 }
             }
+            already_imported.insert(abs_path.clone());
             Ok(spec)
         }
         _unknown => Err(Box::new(unknown_rule_error(pair, "spec"))),
