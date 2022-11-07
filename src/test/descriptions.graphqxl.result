@@ -8,4 +8,10 @@ type OriginalDescription {
   foo: String
 }
 
+"Known with inner type OriginalDescription"
+type Known {
+  "Known.foo has a type OriginalDescription"
+  foo: OriginalDescription
+}
+
 

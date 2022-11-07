@@ -7,3 +7,11 @@ type Generic<T> {
 type OverridenDescription = Generic<String>
 
 type OriginalDescription = Generic<String>
+
+"$PARENT with inner type $T"
+type Unknown<T> {
+    "$PARENT.foo has a type $T"
+    foo: T
+}
+
+type Known = Unknown<OriginalDescription>

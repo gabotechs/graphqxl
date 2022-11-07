@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use crate::{Identifier, OwnedSpan};
@@ -10,6 +11,20 @@ pub enum ValueBasicType {
     Boolean,
     String,
     Object(Identifier),
+}
+
+impl Display for ValueBasicType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", {
+            match self { 
+                ValueBasicType::Int => "Int",
+                ValueBasicType::Float => "Float",
+                ValueBasicType::Boolean => "Boolean",
+                ValueBasicType::String => "String",
+                ValueBasicType::Object(id) => &id.id,
+            }
+        })
+    }
 }
 
 fn _parse_value_basic_type(

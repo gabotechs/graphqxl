@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::transpile_description::transpile_description;
 use graphqxl_parser::{
     BlockDef, BlockEntry, GenericBlockDef, Identifier, Rule, ValueBasicType, ValueType,
 };
@@ -58,12 +59,25 @@ fn resolve_block_def(
     let mut resolved_block_def = unresolved_block_def.clone();
     resolved_block_def.generic = None;
     resolved_block_def.name = generic_block_def.name.clone();
+
+    let mut replacements = HashMap::from([("PARENT", generic_block_def.name.id.clone())]);
+    for (key, value) in generic_map.iter() {
+        let formatted_type = format!("{}", value.retrieve_basic_type());
+        replacements.insert(key.as_str(), formatted_type);
+    }
+
     if !generic_block_def.description.is_empty() {
         resolved_block_def.description = generic_block_def.description.clone()
+    } else {
+        resolved_block_def.description =
+            transpile_description(&resolved_block_def.description, &replacements);
     }
+
     for entry in resolved_block_def.entries.iter_mut() {
         // if it is a field...
         if let BlockEntry::Field(block_field) = entry {
+            block_field.description =
+                transpile_description(&block_field.description, &replacements);
             // ...and has a type...
             if let Some(value_type) = &block_field.value_type {
                 let basic_value_type = value_type.retrieve_basic_type();
