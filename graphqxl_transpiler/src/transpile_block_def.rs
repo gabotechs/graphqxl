@@ -46,26 +46,25 @@ pub(crate) fn transpile_block_def(
 
     let mut evaluate_block_entry =
         |block_entry: &BlockEntry, parent: &str| -> Result<(), pest::error::Error<Rule>> {
-            if let BlockEntry::Field(field) = block_entry {
-                if seen.contains(&field.name.id) {
-                    return Err(field.span.make_error("repeated field"));
-                } else {
-                    seen.insert(field.name.id.clone());
-                    let mut field_clone = field.clone();
-                    if !parent.is_empty() {
-                        transpile_description(
-                            &mut field_clone.description,
-                            &HashMap::from([(PARENT, block_def.name.id.clone())]),
-                        );
-                    }
-                    transpiled_block_def
-                        .entries
-                        .push(BlockEntry::Field(field_clone));
-                };
-                Ok(())
-            } else {
+            let BlockEntry::Field(field) = block_entry else {
                 unreachable!()
+            };
+            if seen.contains(&field.name.id) {
+                return Err(field.span.make_error("repeated field"));
             }
+            seen.insert(field.name.id.clone());
+            let mut field_clone = field.clone();
+            if !parent.is_empty() {
+                transpile_description(
+                    &mut field_clone.description,
+                    &HashMap::from([(PARENT, block_def.name.id.clone())]),
+                );
+            }
+            transpiled_block_def
+                .entries
+                .push(BlockEntry::Field(field_clone));
+
+            Ok(())
         };
 
     for entry in block_def.entries.iter() {
