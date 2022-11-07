@@ -88,16 +88,14 @@ fn apollo_diagnostic_source(diagnostic: &ApolloDiagnostic) -> SourceSpan {
     }
 }
 
-const OFFSET: usize = 1;
-
 pub(crate) fn reverse_diagnostic_map(
     diagnostic: &ApolloDiagnostic,
     source_map: &[SourceMapEntry],
 ) -> Result<()> {
     let source_span = apollo_diagnostic_source(diagnostic);
     for entry in source_map.iter() {
-        if source_span.offset >= entry.start + OFFSET
-            && source_span.offset + source_span.length <= entry.stop + OFFSET
+        if source_span.offset >= entry.start
+            && source_span.offset + source_span.length <= entry.stop
         {
             let err = entry.span.make_error(&diagnostic.report().to_string());
             return Err(anyhow!(err));

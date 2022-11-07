@@ -72,7 +72,7 @@ impl SynthContext {
     pub(crate) fn write_line_jump(&mut self) {
         self.line += 1;
         self.col = 0;
-        self.result += "\n";
+        self.write("\n");
     }
 
     pub(crate) fn write_double_line_jump(&mut self) {

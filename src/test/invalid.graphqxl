@@ -1,3 +1,5 @@
+scalar Baz
+
 type Type {
     foo: Bar!
 }
