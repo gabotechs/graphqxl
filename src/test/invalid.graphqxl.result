@@ -1,6 +1,6 @@
- --> 2:10
+ --> 4:10
   |
-2 |     foo: Bar!
+4 |     foo: Bar!
   |          ^-^
   |
-  = :2 cannot find type `Bar` in this document
+  = :4 cannot find type `Bar` in this document
