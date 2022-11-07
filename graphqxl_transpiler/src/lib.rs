@@ -5,6 +5,7 @@ use crate::transpile_generic_block_def::transpile_generic_block_def;
 
 mod transpile_block_def;
 mod transpile_generic_block_def;
+mod transpile_description;
 
 // TODO: we should not need to mutate the spec here
 pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
