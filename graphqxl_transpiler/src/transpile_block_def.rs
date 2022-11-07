@@ -53,8 +53,8 @@ pub(crate) fn transpile_block_def(
                     seen.insert(field.name.id.clone());
                     let mut field_clone = field.clone();
                     if !parent.is_empty() {
-                        field_clone.description = transpile_description(
-                            &field.description,
+                        transpile_description(
+                            &mut field_clone.description,
                             &HashMap::from([(PARENT, block_def.name.id.clone())]),
                         );
                     }
