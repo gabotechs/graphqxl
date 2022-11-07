@@ -1,0 +1,29 @@
+"overriden"
+type OverridenDescription {
+  foo: String
+}
+
+"decription"
+type OriginalDescription {
+  foo: String
+}
+
+"Known with inner type OriginalDescription"
+type Known {
+  "Known.foo has a type OriginalDescription"
+  foo: OriginalDescription
+}
+
+type Child {
+  "My dad is $PARENT"
+  child_foo: Int
+}
+
+type Parent {
+  "My son is Child"
+  parent_foo: Int
+  "My dad is Parent"
+  child_foo: Int
+}
+
+
