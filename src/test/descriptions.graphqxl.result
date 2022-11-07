@@ -1,0 +1,11 @@
+"overriden"
+type OverridenDescription {
+  foo: String
+}
+
+"decription"
+type OriginalDescription {
+  foo: String
+}
+
+

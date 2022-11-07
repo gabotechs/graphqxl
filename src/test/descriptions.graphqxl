@@ -1,0 +1,9 @@
+"decription"
+type Generic<T> {
+    foo: T
+}
+
+"overriden"
+type OverridenDescription = Generic<String>
+
+type OriginalDescription = Generic<String>
