@@ -60,24 +60,25 @@ fn resolve_block_def(
     resolved_block_def.generic = None;
     resolved_block_def.name = generic_block_def.name.clone();
 
-    let mut replacements = HashMap::from([(GENERIC, generic_block_def.name.id.clone())]);
+    let mut description_replacements =
+        HashMap::from([(GENERIC, generic_block_def.name.id.clone())]);
     for (key, value) in generic_map.iter() {
-        let formatted_type = format!("{}", value.retrieve_basic_type());
-        replacements.insert(key.as_str(), formatted_type);
+        description_replacements.insert(key.as_str(), format!("{}", value.retrieve_basic_type()));
     }
 
     if !generic_block_def.description.is_empty() {
         resolved_block_def.description = generic_block_def.description.clone()
     } else {
-        resolved_block_def.description =
-            transpile_description(&resolved_block_def.description, &replacements);
+        transpile_description(
+            &mut resolved_block_def.description,
+            &description_replacements,
+        );
     }
 
     for entry in resolved_block_def.entries.iter_mut() {
         // if it is a field...
         if let BlockEntry::Field(block_field) = entry {
-            block_field.description =
-                transpile_description(&block_field.description, &replacements);
+            transpile_description(&mut block_field.description, &description_replacements);
             // ...and has a type...
             if let Some(value_type) = &block_field.value_type {
                 let basic_value_type = value_type.retrieve_basic_type();
