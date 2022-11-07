@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use crate::transpile_description::transpile_description;
-use graphqxl_parser::{
-    BlockDef, BlockEntry, GenericBlockDef, Identifier, Rule, ValueBasicType, ValueType,
-};
+use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef, Rule, ValueBasicType, ValueType};
 
 pub(crate) fn transpile_generic_block_def(
     generic_block_def: &GenericBlockDef,
@@ -51,6 +49,8 @@ pub(crate) fn transpile_generic_block_def(
     ))
 }
 
+const GENERIC: &str = "GENERIC";
+
 fn resolve_block_def(
     unresolved_block_def: &BlockDef,
     generic_block_def: &GenericBlockDef,
@@ -60,7 +60,7 @@ fn resolve_block_def(
     resolved_block_def.generic = None;
     resolved_block_def.name = generic_block_def.name.clone();
 
-    let mut replacements = HashMap::from([("PARENT", generic_block_def.name.id.clone())]);
+    let mut replacements = HashMap::from([(GENERIC, generic_block_def.name.id.clone())]);
     for (key, value) in generic_map.iter() {
         let formatted_type = format!("{}", value.retrieve_basic_type());
         replacements.insert(key.as_str(), formatted_type);
@@ -98,7 +98,7 @@ fn resolve_block_def(
 
 #[cfg(test)]
 mod tests {
-    use graphqxl_parser::{BlockField, Generic, GenericBlockDef, ValueType};
+    use graphqxl_parser::{BlockField, Generic, GenericBlockDef, Identifier, ValueType};
 
     use super::*;
 

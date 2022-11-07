@@ -1,3 +1,4 @@
+use crate::transpile_description::transpile_description;
 use graphqxl_parser::{BlockDef, BlockEntry, Identifier, OwnedSpan, Rule};
 use std::collections::{HashMap, HashSet};
 
@@ -14,6 +15,8 @@ impl IdOrBlock {
         }
     }
 }
+
+const PARENT: &str = "PARENT";
 
 pub(crate) fn transpile_block_def(
     identifier: IdOrBlock,
@@ -42,13 +45,22 @@ pub(crate) fn transpile_block_def(
     let mut seen = HashSet::new();
 
     let mut evaluate_block_entry =
-        |block_entry: &BlockEntry| -> Result<(), pest::error::Error<Rule>> {
+        |block_entry: &BlockEntry, parent: &str| -> Result<(), pest::error::Error<Rule>> {
             if let BlockEntry::Field(field) = block_entry {
                 if seen.contains(&field.name.id) {
                     return Err(field.span.make_error("repeated field"));
                 } else {
                     seen.insert(field.name.id.clone());
-                    transpiled_block_def.entries.push(block_entry.clone());
+                    let mut field_clone = field.clone();
+                    if !parent.is_empty() {
+                        field_clone.description = transpile_description(
+                            &field.description,
+                            &HashMap::from([(PARENT, block_def.name.id.clone())]),
+                        );
+                    }
+                    transpiled_block_def
+                        .entries
+                        .push(BlockEntry::Field(field_clone));
                 };
                 Ok(())
             } else {
@@ -58,13 +70,13 @@ pub(crate) fn transpile_block_def(
 
     for entry in block_def.entries.iter() {
         if let BlockEntry::SpreadRef(identifier) = entry {
-            let referenced_type =
+            let mut referenced_type =
                 transpile_block_def(IdOrBlock::Id(identifier.clone()), store, stack_count + 1)?;
-            for imported_entry in referenced_type.entries.iter() {
-                evaluate_block_entry(imported_entry)?;
+            for imported_entry in referenced_type.entries.iter_mut() {
+                evaluate_block_entry(imported_entry, &block_def.name.id)?;
             }
         } else {
-            evaluate_block_entry(entry)?;
+            evaluate_block_entry(entry, "")?;
         }
     }
     Ok(transpiled_block_def)
