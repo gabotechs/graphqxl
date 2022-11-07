@@ -305,11 +305,17 @@ fn check_import_loop(import_stack: &Vec<PathBuf>, span: &OwnedSpan) -> Result<()
 fn private_parse_spec<P: AsRef<Path>>(
     path: P,
     import_stack: Vec<PathBuf>,
+    already_imported: &mut HashSet<PathBuf>,
 ) -> Result<Spec, Box<dyn Error>> {
     let abs_path = fs::canonicalize(path)?;
     let file = abs_path.to_str().unwrap();
 
     let mut spec = Spec::new();
+    if already_imported.contains(&abs_path) {
+        return Ok(spec);
+    } else {
+        already_imported.insert(abs_path.clone());
+    }
     let content = fs::read_to_string(&abs_path)?;
     let mut pairs = GraphqxlParser::parse(Rule::spec, &content)?;
     let pair = pairs.next().unwrap();
@@ -335,7 +341,7 @@ fn private_parse_spec<P: AsRef<Path>>(
                     let mut stack = import_stack.clone();
                     stack.push(import_path.clone());
                     check_import_loop(&stack, &import.span)?;
-                    let imported_spec = private_parse_spec(import_path, stack)?;
+                    let imported_spec = private_parse_spec(import_path, stack, already_imported)?;
                     spec.merge(imported_spec)?;
                 } else {
                     spec.add(child, file)?;
@@ -348,7 +354,7 @@ fn private_parse_spec<P: AsRef<Path>>(
 }
 
 pub fn parse_spec<P: AsRef<Path>>(path: P) -> Result<Spec, Box<dyn Error>> {
-    private_parse_spec(path, Vec::new())
+    private_parse_spec(path, Vec::new(), &mut HashSet::new())
 }
 
 #[cfg(test)]
@@ -367,5 +373,13 @@ mod tests {
     fn test_handles_cyclical_imports() {
         let err = parse_spec("test_graphqxl_files/cyclical1.graphqxl").unwrap_err();
         assert!(err.to_string().contains("cyclical"))
+    }
+
+    #[test]
+    fn test_does_not_duplicate_imports() {
+        let spec_or_err = parse_spec("test_graphqxl_files/no_duplicated1.graphqxl");
+        if let Err(err) = spec_or_err {
+            panic!("Error parsing file: {}", err)
+        }
     }
 }

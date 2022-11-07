@@ -1,0 +1,5 @@
+import "no_duplicated3"
+
+type Type2 {
+    foo: Type3
+}
