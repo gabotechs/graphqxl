@@ -9,7 +9,7 @@ schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_key = @{ "query" | "mutation" | "subscription" }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
-generic_type_def = { "type " ~ identifier ~ "=" ~ identifier ~ generic_call }
+generic_type_def = { description? ~  "type " ~ identifier ~ "=" ~ identifier ~ generic_call }
 type_def = { description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
     implements = { "implements" ~ identifier ~ ("&" ~ identifier)* }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }

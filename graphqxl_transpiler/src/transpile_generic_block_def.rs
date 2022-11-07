@@ -45,19 +45,22 @@ pub(crate) fn transpile_generic_block_def(
 
     Ok(resolve_block_def(
         unresolved_block_def,
-        &generic_block_def.name,
+        generic_block_def,
         generic_map,
     ))
 }
 
 fn resolve_block_def(
     unresolved_block_def: &BlockDef,
-    name: &Identifier,
+    generic_block_def: &GenericBlockDef,
     generic_map: HashMap<&String, &ValueType>,
 ) -> BlockDef {
     let mut resolved_block_def = unresolved_block_def.clone();
     resolved_block_def.generic = None;
-    resolved_block_def.name = name.clone();
+    resolved_block_def.name = generic_block_def.name.clone();
+    if !generic_block_def.description.is_empty() {
+        resolved_block_def.description = generic_block_def.description.clone()
+    }
     for entry in resolved_block_def.entries.iter_mut() {
         // if it is a field...
         if let BlockEntry::Field(block_field) = entry {

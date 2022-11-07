@@ -1,5 +1,6 @@
 use pest::iterators::Pair;
 
+use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use crate::{
@@ -10,6 +11,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct GenericBlockDef {
     pub span: OwnedSpan,
+    pub description: String,
     pub kind: BlockDefType,
     pub name: Identifier,
     pub block_def: Identifier,
@@ -20,6 +22,7 @@ impl GenericBlockDef {
     fn from(kind: BlockDefType, name: &str, block_def: &str, arg: ValueType) -> Self {
         GenericBlockDef {
             kind,
+            description: "".to_string(),
             span: OwnedSpan::default(),
             name: Identifier::from(name),
             block_def: Identifier::from(block_def),
@@ -35,6 +38,11 @@ impl GenericBlockDef {
         Self::from(BlockDefType::Input, name, block_def, arg)
     }
 
+    pub fn description(&mut self, text: &str) -> Self {
+        self.description = text.to_string();
+        self.clone()
+    }
+
     pub fn arg(&mut self, arg: ValueType) -> Self {
         self.generic_call.arg(arg);
         self.clone()
@@ -48,12 +56,14 @@ fn _parse_generic_block_def(
 ) -> Result<GenericBlockDef, pest::error::Error<Rule>> {
     let span = OwnedSpan::from(pair.as_span(), file);
     let mut childs = pair.into_inner();
-    let name = parse_identifier(childs.next().unwrap(), file)?;
+    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs, file);
+    let name = parse_identifier(next, file)?;
     let block_def = parse_identifier(childs.next().unwrap(), file)?;
     let generic_call = parse_generic_call(childs.next().unwrap(), file)?;
 
     Ok(GenericBlockDef {
         kind,
+        description,
         span,
         name,
         block_def,
@@ -99,6 +109,17 @@ mod tests {
                 "OtherType",
                 ValueType::string(),
             ))
+        )
+    }
+
+    #[test]
+    fn test_parses_generic_type_def_with_description() {
+        assert_eq!(
+            parse_input("\"description\"type MyType = OtherType<String>"),
+            Ok(
+                GenericBlockDef::type_def("MyType", "OtherType", ValueType::string(),)
+                    .description("description")
+            )
         )
     }
 
