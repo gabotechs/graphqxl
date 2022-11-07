@@ -1,0 +1,7 @@
+import "no_duplicated2"
+import "no_duplicated3"
+
+type Type1 {
+    foo: Type2
+    bar: Type3
+}
