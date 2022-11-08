@@ -62,9 +62,11 @@ fn _transpile_block_def(
     let mut seen = HashSet::new();
 
     let mut evaluate_block_entry = |block_entry: &BlockEntry| -> Result<(), Box<dyn Error>> {
-        let BlockEntry::Field(field) = block_entry else {
-                unreachable!()
-            };
+        let field = if let BlockEntry::Field(field) = block_entry {
+            field
+        } else {
+            unreachable!()
+        };
         if seen.contains(&field.name.id) {
             return Err(field.span.make_error("repeated field"));
         }
