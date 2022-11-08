@@ -1,13 +1,14 @@
 use std::collections::HashMap;
+use std::error::Error;
 
 use crate::transpile_block_def::{BLOCK_NAME, BLOCK_TYPE};
 use crate::transpile_description::transpile_description;
-use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef, Rule, ValueBasicType, ValueType};
+use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef, ValueBasicType, ValueType};
 
 pub(crate) fn transpile_generic_block_def(
     generic_block_def: &GenericBlockDef,
     store: &HashMap<String, BlockDef>,
-) -> Result<BlockDef, pest::error::Error<Rule>> {
+) -> Result<BlockDef, Box<dyn Error>> {
     let unresolved_block_def = match store.get(&generic_block_def.block_def.id) {
         Some(block_def) => block_def,
         None => {
@@ -46,11 +47,13 @@ pub(crate) fn transpile_generic_block_def(
     resolve_block_def(unresolved_block_def, generic_block_def, generic_map)
 }
 
+const VARIABLES_PREFIX: &str = "variables";
+
 fn resolve_block_def(
     unresolved_block_def: &BlockDef,
     generic_block_def: &GenericBlockDef,
     generic_map: HashMap<&String, &ValueType>,
-) -> Result<BlockDef, pest::error::Error<Rule>> {
+) -> Result<BlockDef, Box<dyn Error>> {
     let mut resolved_block_def = unresolved_block_def.clone();
     resolved_block_def.generic = None;
     resolved_block_def.name = generic_block_def.name.clone();
@@ -64,7 +67,7 @@ fn resolve_block_def(
     ]);
     for (key, value) in generic_map.iter() {
         description_replacements.insert(
-            format!("variables.{key}"),
+            format!("{VARIABLES_PREFIX}.{key}"),
             format!("{}", value.retrieve_basic_type()),
         );
     }

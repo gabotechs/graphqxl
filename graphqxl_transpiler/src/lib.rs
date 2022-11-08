@@ -1,6 +1,7 @@
 extern crate core;
 
-use graphqxl_parser::{DefType, Rule, Spec};
+use graphqxl_parser::{DefType, Spec};
+use std::error::Error;
 
 use crate::transpile_block_def::{transpile_block_def, IdOrBlock};
 use crate::transpile_generic_block_def::transpile_generic_block_def;
@@ -10,7 +11,7 @@ mod transpile_description;
 mod transpile_generic_block_def;
 
 // TODO: we should not need to mutate the spec here
-pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
+pub fn transpile_spec(spec: &Spec) -> Result<Spec, Box<dyn Error>> {
     let mut target = Spec::default();
 
     let mut types = spec.types.clone();

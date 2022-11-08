@@ -1,7 +1,7 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::{parse_identifier, Identifier};
+use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
-use crate::Rule;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]

@@ -1,6 +1,7 @@
-use graphqxl_parser::{BlockDef, BlockField, OwnedSpan, Rule};
+use graphqxl_parser::{BlockDef, BlockField, OwnedSpan};
 use regex::{escape, Regex};
 use std::collections::HashMap;
+use std::error::Error;
 
 pub(crate) trait TemplateDescription {
     fn get_description(&self) -> &str;
@@ -39,7 +40,7 @@ impl TemplateDescription for BlockDef {
 pub(crate) fn transpile_description<T: TemplateDescription>(
     with_template_description: &mut T,
     replace: &HashMap<String, String>,
-) -> Result<(), pest::error::Error<Rule>> {
+) -> Result<(), Box<dyn Error>> {
     let any_template: Regex = Regex::new(r"\$\{\{.*}}").unwrap();
 
     let mut replaced = with_template_description.get_description().to_string();
@@ -120,10 +121,10 @@ mod tests {
         );
         match result {
             Ok(_) => panic!("should have failed"),
-            Err(err) => assert_eq!(
-                err.variant.message(),
-                ":0 Not all the template variables where resolved"
-            ),
+            Err(err) => {
+                assert!(format!("{}", err)
+                    .ends_with(":0 Not all the template variables where resolved"),)
+            }
         }
     }
 }
