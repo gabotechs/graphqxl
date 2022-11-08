@@ -104,7 +104,7 @@ mod tests {
             let out_path = test_dir.join(path.to_string() + ".result");
             if out_path.exists() {
                 let expected = fs::read_to_string(out_path).unwrap();
-                assert_eq!(expected, result)
+                assert_eq!(result, expected)
             } else {
                 fs::write(out_path, result).unwrap();
             }

@@ -14,16 +14,25 @@ type Known {
   foo: OriginalDescription
 }
 
+type GrandChild {
+  "I am in GrandChild"
+  grand_child_foo: Int
+}
+
 type Child {
-  "My dad is $PARENT"
+  "I am in Child"
   child_foo: Int
+  "I am in Child"
+  grand_child_foo: Int
 }
 
 type Parent {
-  "My son is Child"
+  "I am in Parent"
   parent_foo: Int
-  "My dad is Parent"
+  "I am in Parent"
   child_foo: Int
+  "I am in Parent"
+  grand_child_foo: Int
 }
 
 

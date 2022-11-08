@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::transpile_block_def::{BLOCK_NAME, BLOCK_TYPE};
 use crate::transpile_description::transpile_description;
 use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef, Rule, ValueBasicType, ValueType};
 
@@ -42,43 +43,42 @@ pub(crate) fn transpile_generic_block_def(
         );
     }
 
-    Ok(resolve_block_def(
-        unresolved_block_def,
-        generic_block_def,
-        generic_map,
-    ))
+    resolve_block_def(unresolved_block_def, generic_block_def, generic_map)
 }
-
-const GENERIC: &str = "GENERIC";
 
 fn resolve_block_def(
     unresolved_block_def: &BlockDef,
     generic_block_def: &GenericBlockDef,
     generic_map: HashMap<&String, &ValueType>,
-) -> BlockDef {
+) -> Result<BlockDef, pest::error::Error<Rule>> {
     let mut resolved_block_def = unresolved_block_def.clone();
     resolved_block_def.generic = None;
     resolved_block_def.name = generic_block_def.name.clone();
 
-    let mut description_replacements =
-        HashMap::from([(GENERIC, generic_block_def.name.id.clone())]);
+    let mut description_replacements = HashMap::from([
+        (BLOCK_NAME.to_string(), generic_block_def.name.id.clone()),
+        (
+            BLOCK_TYPE.to_string(),
+            format!("{}", generic_block_def.kind),
+        ),
+    ]);
     for (key, value) in generic_map.iter() {
-        description_replacements.insert(key.as_str(), format!("{}", value.retrieve_basic_type()));
+        description_replacements.insert(
+            format!("variables.{key}"),
+            format!("{}", value.retrieve_basic_type()),
+        );
     }
 
     if !generic_block_def.description.is_empty() {
         resolved_block_def.description = generic_block_def.description.clone()
     } else {
-        transpile_description(
-            &mut resolved_block_def.description,
-            &description_replacements,
-        );
+        transpile_description(&mut resolved_block_def, &description_replacements)?;
     }
 
     for entry in resolved_block_def.entries.iter_mut() {
         // if it is a field...
         if let BlockEntry::Field(block_field) = entry {
-            transpile_description(&mut block_field.description, &description_replacements);
+            transpile_description(block_field, &description_replacements)?;
             // ...and has a type...
             if let Some(value_type) = &block_field.value_type {
                 let basic_value_type = value_type.retrieve_basic_type();
@@ -94,7 +94,7 @@ fn resolve_block_def(
             }
         }
     }
-    resolved_block_def
+    Ok(resolved_block_def)
 }
 
 #[cfg(test)]
