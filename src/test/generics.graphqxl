@@ -1,0 +1,11 @@
+directive @dir on OBJECT
+directive @dir2 on OBJECT
+directive @dir3 on OBJECT
+
+type Generic<T U> @dir @dir2 {
+    t: T
+    u: U
+}
+
+"description"
+type Concrete @dir3 = Generic<String Int>

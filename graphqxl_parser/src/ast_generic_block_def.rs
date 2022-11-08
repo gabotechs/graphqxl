@@ -1,11 +1,12 @@
 use pest::iterators::Pair;
 
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
+use crate::ast_directive::parse_directive;
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use crate::{
-    parse_generic_call, parse_identifier, BlockDefType, GenericCall, Identifier, OwnedSpan,
-    ValueType,
+    parse_generic_call, parse_identifier, BlockDefType, Directive, GenericCall, Identifier,
+    OwnedSpan, ValueType,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -14,6 +15,7 @@ pub struct GenericBlockDef {
     pub description: String,
     pub kind: BlockDefType,
     pub name: Identifier,
+    pub directives: Vec<Directive>,
     pub block_def: Identifier,
     pub generic_call: GenericCall,
 }
@@ -23,6 +25,7 @@ impl GenericBlockDef {
         GenericBlockDef {
             kind,
             description: "".to_string(),
+            directives: vec![],
             span: OwnedSpan::default(),
             name: Identifier::from(name),
             block_def: Identifier::from(block_def),
@@ -47,6 +50,11 @@ impl GenericBlockDef {
         self.generic_call.arg(arg);
         self.clone()
     }
+
+    pub fn directive(&mut self, directive: Directive) -> Self {
+        self.directives.push(directive);
+        self.clone()
+    }
 }
 
 fn _parse_generic_block_def(
@@ -58,13 +66,20 @@ fn _parse_generic_block_def(
     let mut childs = pair.into_inner();
     let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs, file);
     let name = parse_identifier(next, file)?;
-    let block_def = parse_identifier(childs.next().unwrap(), file)?;
+    let mut directives = vec![];
+    let mut child = childs.next().unwrap();
+    while let Rule::directive = &child.as_rule() {
+        directives.push(parse_directive(child.clone(), file)?);
+        child = childs.next().unwrap();
+    }
+    let block_def = parse_identifier(child, file)?;
     let generic_call = parse_generic_call(childs.next().unwrap(), file)?;
 
     Ok(GenericBlockDef {
         kind,
         description,
         span,
+        directives,
         name,
         block_def,
         generic_call,
@@ -119,6 +134,18 @@ mod tests {
             Ok(
                 GenericBlockDef::type_def("MyType", "OtherType", ValueType::string(),)
                     .description("description")
+            )
+        )
+    }
+
+    #[test]
+    fn test_parses_generic_type_def_with_description_and_directive() {
+        assert_eq!(
+            parse_input("\"description\"type MyType @dir = OtherType<String>"),
+            Ok(
+                GenericBlockDef::type_def("MyType", "OtherType", ValueType::string(),)
+                    .description("description")
+                    .directive(Directive::build("dir"))
             )
         )
     }

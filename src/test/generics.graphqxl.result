@@ -1,0 +1,13 @@
+directive @dir on OBJECT
+
+directive @dir2 on OBJECT
+
+directive @dir3 on OBJECT
+
+"description"
+type Concrete @dir @dir2 @dir3 {
+  t: String
+  u: Int
+}
+
+
