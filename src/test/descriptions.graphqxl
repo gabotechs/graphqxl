@@ -8,21 +8,27 @@ type OverridenDescription = Generic<String>
 
 type OriginalDescription = Generic<String>
 
-"$GENERIC with inner type $T"
+"${{block.name }} with inner type ${{ variables.T }}"
 type Unknown<T> {
-    "$GENERIC.foo has a type $T"
+    "${{ block.name}}.foo has a type ${{ variables.T }}"
     foo: T
 }
 
 type Known = Unknown<OriginalDescription>
 
+type GrandChild {
+    "I am in ${{block.name}}"
+    grand_child_foo: Int
+}
+
 type Child {
-    "My dad is $PARENT"
+    "I am in ${{   block.name  }}"
     child_foo: Int
+    ...GrandChild
 }
 
 type Parent {
-    "My son is Child"
+    "I am in ${{ block.name }}"
     parent_foo: Int
     ...Child
 }

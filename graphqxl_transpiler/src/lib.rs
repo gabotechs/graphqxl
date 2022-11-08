@@ -1,11 +1,13 @@
+extern crate core;
+
 use graphqxl_parser::{DefType, Rule, Spec};
 
 use crate::transpile_block_def::{transpile_block_def, IdOrBlock};
 use crate::transpile_generic_block_def::transpile_generic_block_def;
 
 mod transpile_block_def;
-mod transpile_generic_block_def;
 mod transpile_description;
+mod transpile_generic_block_def;
 
 // TODO: we should not need to mutate the spec here
 pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
@@ -17,7 +19,7 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
     for def in spec.order.iter() {
         match def {
             DefType::Type(name) => {
-                let transpiled = transpile_block_def(IdOrBlock::Id(name.clone()), &types, 0)?;
+                let transpiled = transpile_block_def(&IdOrBlock::Id(name.clone()), &types)?;
                 target.types.insert(name.id.clone(), transpiled);
                 target.order.push(DefType::Type(name.clone()));
             }
@@ -28,13 +30,13 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
                     return Err(name.span.make_error("generic type not found"));
                 };
                 let resolved = transpile_generic_block_def(generic_type, &types)?;
-                let transpiled = transpile_block_def(IdOrBlock::Block(resolved), &types, 0)?;
+                let transpiled = transpile_block_def(&IdOrBlock::Block(resolved), &types)?;
                 types.insert(name.id.clone(), transpiled.clone());
                 target.types.insert(name.id.clone(), transpiled);
                 target.order.push(DefType::Type(name.clone()));
             }
             DefType::Input(name) => {
-                let transpiled = transpile_block_def(IdOrBlock::Id(name.clone()), &inputs, 0)?;
+                let transpiled = transpile_block_def(&IdOrBlock::Id(name.clone()), &inputs)?;
                 target.inputs.insert(name.id.clone(), transpiled);
                 target.order.push(DefType::Input(name.clone()));
             }
@@ -45,19 +47,19 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, pest::error::Error<Rule>> {
                     return Err(name.span.make_error("generic input not found"));
                 };
                 let resolved = transpile_generic_block_def(generic_input, &inputs)?;
-                let transpiled = transpile_block_def(IdOrBlock::Block(resolved), &inputs, 0)?;
+                let transpiled = transpile_block_def(&IdOrBlock::Block(resolved), &inputs)?;
                 inputs.insert(name.id.clone(), transpiled.clone());
                 target.inputs.insert(name.id.clone(), transpiled);
                 target.order.push(DefType::Input(name.clone()));
             }
             DefType::Enum(name) => {
-                let transpiled = transpile_block_def(IdOrBlock::Id(name.clone()), &spec.enums, 0)?;
+                let transpiled = transpile_block_def(&IdOrBlock::Id(name.clone()), &spec.enums)?;
                 target.enums.insert(name.id.clone(), transpiled);
                 target.order.push(DefType::Enum(name.clone()));
             }
             DefType::Interface(name) => {
                 let transpiled =
-                    transpile_block_def(IdOrBlock::Id(name.clone()), &spec.interfaces, 0)?;
+                    transpile_block_def(&IdOrBlock::Id(name.clone()), &spec.interfaces)?;
                 target.interfaces.insert(name.id.clone(), transpiled);
                 target.order.push(DefType::Interface(name.clone()));
             }

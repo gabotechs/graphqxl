@@ -6,6 +6,7 @@ use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, parse_generic, Directive, Generic};
 use pest::iterators::Pair;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlockDefType {
@@ -13,6 +14,21 @@ pub enum BlockDefType {
     Type,
     Enum,
     Interface,
+}
+
+impl Display for BlockDefType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                BlockDefType::Input => "input",
+                BlockDefType::Type => "type",
+                BlockDefType::Enum => "enum",
+                BlockDefType::Interface => "interface",
+            }
+        )
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

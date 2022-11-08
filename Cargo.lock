@@ -280,6 +280,7 @@ version = "0.25.0"
 dependencies = [
  "graphqxl_parser",
  "pest",
+ "regex",
 ]
 
 [[package]]
