@@ -86,15 +86,15 @@ fn resolve_block_def(
         if let BlockEntry::Field(block_field) = entry {
             transpile_description(block_field, &description_replacements)?;
             // ...and has a type...
-            if let Some(value_type) = &block_field.value_type {
+            if let Some(value_type) = &mut block_field.value_type {
                 let basic_value_type = value_type.retrieve_basic_type();
                 // ...and that type is an object...
                 if let ValueBasicType::Object(object) = basic_value_type {
                     // ...which is stored in the generic map...
                     if let Some(generic_replacement) = generic_map.get(&object.id) {
-                        let replacement = *generic_replacement;
                         // ...then replace it
-                        block_field.value_type = Some(replacement.clone());
+                        let replacement = *generic_replacement;
+                        value_type.replace_basic_type(replacement.clone());
                     }
                 }
             }

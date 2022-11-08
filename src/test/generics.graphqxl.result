@@ -6,8 +6,8 @@ directive @dir3 on OBJECT
 
 "description"
 type Concrete @dir @dir2 @dir3 {
-  t: String
-  u: Int
+  t: [String!]!
+  u: [Int]!
 }
 
 
