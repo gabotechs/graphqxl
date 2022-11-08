@@ -3,9 +3,9 @@ directive @dir2 on OBJECT
 directive @dir3 on OBJECT
 
 type Generic<T U> @dir @dir2 {
-    t: T
-    u: U
+    t: [T!]!
+    u: U!
 }
 
 "description"
-type Concrete @dir3 = Generic<String Int>
+type Concrete @dir3 = Generic<String [Int]>

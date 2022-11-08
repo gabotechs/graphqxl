@@ -51,6 +51,14 @@ impl ValueType {
             ValueType::NonNullable(a) => ValueType::retrieve_basic_type(a),
         }
     }
+
+    pub fn replace_basic_type(&mut self, value: ValueType) {
+        match self {
+            ValueType::Basic(_) => *self = value,
+            ValueType::Array(a) => ValueType::replace_basic_type(a, value),
+            ValueType::NonNullable(a) => ValueType::replace_basic_type(a, value),
+        }
+    }
 }
 
 pub(crate) fn parse_value_type(
@@ -120,6 +128,20 @@ mod tests {
         assert_eq!(
             parse_input("[Int!]!"),
             Ok(ValueType::int().non_nullable().array().non_nullable())
+        );
+    }
+
+    #[test]
+    fn test_replaces_value() {
+        let mut parsed = parse_input("[Int!]!").unwrap();
+        parsed.replace_basic_type(ValueType::string().array());
+        assert_eq!(
+            parsed,
+            ValueType::string()
+                .array()
+                .non_nullable()
+                .array()
+                .non_nullable()
         );
     }
 
