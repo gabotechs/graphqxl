@@ -15,6 +15,7 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, Box<dyn Error>> {
     let mut target = Spec::default();
 
     let mut types = spec.types.clone();
+    types.extend(spec.interfaces.clone());
     let mut inputs = spec.inputs.clone();
 
     for def in spec.order.iter() {

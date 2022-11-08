@@ -1,0 +1,12 @@
+"description"
+interface Interface {
+    "foo description"
+    foo: String!
+    "bar description"
+    bar: Int!
+}
+
+type Type implements Interface {
+    ...Interface
+}
+
