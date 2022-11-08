@@ -1,6 +1,7 @@
 use crate::transpile_description::transpile_description;
-use graphqxl_parser::{BlockDef, BlockDefType, BlockEntry, Identifier, OwnedSpan, Rule};
+use graphqxl_parser::{BlockDef, BlockDefType, BlockEntry, Identifier, OwnedSpan};
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
 use std::string::ToString;
 
 pub(crate) enum IdOrBlock {
@@ -33,7 +34,7 @@ fn _transpile_block_def(
     stack_count: usize,
     parent_name: &str,
     parent_kind: &BlockDefType,
-) -> Result<BlockDef, pest::error::Error<Rule>> {
+) -> Result<BlockDef, Box<dyn Error>> {
     // todo: where does this come from
     if stack_count > 100 {
         return Err(identifier
@@ -60,25 +61,24 @@ fn _transpile_block_def(
 
     let mut seen = HashSet::new();
 
-    let mut evaluate_block_entry =
-        |block_entry: &BlockEntry| -> Result<(), pest::error::Error<Rule>> {
-            let BlockEntry::Field(field) = block_entry else {
+    let mut evaluate_block_entry = |block_entry: &BlockEntry| -> Result<(), Box<dyn Error>> {
+        let BlockEntry::Field(field) = block_entry else {
                 unreachable!()
             };
-            if seen.contains(&field.name.id) {
-                return Err(field.span.make_error("repeated field"));
-            }
-            seen.insert(field.name.id.clone());
-            let mut field_clone = field.clone();
-            if block_def.generic.is_none() {
-                transpile_description(&mut field_clone, &template_string_replacements)?;
-            }
-            transpiled_block_def
-                .entries
-                .push(BlockEntry::Field(field_clone));
+        if seen.contains(&field.name.id) {
+            return Err(field.span.make_error("repeated field"));
+        }
+        seen.insert(field.name.id.clone());
+        let mut field_clone = field.clone();
+        if block_def.generic.is_none() {
+            transpile_description(&mut field_clone, &template_string_replacements)?;
+        }
+        transpiled_block_def
+            .entries
+            .push(BlockEntry::Field(field_clone));
 
-            Ok(())
-        };
+        Ok(())
+    };
 
     for entry in block_def.entries.iter() {
         if let BlockEntry::SpreadRef(identifier) = entry {
@@ -102,7 +102,7 @@ fn _transpile_block_def(
 pub(crate) fn transpile_block_def(
     identifier: &IdOrBlock,
     store: &HashMap<String, BlockDef>,
-) -> Result<BlockDef, pest::error::Error<Rule>> {
+) -> Result<BlockDef, Box<dyn Error>> {
     let parent_name = identifier.name();
     let parent_kind = match identifier {
         IdOrBlock::Id(id) => match store.get(&id.id) {

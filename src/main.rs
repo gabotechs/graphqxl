@@ -1,7 +1,7 @@
 mod apollo_diagnostic_source;
 
 use crate::apollo_diagnostic_source::reverse_diagnostic_map;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use apollo_compiler::ApolloCompiler;
 use clap::Parser;
 use graphqxl_parser::parse_spec;
@@ -42,7 +42,15 @@ fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
             spec_result.unwrap_err()
         ));
     };
-    let transpiled = transpile_spec(&spec).context("Error transpiling graphqxl file")?;
+    let transpile_result = transpile_spec(&spec);
+    let transpiled = if let Ok(transpiled) = transpile_result {
+        transpiled
+    } else {
+        return Err(anyhow!(
+            "Could not transpile graphqxl spec:\n\n{}",
+            transpile_result.unwrap_err()
+        ));
+    };
 
     let (result, source_map) = synth_spec(
         transpiled,

@@ -1,6 +1,6 @@
 use crate::ast_import::parse_import;
 use crate::parser::{GraphqxlParser, Rule};
-use crate::utils::{already_defined_error, unknown_rule_error};
+use crate::utils::{already_defined_error, unknown_rule_error, NoopRuleType};
 use crate::{
     parse_block_def, parse_directive_def, parse_generic_block_def, parse_scalar, parse_schema,
     parse_union, BlockDef, DirectiveDef, GenericBlockDef, Identifier, OwnedSpan, Scalar, Schema,
@@ -47,7 +47,7 @@ impl Spec {
         Self::default()
     }
 
-    fn merge(&mut self, other: Spec) -> Result<(), pest::error::Error<Rule>> {
+    fn merge(&mut self, other: Spec) -> Result<(), Box<dyn Error>> {
         for el in other.order.iter() {
             match el {
                 DefType::Type(name) => {
@@ -153,16 +153,16 @@ impl Spec {
         Ok(())
     }
 
-    fn add(&mut self, pair: Pair<Rule>, file: &str) -> Result<(), pest::error::Error<Rule>> {
+    fn add(&mut self, pair: Pair<Rule>, file: &str) -> Result<(), Box<dyn Error>> {
         match pair.as_rule() {
             Rule::schema_def => {
                 if self.schema_already_defined {
-                    Err(pest::error::Error::new_from_span(
+                    Err(Box::new(pest::error::Error::<NoopRuleType>::new_from_span(
                         pest::error::ErrorVariant::CustomError {
                             message: "schema is defined multiple times".to_string(),
                         },
                         pair.as_span(),
-                    ))
+                    )))
                 } else {
                     self.schema_already_defined = true;
                     self.schema = parse_schema(pair, file)?;
@@ -173,7 +173,7 @@ impl Spec {
                 let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.types.contains_key(&id.id) || self.generic_types.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "type", &id.id))
+                    Err(Box::new(already_defined_error(pair, "type", &id.id)))
                 } else {
                     self.types.insert(id.id.clone(), block_def);
                     self.order.push(DefType::Type(id));
@@ -184,7 +184,7 @@ impl Spec {
                 let generic_block_def = parse_generic_block_def(pair.clone(), file)?;
                 let id = generic_block_def.name.clone();
                 if self.generic_types.contains_key(&id.id) || self.types.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "type", &id.id))
+                    Err(Box::new(already_defined_error(pair, "type", &id.id)))
                 } else {
                     self.generic_types.insert(id.id.clone(), generic_block_def);
                     self.order.push(DefType::GenericType(id));
@@ -195,7 +195,7 @@ impl Spec {
                 let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.inputs.contains_key(&id.id) || self.generic_inputs.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "input", &id.id))
+                    Err(Box::new(already_defined_error(pair, "input", &id.id)))
                 } else {
                     self.inputs.insert(id.id.clone(), block_def);
                     self.order.push(DefType::Input(id));
@@ -206,7 +206,7 @@ impl Spec {
                 let generic_block_def = parse_generic_block_def(pair.clone(), file)?;
                 let id = generic_block_def.name.clone();
                 if self.generic_inputs.contains_key(&id.id) || self.inputs.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "input", &id.id))
+                    Err(Box::new(already_defined_error(pair, "input", &id.id)))
                 } else {
                     self.generic_inputs.insert(id.id.clone(), generic_block_def);
                     self.order.push(DefType::GenericInput(id));
@@ -217,7 +217,7 @@ impl Spec {
                 let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.enums.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "enum", &id.id))
+                    Err(Box::new(already_defined_error(pair, "enum", &id.id)))
                 } else {
                     self.enums.insert(id.id.clone(), block_def);
                     self.order.push(DefType::Enum(id));
@@ -228,7 +228,7 @@ impl Spec {
                 let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
                 if self.interfaces.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "interface", &id.id))
+                    Err(Box::new(already_defined_error(pair, "interface", &id.id)))
                 } else {
                     self.interfaces.insert(id.id.clone(), block_def);
                     self.order.push(DefType::Interface(id));
@@ -239,7 +239,7 @@ impl Spec {
                 let scalar = parse_scalar(pair.clone(), file)?;
                 let id = scalar.name.clone();
                 if self.scalars.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "scalar", &id.id))
+                    Err(Box::new(already_defined_error(pair, "scalar", &id.id)))
                 } else {
                     self.scalars.insert(id.id.clone(), scalar);
                     self.order.push(DefType::Scalar(id));
@@ -250,7 +250,7 @@ impl Spec {
                 let union = parse_union(pair.clone(), file)?;
                 let id = union.name.clone();
                 if self.unions.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "union", &id.id))
+                    Err(Box::new(already_defined_error(pair, "union", &id.id)))
                 } else {
                     self.unions.insert(id.id.clone(), union);
                     self.order.push(DefType::Union(id));
@@ -261,17 +261,17 @@ impl Spec {
                 let directive = parse_directive_def(pair.clone(), file)?;
                 let id = directive.name.clone();
                 if self.directives.contains_key(&id.id) {
-                    Err(already_defined_error(pair, "directive", &id.id))
+                    Err(Box::new(already_defined_error(pair, "directive", &id.id)))
                 } else {
                     self.directives.insert(id.id.clone(), directive);
                     self.order.push(DefType::Directive(id));
                     Ok(())
                 }
             }
-            _unknown => Err(unknown_rule_error(
+            _unknown => Err(Box::new(unknown_rule_error(
                 pair,
                 "type, input, enum, interface, scalar, union, directive",
-            )),
+            ))),
         }
     }
 }
@@ -292,9 +292,7 @@ fn check_import_loop(import_stack: &Vec<PathBuf>, span: &OwnedSpan) -> Result<()
                     msg += &import_string;
                 }
             }
-            return Err(Box::new(
-                span.make_error(&format!("cyclical import {}", msg)),
-            ));
+            return Err(span.make_error(&format!("cyclical import {}", msg)));
         } else {
             seen.insert(import_string);
         }
@@ -332,9 +330,9 @@ fn private_parse_spec<P: AsRef<Path>>(
                     let file_dir = abs_path.parent().unwrap();
                     let import_path = Path::new(file_dir).join(&file_name);
                     if !import_path.exists() {
-                        return Err(Box::new(import.span.make_error(
+                        return Err(import.span.make_error(
                             format!("file {:?} does not exist", import_path).as_str(),
-                        )));
+                        ));
                     }
                     let mut stack = import_stack.clone();
                     stack.push(import_path.clone());

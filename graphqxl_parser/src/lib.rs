@@ -31,7 +31,6 @@ pub use ast_arguments::*;
 pub use ast_block_def::*;
 pub use ast_block_field::*;
 // pub use ast_description::*;
-pub use crate::parser::Rule;
 pub use ast_directive::*;
 pub use ast_directive_def::*;
 pub use ast_directive_location::*;

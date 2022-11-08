@@ -98,7 +98,7 @@ pub(crate) fn reverse_diagnostic_map(
             && source_span.offset + source_span.length <= entry.stop
         {
             let err = entry.span.make_error(&diagnostic.report().to_string());
-            return Err(anyhow!(err));
+            return Err(anyhow!("{}", err));
         }
     }
     Err(anyhow!("{}", diagnostic))

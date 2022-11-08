@@ -1,6 +1,7 @@
 use crate::ast_identifier::{parse_identifier, Identifier};
+use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
-use crate::{parse_function_call, FunctionCall, FunctionInput, Rule, ValueData};
+use crate::{parse_function_call, FunctionCall, FunctionInput, ValueData};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]
