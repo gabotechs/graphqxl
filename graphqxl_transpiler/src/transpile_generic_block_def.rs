@@ -57,6 +57,9 @@ fn resolve_block_def(
     let mut resolved_block_def = unresolved_block_def.clone();
     resolved_block_def.generic = None;
     resolved_block_def.name = generic_block_def.name.clone();
+    resolved_block_def
+        .directives
+        .extend(generic_block_def.directives.clone());
 
     let mut description_replacements = HashMap::from([
         (BLOCK_NAME.to_string(), generic_block_def.name.id.clone()),
