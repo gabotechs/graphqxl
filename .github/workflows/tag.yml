@@ -24,7 +24,8 @@ jobs:
       - name: Cache
         uses: Swatinem/rust-cache@v2
 
-      - uses: actions-rs/cargo@v1
+      - name: Test
+        uses: actions-rs/cargo@v1
         with:
           command: test
           args: --all --no-fail-fast
@@ -32,7 +33,9 @@ jobs:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
           RUSTDOCFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-      - id: Coverage
+
+      - Name: Coverage
+        id: Coverage
         uses: actions-rs/grcov@v0.1
 
       - name: Coveralls upload
