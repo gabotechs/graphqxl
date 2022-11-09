@@ -143,7 +143,3 @@ tar -xvf graphqxl-aarch64-unknown-linux-gnu.tar.gz
 ```
 
 this will output `foo.graphql` as a result
-
-## License
-
-> TODO
