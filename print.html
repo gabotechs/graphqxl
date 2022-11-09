@@ -154,7 +154,7 @@ maintainability you are bound to language-specific tools for merging them.</p>
 </li>
 </ul>
 <p>GraphQXL provides additional syntax to the original GraphQL language for solving this
-challenges and make defining server-side GraphQL schemas a nicer experience,
+challenges and making defining server-side GraphQL schemas a nicer experience,
 without being bound to language-specific tools. At the end of the day, GraphQXL is just
 a binary executable that will compile your GraphQXL schemas into GraphQL, independently
 of the programming language that you are using for the backend.</p>
@@ -206,8 +206,8 @@ type MyType {
 }
 </code></pre>
 <h2 id="features"><a class="header" href="#features">Features</a></h2>
-<p>So, above example was not very useful, as the compilation result is exactly the same
-as the input. Here are the list of more useful things you can do with GraphQXL:</p>
+<p>So, the example above was not very useful, as the compilation result is exactly the same
+as the input. Here is a list of more useful things you can do with GraphQXL:</p>
 <ul>
 <li><a href="./features/inheritance.html">Field inheritance</a></li>
 <li><a href="./features/generics.html">Generic types and inputs</a></li>
@@ -257,7 +257,7 @@ type Product {
 <h2 id="private-fields"><a class="header" href="#private-fields">Private fields</a></h2>
 <p>It is very common that you do not want to expose the <code>Common</code> type in the public API,
 so you can make it private by prefixing the type with a <code>_</code> character (or the 
-prefix override that you provide in the CLI argument):</p>
+prefix that you provide in the CLI argument):</p>
 <pre><code class="language-graphql">type _Common {
     &quot;Type's ID&quot;
     id: ID!
@@ -323,7 +323,7 @@ type Kid implements Person {
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="generics"><a class="header" href="#generics">Generics</a></h1>
-<p>Generics can be used to reuse common structures across your app that have some
+<p>Generics can be used to reuse <code>types</code> or <code>inputs</code> that have some
 small subset of the fields slightly different from each other:</p>
 <pre><code class="language-graphql">type Generic&lt;T&gt; {
     foo: T
@@ -374,9 +374,9 @@ type ListOfBooksWithLength {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imports"><a class="header" href="#imports">Imports</a></h1>
 <p>Import statements allow you to split your schema across different files without
 relying on any opinionated merging tool or some language-specific merging script.
-This is useful to keep your schema's code base clean and to make it more
-maintainable.</p>
-<p>An <code>import</code> statement will resolve and import all the content of the imported
+This is useful for keeping your schema's code base clean and for improving its
+maintainability.</p>
+<p>An <code>import</code> statement will resolve all the content of the imported
 file in the current one, for example:</p>
 <pre><code class="language-graphql"># common-stuff.graphqxl
 type Identifier {
@@ -468,7 +468,7 @@ type Baz {
     ..._ToBeReused
 }
 </code></pre>
-<p>Will compile to</p>
+<p>will compile to</p>
 <pre><code class="language-graphql">type Bar {
     &quot;Field foo from Bar&quot;
     foo: String!
