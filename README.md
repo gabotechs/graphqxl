@@ -6,10 +6,12 @@
 [![Coverage Status](https://coveralls.io/repos/github/gabotechs/graphqxl/badge.svg?branch=main)](https://coveralls.io/github/gabotechs/graphqxl?branch=main)
 ![](https://img.shields.io/github/v/release/gabotechs/graphqxl?color=%e535abff)
 
-> **WIP**: This project is a work in progress
-
 GraphQXL is an extension of the GraphQL language with some additional features
 that are useful for creating scalable server side schemas.
+
+# Documentation
+
+There is a WIP version of the `GraphQXL book` with some useful docs, you can check it [here](https://gabotechs.github.io/graphqxl)
 
 # Features
 ### Object inheritance
