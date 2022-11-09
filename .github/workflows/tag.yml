@@ -17,6 +17,7 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
+          toolchain: nightly-2022-10-09 # Fixed so that it can be cached
           profile: minimal
           override: true
 
