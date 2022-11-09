@@ -1,7 +1,9 @@
 mod apollo_diagnostic_source;
+mod ok_or_anyhow_err;
 
 use crate::apollo_diagnostic_source::reverse_diagnostic_map;
-use anyhow::{anyhow, Result};
+use crate::ok_or_anyhow_err::ok_or_anyhow_err;
+use anyhow::Result;
 use apollo_compiler::ApolloCompiler;
 use clap::Parser;
 use graphqxl_parser::parse_spec;
@@ -10,19 +12,27 @@ use graphqxl_transpiler::transpile_spec;
 use std::fs;
 
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None)]
 struct Args {
-    #[clap()]
+    #[arg(help = "Path to the .graphqxl file")]
     input: String,
 
-    #[clap(long)]
+    #[arg(short, long, help = "Output path for the generated .graphql file")]
     output: Option<String>,
 
-    #[clap(long)]
-    indent_spaces: Option<usize>,
+    #[arg(
+        long,
+        default_value_t = 2,
+        help = "Number of spaces used for the generated file's indentation"
+    )]
+    indent_spaces: usize,
 
-    #[clap(long)]
-    private_prefix: Option<String>,
+    #[arg(
+        long,
+        default_value_t = String::from("_"),
+        help = "String that needs to be prefixed to a type or an input in order to consider it private"
+    )]
+    private_prefix: String,
 }
 
 fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
@@ -33,33 +43,18 @@ fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
     } else {
         args.input.to_string() + ".graphql"
     };
+
     let spec_result = parse_spec(&args.input);
-    let spec = if let Ok(spec) = spec_result {
-        spec
-    } else {
-        return Err(anyhow!(
-            "Could not parse graphqxl spec:\n\n{}",
-            spec_result.unwrap_err()
-        ));
-    };
+    let spec = ok_or_anyhow_err(spec_result, "Could not parse GraphQXL spec")?;
+
     let transpile_result = transpile_spec(&spec);
-    let transpiled = if let Ok(transpiled) = transpile_result {
-        transpiled
-    } else {
-        return Err(anyhow!(
-            "Could not transpile graphqxl spec:\n\n{}",
-            transpile_result.unwrap_err()
-        ));
-    };
+    let transpiled = ok_or_anyhow_err(transpile_result, "Could not transpile graphqxl spec")?;
 
     let (result, source_map) = synth_spec(
         transpiled,
         SynthConfig {
-            indent_spaces: args.indent_spaces.unwrap_or(2),
-            private_prefix: args
-                .private_prefix
-                .clone()
-                .unwrap_or_else(|| "_".to_string()),
+            indent_spaces: args.indent_spaces,
+            private_prefix: args.private_prefix.clone(),
             ..Default::default()
         },
     );
@@ -99,8 +94,8 @@ mod tests {
             let result = graphqxl_to_graphql(&Args {
                 input: test_dir.join(path).to_str().unwrap().to_string(),
                 output: None,
-                indent_spaces: None,
-                private_prefix: None,
+                indent_spaces: 2,
+                private_prefix: "_".to_string(),
             });
             let result = if let Ok((result, _)) = result {
                 result
