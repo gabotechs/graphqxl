@@ -246,7 +246,7 @@ checksum = "22030e2c5a68ec659fde1e949a745124b48e6fa8b045b7ed5bd1fe4ccc5c4e5d"
 
 [[package]]
 name = "graphqxl"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "anyhow",
  "apollo-compiler",
@@ -259,7 +259,7 @@ dependencies = [
 
 [[package]]
 name = "graphqxl_parser"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "indexmap",
  "pest",
@@ -268,7 +268,7 @@ dependencies = [
 
 [[package]]
 name = "graphqxl_synthesizer"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "graphqxl_parser",
  "indexmap",
@@ -276,7 +276,7 @@ dependencies = [
 
 [[package]]
 name = "graphqxl_transpiler"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "graphqxl_parser",
  "pest",
