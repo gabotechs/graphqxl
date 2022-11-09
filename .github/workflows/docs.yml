@@ -1,0 +1,27 @@
+name: Docs
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v**'
+
+jobs:
+  upload-docs:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+
+      - run: mdbook build
+        working-directory: docs
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/book
