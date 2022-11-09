@@ -44,7 +44,7 @@ type Baz {
     ..._ToBeReused
 }
 ```
-Will compile to
+will compile to
 ```graphql
 type Bar {
     "Field foo from Bar"

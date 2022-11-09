@@ -24,8 +24,8 @@ type MyType {
 
 ## Features
 
-So, above example was not very useful, as the compilation result is exactly the same
-as the input. Here are the list of more useful things you can do with GraphQXL:
+So, the example above was not very useful, as the compilation result is exactly the same
+as the input. Here is a list of more useful things you can do with GraphQXL:
 
 - [Field inheritance](./features/inheritance.md)
 - [Generic types and inputs](./features/generics.md)

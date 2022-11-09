@@ -46,7 +46,7 @@ type Product {
 
 It is very common that you do not want to expose the `Common` type in the public API,
 so you can make it private by prefixing the type with a `_` character (or the 
-prefix override that you provide in the CLI argument):
+prefix that you provide in the CLI argument):
 ```graphql
 type _Common {
     "Type's ID"

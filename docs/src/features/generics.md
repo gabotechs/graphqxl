@@ -1,6 +1,6 @@
 # Generics
 
-Generics can be used to reuse common structures across your app that have some
+Generics can be used to reuse `types` or `inputs` that have some
 small subset of the fields slightly different from each other:
 ```graphql
 type Generic<T> {

@@ -16,7 +16,7 @@ in your schema, and if you want to split your schema across different files for 
 maintainability you are bound to language-specific tools for merging them.
 
 GraphQXL provides additional syntax to the original GraphQL language for solving this
-challenges and make defining server-side GraphQL schemas a nicer experience,
+challenges and making defining server-side GraphQL schemas a nicer experience,
 without being bound to language-specific tools. At the end of the day, GraphQXL is just
 a binary executable that will compile your GraphQXL schemas into GraphQL, independently
 of the programming language that you are using for the backend.

@@ -2,10 +2,10 @@
 
 Import statements allow you to split your schema across different files without
 relying on any opinionated merging tool or some language-specific merging script.
-This is useful to keep your schema's code base clean and to make it more
-maintainable.
+This is useful for keeping your schema's code base clean and for improving its
+maintainability.
 
-An `import` statement will resolve and import all the content of the imported
+An `import` statement will resolve all the content of the imported
 file in the current one, for example:
 ```graphql
 # common-stuff.graphqxl
