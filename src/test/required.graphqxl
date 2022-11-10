@@ -1,0 +1,13 @@
+enum Enum {
+    One
+    Two
+}
+
+type _MyType {
+    foo: String
+    bar: [Int]
+    bax: Enum!
+}
+
+type RequiredMyType = Required<_MyType>
+

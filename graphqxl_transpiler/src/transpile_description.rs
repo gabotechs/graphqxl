@@ -40,6 +40,7 @@ impl TemplateDescription for BlockDef {
 pub(crate) fn transpile_description<T: TemplateDescription>(
     with_template_description: &mut T,
     replace: &HashMap<String, String>,
+    allow_missing_replacements: bool,
 ) -> Result<(), Box<dyn Error>> {
     let any_template: Regex = Regex::new(r"\$\{\{.*}}").unwrap();
 
@@ -61,7 +62,7 @@ pub(crate) fn transpile_description<T: TemplateDescription>(
         };
         replaced = re.replace_all(&replaced, value).to_string();
     }
-    if any_template.is_match(&replaced) {
+    if !allow_missing_replacements && any_template.is_match(&replaced) {
         return Err(with_template_description
             .owned_span()
             .make_error("Not all the template variables where resolved"));
@@ -105,6 +106,7 @@ mod tests {
                 ("T".to_string(), "Replacement".to_string()),
                 ("I".to_string(), "Ignored".to_string()),
             ]),
+            false,
         );
         match result {
             Ok(_) => assert_eq!(string.0, "This must be replaced: Replacement"),
@@ -118,6 +120,7 @@ mod tests {
         let result = transpile_description(
             &mut string,
             &HashMap::from([("I".to_string(), "Ignored".to_string())]),
+            false,
         );
         match result {
             Ok(_) => panic!("should have failed"),

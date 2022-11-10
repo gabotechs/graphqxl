@@ -9,11 +9,11 @@ schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_key = @{ "query" | "mutation" | "subscription" }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
-generic_type_def = { description? ~  "type " ~ identifier ~ directive* ~ "=" ~ identifier ~ generic_call }
+generic_type_def = { description? ~  "type " ~ identifier ~ directive* ~ "=" ~ modified_ref }
 type_def = { description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
     implements = { "implements" ~ identifier ~ ("&" ~ identifier)* }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
-generic_input_def = { description? ~  "input " ~ identifier ~ directive* ~ "=" ~ identifier ~ generic_call }
+generic_input_def = { description? ~  "input " ~ identifier ~ directive* ~ "=" ~ modified_ref }
 input_def = { description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
     input_selection_set = { "{" ~ (field_without_args | spread_reference)* ~ "}" }
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
@@ -62,6 +62,16 @@ description = @{ multiline_description | one_line_description }
 
 directive = { "@" ~ identifier ~ function_call? }
 
+required_modifier = @{ "Required" }
+optional_modifier = @{ "Optional" }
+
+expandable_ref = { identifier ~ generic_call? }
+modified_ref = {
+ (required_modifier ~ "<" ~ modified_ref ~ ">") |
+ (optional_modifier ~ "<" ~ modified_ref ~ ">") |
+ expandable_ref
+}
+
 value_type = { value_non_nullable | value_array | value_basic_type }
 
     value_array = { "[" ~ (value_non_nullable | value_array | value_basic_type) ~ "]" }
@@ -93,6 +103,6 @@ char_no_double_quote = @{
 identifier = @{ ( ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_" )* }
 generic = { "<" ~ identifier ~ identifier* ~ ">" }
 generic_call = { "<" ~ value_type ~ value_type* ~ ">" }
-spread_reference = ${ "..." ~ identifier }
+spread_reference = { "..." ~ modified_ref }
 WHITESPACE = _{ " " | "," | "\n" | "\r" | "\t" }
 COMMENT = _{ "#" ~ (!"\n" ~ ANY)* ~ "\n" }
