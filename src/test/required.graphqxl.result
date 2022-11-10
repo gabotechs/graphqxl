@@ -1,0 +1,12 @@
+enum Enum {
+  One
+  Two
+}
+
+type RequiredMyType {
+  foo: String!
+  bar: [Int]!
+  bax: Enum!
+}
+
+

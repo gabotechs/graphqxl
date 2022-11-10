@@ -1,0 +1,11 @@
+type Concrete {
+  t: String!
+  u: Int!
+}
+
+type OptionalConcrete {
+  t: String
+  u: Int
+}
+
+

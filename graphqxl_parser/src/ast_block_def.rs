@@ -2,6 +2,7 @@ use crate::ast_block_field::{parse_block_field, BlockField};
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::ast_implements::{parse_implements, Implements};
+use crate::ast_modified_ref::{parse_modified_ref, ModifiedRef};
 use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, parse_generic, Directive, Generic};
@@ -34,7 +35,7 @@ impl Display for BlockDefType {
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlockEntry {
     Field(BlockField),
-    SpreadRef(Identifier),
+    SpreadRef(ModifiedRef),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -99,9 +100,8 @@ impl BlockDef {
         self.clone()
     }
 
-    pub fn spread(&mut self, identifier: &str) -> Self {
-        self.entries
-            .push(BlockEntry::SpreadRef(Identifier::from(identifier)));
+    pub fn spread(&mut self, modified_ref: ModifiedRef) -> Self {
+        self.entries.push(BlockEntry::SpreadRef(modified_ref));
         self.clone()
     }
 
@@ -142,7 +142,8 @@ fn _parse_block_def(
                 for pair in child.into_inner() {
                     match pair.as_rule() {
                         Rule::spread_reference => {
-                            let spread = parse_identifier(pair.into_inner().next().unwrap(), file)?;
+                            let spread =
+                                parse_modified_ref(pair.into_inner().next().unwrap(), file)?;
                             entries.push(BlockEntry::SpreadRef(spread))
                         }
                         _ => {
@@ -293,7 +294,7 @@ mod tests {
             parse_input("type MyType { field1: String ...Type field2: String }"),
             Ok(BlockDef::type_def("MyType")
                 .field(BlockField::build("field1").string())
-                .spread("Type")
+                .spread(ModifiedRef::build("Type"))
                 .field(BlockField::build("field2").string()))
         );
     }
@@ -304,7 +305,7 @@ mod tests {
             parse_input("input MyInput { field1: String ...Input field2: String }"),
             Ok(BlockDef::input_def("MyInput")
                 .field(BlockField::build("field1").string())
-                .spread("Input")
+                .spread(ModifiedRef::build("Input"))
                 .field(BlockField::build("field2").string()))
         );
     }
@@ -315,7 +316,7 @@ mod tests {
             parse_input("enum MyEnum { field1 ...Enum field2 }"),
             Ok(BlockDef::enum_def("MyEnum")
                 .field(BlockField::build("field1"))
-                .spread("Enum")
+                .spread(ModifiedRef::build("Enum"))
                 .field(BlockField::build("field2")))
         );
     }

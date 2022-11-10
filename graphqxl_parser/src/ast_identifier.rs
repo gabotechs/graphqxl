@@ -8,8 +8,8 @@ pub struct Identifier {
     pub span: OwnedSpan,
 }
 
-impl From<&str> for Identifier {
-    fn from(id: &str) -> Self {
+impl Identifier {
+    pub fn from(id: &str) -> Self {
         Self {
             id: id.to_string(),
             span: OwnedSpan::default(),

@@ -1,0 +1,12 @@
+enum Enum {
+    One
+    Two
+}
+
+type _MyType {
+    foo: String
+    bar: [Int]
+    bax: Enum!
+}
+
+type OptionalMyType = Optional<_MyType>

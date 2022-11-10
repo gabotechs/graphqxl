@@ -1,13 +1,13 @@
 use pest::iterators::Pair;
+use std::borrow::BorrowMut;
 
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_directive::parse_directive;
+use crate::ast_expandable_ref::ExpandableRef;
+use crate::ast_modified_ref::{parse_modified_ref, ModifiedRef};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
-use crate::{
-    parse_generic_call, parse_identifier, BlockDefType, Directive, GenericCall, Identifier,
-    OwnedSpan, ValueType,
-};
+use crate::{parse_identifier, BlockDefType, Directive, Identifier, OwnedSpan, ValueType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct GenericBlockDef {
@@ -16,29 +16,35 @@ pub struct GenericBlockDef {
     pub kind: BlockDefType,
     pub name: Identifier,
     pub directives: Vec<Directive>,
-    pub block_def: Identifier,
-    pub generic_call: GenericCall,
+    pub modified_ref: ModifiedRef,
 }
 
 impl GenericBlockDef {
-    fn from(kind: BlockDefType, name: &str, block_def: &str, arg: ValueType) -> Self {
+    fn from(kind: BlockDefType, name: &str, block_def: &str, arg: Option<ValueType>) -> Self {
+        let mut expandable_ref = ExpandableRef::from(block_def);
+        if let Some(arg) = arg {
+            expandable_ref.generic_arg(arg);
+        }
         GenericBlockDef {
             kind,
             description: "".to_string(),
             directives: vec![],
             span: OwnedSpan::default(),
             name: Identifier::from(name),
-            block_def: Identifier::from(block_def),
-            generic_call: GenericCall::from(arg),
+            modified_ref: ModifiedRef::expandable_ref(expandable_ref),
         }
     }
 
     pub fn type_def(name: &str, block_def: &str, arg: ValueType) -> Self {
-        Self::from(BlockDefType::Type, name, block_def, arg)
+        Self::from(BlockDefType::Type, name, block_def, Some(arg))
+    }
+
+    pub fn type_def_no_arg(name: &str, block_def: &str) -> Self {
+        Self::from(BlockDefType::Type, name, block_def, None)
     }
 
     pub fn input_def(name: &str, block_def: &str, arg: ValueType) -> Self {
-        Self::from(BlockDefType::Input, name, block_def, arg)
+        Self::from(BlockDefType::Input, name, block_def, Some(arg))
     }
 
     pub fn description(&mut self, text: &str) -> Self {
@@ -47,7 +53,9 @@ impl GenericBlockDef {
     }
 
     pub fn arg(&mut self, arg: ValueType) -> Self {
-        self.generic_call.arg(arg);
+        if let ModifiedRef::ExpandableRef(r) = self.modified_ref.borrow_mut() {
+            r.generic_arg(arg);
+        };
         self.clone()
     }
 
@@ -72,8 +80,7 @@ fn _parse_generic_block_def(
         directives.push(parse_directive(child.clone(), file)?);
         child = childs.next().unwrap();
     }
-    let block_def = parse_identifier(child, file)?;
-    let generic_call = parse_generic_call(childs.next().unwrap(), file)?;
+    let modified_ref = parse_modified_ref(child, file)?;
 
     Ok(GenericBlockDef {
         kind,
@@ -81,8 +88,7 @@ fn _parse_generic_block_def(
         span,
         directives,
         name,
-        block_def,
-        generic_call,
+        modified_ref,
     })
 }
 
@@ -175,7 +181,10 @@ mod tests {
     }
 
     #[test]
-    fn test_do_not_parses_without_generic_call() {
-        parse_input("type MyType = OtherType").unwrap_err();
+    fn test_parses_even_without_generic_call() {
+        assert_eq!(
+            parse_input("type MyType = OtherType"),
+            Ok(GenericBlockDef::type_def_no_arg("MyType", "OtherType"))
+        )
     }
 }

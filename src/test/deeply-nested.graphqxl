@@ -1,0 +1,10 @@
+type Generic<T, U> {
+    t: T
+    u: U
+}
+
+type Concrete {
+    ...Required<Optional<Required<Generic<String, Int>>>>
+}
+
+type OptionalConcrete = Optional<Required<Optional<Concrete>>>

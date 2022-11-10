@@ -1,0 +1,12 @@
+enum Enum {
+  One
+  Two
+}
+
+type OptionalMyType {
+  foo: String
+  bar: [Int]
+  bax: Enum
+}
+
+
