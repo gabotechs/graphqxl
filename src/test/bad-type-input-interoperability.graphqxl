@@ -1,0 +1,11 @@
+input Input {
+    foo: String
+}
+
+input InputInput {
+    input: Input
+}
+
+type Type = Input
+
+type TypeType = InputInput

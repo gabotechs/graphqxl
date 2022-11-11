@@ -1,0 +1,42 @@
+type Type {
+  t_foo: String
+  t_bar: String
+}
+
+input Input {
+  i_foo: Int
+  i_bar: Int
+}
+
+interface Interface {
+  if_foo: Boolean
+  if_bar: Boolean
+}
+
+type TypeInputInterface implements Interface {
+  t_foo: String
+  t_bar: String
+  i_foo: Int
+  i_bar: Int
+  if_foo: Boolean
+  if_bar: Boolean
+}
+
+input InputType {
+  i_foo: Int
+  i_bar: Int
+  t_foo: String
+  t_bar: String
+}
+
+type RequiredType {
+  i_foo: Int!
+  i_bar: Int!
+}
+
+input OptionalInput {
+  t_foo: String
+  t_bar: String
+}
+
+

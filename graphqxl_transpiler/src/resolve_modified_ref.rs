@@ -2,9 +2,9 @@ use crate::resolve_expandable_ref::resolve_expandable_ref;
 use graphqxl_parser::{
     BlockDef, BlockField, Directive, Implements, ModifiedRef, OwnedSpan, ValueType,
 };
-use std::collections::HashMap;
 use std::error::Error;
 use std::ops::Deref;
+use crate::utils::BlockDefStore;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ResolvedRef {
@@ -68,7 +68,7 @@ impl ModifiedRefStackContext {
 
 pub(crate) fn resolve_modified_ref_with_context(
     modified_ref: &ModifiedRef,
-    store: &HashMap<String, BlockDef>,
+    store: &BlockDefStore,
     stack_context: ModifiedRefStackContext,
 ) -> Result<ResolvedRef, Box<dyn Error>> {
     // todo: where does this come from
@@ -96,7 +96,7 @@ pub(crate) fn resolve_modified_ref_with_context(
 
 pub(crate) fn resolve_modified_ref(
     modified_ref: &ModifiedRef,
-    store: &HashMap<String, BlockDef>,
+    store: &BlockDefStore,
 ) -> Result<ResolvedRef, Box<dyn Error>> {
     resolve_modified_ref_with_context(modified_ref, store, ModifiedRefStackContext::default())
 }

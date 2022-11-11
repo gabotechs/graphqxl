@@ -81,6 +81,8 @@ mod tests {
     use regex::Regex;
     use std::path::Path;
 
+    const ONLY: &str = "";
+
     #[test]
     fn test_graphqxl_to_graphql() {
         let test_dir = Path::new("src").join("test");
@@ -88,7 +90,10 @@ mod tests {
         for dir_entry in paths {
             let file_name = dir_entry.unwrap().file_name();
             let path = file_name.to_str().unwrap();
-            if path.starts_with('_') || path.ends_with("result") {
+            if path.starts_with('_')
+                || path.ends_with("result")
+                || (!ONLY.is_empty() && !path.contains(ONLY))
+            {
                 continue;
             }
             let result = graphqxl_to_graphql(&Args {

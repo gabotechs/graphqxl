@@ -1,12 +1,12 @@
-use std::collections::HashMap;
 use std::error::Error;
 
 use crate::resolve_modified_ref::resolve_modified_ref;
 use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef};
+use crate::utils::BlockDefStore;
 
 pub(crate) fn transpile_generic_block_def(
     generic_block_def: &GenericBlockDef,
-    store: &HashMap<String, BlockDef>,
+    store: &BlockDefStore,
 ) -> Result<BlockDef, Box<dyn Error>> {
     let resolved = resolve_modified_ref(&generic_block_def.modified_ref, store)?;
 

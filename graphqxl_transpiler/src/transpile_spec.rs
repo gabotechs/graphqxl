@@ -1,86 +1,97 @@
 use crate::transpile_block_def::{transpile_block_def_by_block, transpile_block_def_by_id};
 use crate::transpile_generic_block_def::transpile_generic_block_def;
-use crate::transpiler::GraphqxlTranspiler;
+use crate::utils::BlockDefStore;
 use graphqxl_parser::{DefType, Spec};
+use std::collections::HashMap;
 use std::error::Error;
 
-impl<'a> GraphqxlTranspiler<'a> {
-    pub(crate) fn transpile(&mut self) -> Result<Spec, Box<dyn Error>> {
-        let mut target = Spec::default();
+pub fn transpile_spec(spec: &Spec) -> Result<Spec, Box<dyn Error>> {
+    let mut target = Spec::default();
+    let mut transpiled_store = HashMap::new();
 
-        for def in self.source.order.iter() {
-            match def {
-                DefType::Type(name) => {
-                    let transpiled = transpile_block_def_by_id(name, &self.types_store)?;
-                    if transpiled.generic.is_none() {
-                        target.types.insert(name.id.clone(), transpiled);
-                        target.order.push(DefType::Type(name.clone()));
-                    }
-                }
-                DefType::GenericType(name) => {
-                    let generic_type =
-                        if let Some(generic_type) = self.source.generic_types.get(&name.id) {
-                            generic_type
-                        } else {
-                            return Err(name.span.make_error("generic type not found"));
-                        };
-                    let resolved = transpile_generic_block_def(generic_type, &self.types_store)?;
-                    let transpiled = transpile_block_def_by_block(&resolved, &self.types_store)?;
-                    self.types_store.insert(name.id.clone(), transpiled.clone());
+    for def in spec.order.iter() {
+        let types_block_def_store = BlockDefStore::from((
+            &spec.types,
+            &transpiled_store,
+            &spec.interfaces,
+            &spec.inputs,
+        ));
+
+        let inputs_block_def_store =
+            BlockDefStore::from((&spec.inputs, &transpiled_store, &spec.types));
+
+        let enums_block_def_store = BlockDefStore::from(&spec.enums);
+
+        let interfaces_block_def_store = BlockDefStore::from(&spec.interfaces);
+
+        match def {
+            DefType::Type(name) => {
+                let transpiled = transpile_block_def_by_id(name, &types_block_def_store)?;
+                if transpiled.generic.is_none() {
                     target.types.insert(name.id.clone(), transpiled);
                     target.order.push(DefType::Type(name.clone()));
                 }
-                DefType::Input(name) => {
-                    let transpiled = transpile_block_def_by_id(&name, &self.inputs_store)?;
-                    if transpiled.generic.is_none() {
-                        target.inputs.insert(name.id.clone(), transpiled);
-                        target.order.push(DefType::Input(name.clone()));
-                    }
-                }
-                DefType::GenericInput(name) => {
-                    let generic_input =
-                        if let Some(generic_input) = self.source.generic_inputs.get(&name.id) {
-                            generic_input
-                        } else {
-                            return Err(name.span.make_error("generic input not found"));
-                        };
-                    let resolved = transpile_generic_block_def(generic_input, &self.inputs_store)?;
-                    let transpiled = transpile_block_def_by_block(&resolved, &self.inputs_store)?;
-                    self.inputs_store
-                        .insert(name.id.clone(), transpiled.clone());
+            }
+            DefType::GenericType(name) => {
+                let generic_type = if let Some(generic_type) = spec.generic_types.get(&name.id) {
+                    generic_type
+                } else {
+                    return Err(name.span.make_error("generic type not found"));
+                };
+                let resolved = transpile_generic_block_def(generic_type, &types_block_def_store)?;
+                let transpiled = transpile_block_def_by_block(&resolved, &types_block_def_store)?;
+                transpiled_store.insert(name.id.clone(), transpiled.clone());
+                target.types.insert(name.id.clone(), transpiled);
+                target.order.push(DefType::Type(name.clone()));
+            }
+            DefType::Input(name) => {
+                let transpiled = transpile_block_def_by_id(name, &inputs_block_def_store)?;
+                if transpiled.generic.is_none() {
                     target.inputs.insert(name.id.clone(), transpiled);
                     target.order.push(DefType::Input(name.clone()));
                 }
-                DefType::Enum(name) => {
-                    let transpiled = transpile_block_def_by_id(name, &self.source.enums)?;
-                    target.enums.insert(name.id.clone(), transpiled);
-                    target.order.push(DefType::Enum(name.clone()));
-                }
-                DefType::Interface(name) => {
-                    let transpiled = transpile_block_def_by_id(name, &self.source.interfaces)?;
-                    target.interfaces.insert(name.id.clone(), transpiled);
-                    target.order.push(DefType::Interface(name.clone()));
-                }
-                DefType::Scalar(name) => {
-                    let transpiled = self.source.scalars.get(&name.id).unwrap();
-                    target.scalars.insert(name.id.clone(), transpiled.clone());
-                    target.order.push(DefType::Scalar(name.clone()));
-                }
-                DefType::Union(name) => {
-                    let transpiled = self.source.unions.get(&name.id).unwrap();
-                    target.unions.insert(name.id.clone(), transpiled.clone());
-                    target.order.push(DefType::Union(name.clone()));
-                }
-                DefType::Directive(name) => {
-                    let transpiled = self.source.directives.get(&name.id).unwrap();
-                    target
-                        .directives
-                        .insert(name.id.clone(), transpiled.clone());
-                    target.order.push(DefType::Directive(name.clone()));
-                }
+            }
+            DefType::GenericInput(name) => {
+                let generic_input = if let Some(generic_input) = spec.generic_inputs.get(&name.id) {
+                    generic_input
+                } else {
+                    return Err(name.span.make_error("generic input not found"));
+                };
+                let resolved = transpile_generic_block_def(generic_input, &inputs_block_def_store)?;
+                let transpiled = transpile_block_def_by_block(&resolved, &inputs_block_def_store)?;
+                transpiled_store.insert(name.id.clone(), transpiled.clone());
+                target.inputs.insert(name.id.clone(), transpiled);
+                target.order.push(DefType::Input(name.clone()));
+            }
+            DefType::Enum(name) => {
+                let transpiled = transpile_block_def_by_id(name, &enums_block_def_store)?;
+                target.enums.insert(name.id.clone(), transpiled);
+                target.order.push(DefType::Enum(name.clone()));
+            }
+            DefType::Interface(name) => {
+                let transpiled = transpile_block_def_by_id(name, &interfaces_block_def_store)?;
+                target.interfaces.insert(name.id.clone(), transpiled);
+                target.order.push(DefType::Interface(name.clone()));
+            }
+            DefType::Scalar(name) => {
+                let transpiled = spec.scalars.get(&name.id).unwrap();
+                target.scalars.insert(name.id.clone(), transpiled.clone());
+                target.order.push(DefType::Scalar(name.clone()));
+            }
+            DefType::Union(name) => {
+                let transpiled = spec.unions.get(&name.id).unwrap();
+                target.unions.insert(name.id.clone(), transpiled.clone());
+                target.order.push(DefType::Union(name.clone()));
+            }
+            DefType::Directive(name) => {
+                let transpiled = spec.directives.get(&name.id).unwrap();
+                target
+                    .directives
+                    .insert(name.id.clone(), transpiled.clone());
+                target.order.push(DefType::Directive(name.clone()));
             }
         }
-        target.schema = self.source.schema.clone();
-        Ok(target)
     }
+    target.schema = spec.schema.clone();
+    Ok(target)
 }

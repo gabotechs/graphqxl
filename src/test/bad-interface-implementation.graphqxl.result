@@ -1,0 +1,6 @@
+ --> 5:6
+  |
+5 | type Type implements Interface {
+  |      ^--^
+  |
+  = :5 missing `foo` field

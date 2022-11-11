@@ -94,8 +94,13 @@ pub(crate) fn reverse_diagnostic_map(
 ) -> Result<()> {
     let source_span = apollo_diagnostic_source(diagnostic);
     for entry in source_map.iter() {
-        if source_span.offset >= entry.start
-            && source_span.offset + source_span.length <= entry.stop
+        let dst_start = source_span.offset;
+        let dst_end = source_span.offset + source_span.length;
+        let src_start = entry.start;
+        let src_end = entry.stop;
+        if (src_start <= dst_start && dst_end <= src_end) // if generated span is contained between source span limits
+            || (dst_start <= src_start && src_end <= dst_end)
+        // if source span is contained between generated span limits
         {
             let err = entry.span.make_error(&diagnostic.report().to_string());
             return Err(anyhow!("{}", err));

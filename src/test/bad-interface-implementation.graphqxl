@@ -1,0 +1,7 @@
+interface Interface {
+    foo: String
+}
+
+type Type implements Interface {
+    bar: Int
+}
