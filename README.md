@@ -213,7 +213,10 @@ type MyType {
 
 ## Install
 
-There are precompiled binaries for each architecture that you can download directly from
+There is built-in support for this programming languages:
+- [Node](https://github.com/gabotechs/node-graphqxl)
+
+There are also precompiled binaries for each architecture that you can download directly from
 GitHub releases
 
 Mac M1
