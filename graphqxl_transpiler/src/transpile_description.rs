@@ -2,6 +2,7 @@ use graphqxl_parser::{BlockDef, BlockField, OwnedSpan};
 use regex::{escape, Regex};
 use std::collections::HashMap;
 use std::error::Error;
+use crate::resolve_modified_ref::ResolvedRef;
 
 pub(crate) trait TemplateDescription {
     fn get_description(&self) -> &str;
@@ -9,6 +10,7 @@ pub(crate) trait TemplateDescription {
     fn owned_span(&self) -> &OwnedSpan;
 }
 
+// TODO: this could be done with a macro
 impl TemplateDescription for BlockField {
     fn get_description(&self) -> &str {
         &self.description
@@ -24,6 +26,21 @@ impl TemplateDescription for BlockField {
 }
 
 impl TemplateDescription for BlockDef {
+    fn get_description(&self) -> &str {
+        &self.description
+    }
+
+    fn mutate_description(&mut self, new_description: &str) {
+        self.description = new_description.to_string();
+    }
+
+    fn owned_span(&self) -> &OwnedSpan {
+        &self.span
+    }
+}
+
+
+impl TemplateDescription for ResolvedRef {
     fn get_description(&self) -> &str {
         &self.description
     }

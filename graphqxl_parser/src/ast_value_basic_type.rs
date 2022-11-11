@@ -1,8 +1,8 @@
-use std::fmt::{Display, Formatter};
 use crate::parser::Rule;
 use crate::utils::unknown_rule_error;
 use crate::{Identifier, OwnedSpan};
 use pest::iterators::Pair;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ValueBasicType {
@@ -16,7 +16,7 @@ pub enum ValueBasicType {
 impl Display for ValueBasicType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", {
-            match self { 
+            match self {
                 ValueBasicType::Int => "Int",
                 ValueBasicType::Float => "Float",
                 ValueBasicType::Boolean => "Boolean",
