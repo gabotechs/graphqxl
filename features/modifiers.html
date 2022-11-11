@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>description templates - GraphQXL book</title>
+        <title>modifiers - GraphQXL book</title>
         <!-- Custom HTML head -->
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
@@ -75,7 +75,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro.html"><strong aria-hidden="true">1.</strong> Intro</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage.html"><strong aria-hidden="true">3.</strong> usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../features/inheritance.html"><strong aria-hidden="true">3.1.</strong> inheritance</a></li><li class="chapter-item expanded "><a href="../features/generics.html"><strong aria-hidden="true">3.2.</strong> generics</a></li><li class="chapter-item expanded "><a href="../features/modifiers.html"><strong aria-hidden="true">3.3.</strong> modifiers</a></li><li class="chapter-item expanded "><a href="../features/imports.html"><strong aria-hidden="true">3.4.</strong> imports</a></li><li class="chapter-item expanded "><a href="../features/templates.html" class="active"><strong aria-hidden="true">3.5.</strong> description templates</a></li></ol></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="../intro.html"><strong aria-hidden="true">1.</strong> Intro</a></li><li class="chapter-item expanded "><a href="../installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="../usage.html"><strong aria-hidden="true">3.</strong> usage</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../features/inheritance.html"><strong aria-hidden="true">3.1.</strong> inheritance</a></li><li class="chapter-item expanded "><a href="../features/generics.html"><strong aria-hidden="true">3.2.</strong> generics</a></li><li class="chapter-item expanded "><a href="../features/modifiers.html" class="active"><strong aria-hidden="true">3.3.</strong> modifiers</a></li><li class="chapter-item expanded "><a href="../features/imports.html"><strong aria-hidden="true">3.4.</strong> imports</a></li><li class="chapter-item expanded "><a href="../features/templates.html"><strong aria-hidden="true">3.5.</strong> description templates</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -134,70 +134,17 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="description-templates"><a class="header" href="#description-templates">Description templates</a></h1>
-<p>Let's say that you have this <code>type</code> that you want to reuse in other types:</p>
-<pre><code class="language-graphql">type _ToBeReused {
-    &quot;Field foo from ToBeReused&quot;
-    foo: String!
-}
-
-type Bar {
-    ..._ToBeReused
-}
-</code></pre>
-<p>The result of compiling the above would look like this:</p>
-<pre><code class="language-graphql">type Bar {
-    &quot;Field foo from ToBeReused&quot;
-    foo: String!
-}
-</code></pre>
-<p>There, <code>foo</code>'s description says that the field <code>foo</code> belongs to the type <code>ToBeReused</code>,
-but once that is compiled it is not true, it should say something like:</p>
-<pre><code class="language-graphql">type Bar {
-    &quot;Field foo from Bar&quot;
-    foo: String!
-}
-</code></pre>
-<p>How to solve this?</p>
-<p>You can use template variables in the description strings to refer to some 
-contextual values:</p>
-<pre><code class="language-graphql">type _ToBeReused {
-    &quot;Field foo from ${{ block.name }}&quot;
-    foo: String!
-}
-
-type Bar {
-    ..._ToBeReused
-}
-
-type Baz {
-    ..._ToBeReused
-}
-</code></pre>
-<p>will compile to</p>
-<pre><code class="language-graphql">type Bar {
-    &quot;Field foo from Bar&quot;
-    foo: String!
-}
-
-type Baz {
-    &quot;Field foo from Baz&quot;
-    foo: String!
-}
-</code></pre>
-<p>These are the available values for the templates:</p>
-<ul>
-<li><strong>block.name</strong>: The parent's block name</li>
-<li><strong>block.type</strong>: The parent's block type (<code>type</code> or <code>input</code>)</li>
-<li><strong>variables.YOUR_GENERIC_VARIABLE</strong>: The value of the generic variable once instanced</li>
-</ul>
+                        <h1 id="modifiers"><a class="header" href="#modifiers">Modifiers</a></h1>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../features/imports.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../features/generics.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
+                            </a>
+                            <a rel="next" href="../features/imports.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
                             </a>
                         <div style="clear: both"></div>
                     </nav>
@@ -205,8 +152,11 @@ type Baz {
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../features/imports.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../features/generics.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a rel="next" href="../features/imports.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
 
