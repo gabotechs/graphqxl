@@ -19,6 +19,16 @@ There is a WIP version of the `GraphQXL book` with some useful docs, you can che
 Use the spread operator to inherit fields from other types or inputs. Descriptions
 will also be inherited.
 
+<table>
+    <tr>
+        <th style="width: 50%">
+            Source GraphQXL
+        </th>
+        <th style="width: 50%">
+            Compiled GraphQL
+        </th>
+    </tr>
+<tr><td> 
 
 ```graphql
 type _OtherType {
@@ -31,8 +41,7 @@ type MyType {
     ..._OtherType
 }
 ```
-
-#### Compiles to:
+</td><td>
 
 ```graphql
 type MyType {
@@ -41,22 +50,33 @@ type MyType {
     bar: Int!
 }
 ```
+</td></tr></table>
 
 ### Generics
 
 Declare generic types and inputs in order to reuse common structures across your schema.
 
+<table>
+    <tr>
+        <th style="width: 50%">
+            Source GraphQXL
+        </th>
+        <th style="width: 50%">
+            Compiled GraphQL
+        </th>
+    </tr>
+<tr><td> 
+
 ```graphql
-type MyGenericType<T> {
+type Generic<T> {
     foo: T
 }
 
-type MyStringType = MyGenericType<String!>
+type MyStringType = Generic<String!>
 
-type MyIntType = MyGenericType<Int!>
+type MyIntType = Generic<Int!>
 ```
-
-#### Compiles to:
+</td><td>
 
 ```graphql
 type MyStringType {
@@ -67,32 +87,83 @@ type MyIntType {
     foo: Int!
 }
 ```
- 
+</td></tr></table>
+
+### Modifiers
+
+Modify `types` and `inputs` with built-in modifiers.
+
+<table>
+    <tr>
+        <th style="width: 50%">
+            Source GraphQXL
+        </th>
+        <th style="width: 50%">
+            Compiled GraphQL
+        </th>
+    </tr>
+<tr><td> 
+
+```graphql
+type _MyType {
+    foo: String
+    bar: String!
+}
+
+
+type MyTypeRequired = Required<_MyType>
+
+type MyTypeOptional = Optional<_MyType>
+```
+</td><td>
+
+```graphql
+type MyTypeRequired {
+    foo: String!
+    bar: String!
+}
+
+type MyTypeOptional {
+    foo: String
+    bar: String
+}
+```
+</td></tr></table>
+
+
 ### Import statements
 
 Import other `.graphqxl` files and use their definitions in the current file.
 
-`my_file.graphqxl`
+<table>
+    <tr>
+        <th style="width: 50%">
+            Source GraphQXL
+        </th>
+        <th style="width: 50%">
+            Compiled GraphQL
+        </th>
+    </tr>
+<tr><td> 
 
 ```graphql
+# my_file.graphqxl
 import "other_file"
 
 type MyType {
     foo: OtherType!
 }
 ```
-
-`other_file.graphqxl`
-
 ```graphql
+# other_file.graphqxl
 type OtherType {
     bar: Int!
 }
 ```
-
-Compiling `my_file.graphqxl` generates this GraphQL schema:
+</td><td>
 
 ```graphql
+# my_file.graphql
 type OtherType {
     bar: Int!
 }
@@ -101,6 +172,7 @@ type MyType {
     foo: OtherType!
 }
 ```
+</td></tr></table>
 
 
 ## Install
