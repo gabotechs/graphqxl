@@ -1,6 +1,4 @@
-use crate::modified_ref::transpile_modified_ref::{
-    ModifiedRefStackContext, _transpile_modified_ref,
-};
+use crate::resolve_modified_ref::{resolve_modified_ref_with_context, ModifiedRefStackContext, ResolvedRef};
 use crate::transpile_description::transpile_description;
 use graphqxl_parser::{BlockDef, BlockEntry, ExpandableRef, ValueBasicType};
 use std::collections::HashMap;
@@ -8,11 +6,11 @@ use std::error::Error;
 
 const VARIABLES_PREFIX: &str = "variables";
 
-pub(crate) fn transpile_expandable_ref(
+pub(crate) fn resolve_expandable_ref(
     expandable_ref: &ExpandableRef,
     store: &HashMap<String, BlockDef>,
     stack_context: ModifiedRefStackContext,
-) -> Result<BlockDef, Box<dyn Error>> {
+) -> Result<ResolvedRef, Box<dyn Error>> {
     let referenced_block_def = match store.get(&expandable_ref.identifier.id) {
         Some(block_def) => block_def,
         None => {
@@ -52,9 +50,8 @@ pub(crate) fn transpile_expandable_ref(
             generic_call_args.get(i).unwrap(),
         );
     }
-
-    let mut concrete_block_def = generic_referenced_block_def.clone();
-    concrete_block_def.generic = None;
+    
+    let mut resolved_ref = ResolvedRef::init(&generic_referenced_block_def);
 
     let mut description_replacements = HashMap::new();
     for (key, value) in generic_map.iter() {
@@ -64,11 +61,11 @@ pub(crate) fn transpile_expandable_ref(
         );
     }
 
-    transpile_description(&mut concrete_block_def, &description_replacements, true)?;
+    transpile_description(&mut resolved_ref, &description_replacements, true)?;
 
-    let mut new_entries = vec![];
+    let mut new_fields = vec![];
 
-    for entry in concrete_block_def.entries.iter() {
+    for entry in generic_referenced_block_def.entries.iter() {
         let new_entry = entry.clone();
         // if it is a field...
         match new_entry {
@@ -86,16 +83,19 @@ pub(crate) fn transpile_expandable_ref(
                         }
                     }
                 }
-                new_entries.push(BlockEntry::Field(block_field))
+                new_fields.push(block_field)
             }
             BlockEntry::SpreadRef(modified_ref) => {
                 // NOTE: Careful here, recursive brain exploding ahead
-                let block_def =
-                    _transpile_modified_ref(&modified_ref, store, stack_context.plus_1())?;
-                new_entries.extend_from_slice(&block_def.entries);
+                let resolved_ref = resolve_modified_ref_with_context(
+                    &modified_ref,
+                    store,
+                    stack_context.plus_1(),
+                )?;
+                new_fields.extend_from_slice(&resolved_ref.fields);
             }
         }
     }
-    concrete_block_def.entries = new_entries;
-    Ok(concrete_block_def)
+    resolved_ref.fields = new_fields;
+    Ok(resolved_ref)
 }

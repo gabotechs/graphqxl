@@ -15,7 +15,7 @@ impl<'a> GraphqxlTranspiler<'a> {
                     if transpiled.generic.is_none() {
                         target.types.insert(name.id.clone(), transpiled);
                         target.order.push(DefType::Type(name.clone()));
-                    } 
+                    }
                 }
                 DefType::GenericType(name) => {
                     let generic_type =

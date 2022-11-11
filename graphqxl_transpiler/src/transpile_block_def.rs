@@ -1,4 +1,4 @@
-use crate::modified_ref::transpile_modified_ref;
+use crate::resolve_modified_ref::resolve_modified_ref;
 use crate::transpile_description::transpile_description;
 use graphqxl_parser::{BlockDef, BlockEntry, Identifier};
 use std::collections::{HashMap, HashSet};
@@ -45,11 +45,14 @@ fn transpile_block_def(
     let mut entries_to_evaluate = vec![];
 
     for entry in block_def.entries.iter() {
-        if let BlockEntry::SpreadRef(modified_ref) = entry {
-            let referenced_type = transpile_modified_ref(modified_ref, store)?;
-            entries_to_evaluate.extend(referenced_type.entries);
-        } else {
-            entries_to_evaluate.push(entry.clone());
+        match entry {
+            BlockEntry::SpreadRef(modified_ref) => {
+                let referenced_type = resolve_modified_ref(modified_ref, store)?;
+                entries_to_evaluate.extend(referenced_type.fields);
+            }
+            BlockEntry::Field(field) => {
+                entries_to_evaluate.push(field.clone());
+            }
         }
     }
 
@@ -67,19 +70,15 @@ fn transpile_block_def(
         false,
     )?;
 
-    for entry in entries_to_evaluate {
-        let mut field = if let BlockEntry::Field(field) = entry {
-            field
-        } else {
-            // We now that at this point all the BlockEntries should be Fields
-            unreachable!()
-        };
+    for field in entries_to_evaluate.iter_mut() {
         if seen.contains(&field.name.id) {
             return Err(field.span.make_error("repeated field"));
         }
         seen.insert(field.name.id.clone());
-        transpile_description(&mut field, &template_string_replacements, false)?;
-        transpiled_block_def.entries.push(BlockEntry::Field(field));
+        transpile_description(field, &template_string_replacements, false)?;
+        transpiled_block_def
+            .entries
+            .push(BlockEntry::Field(field.clone()));
     }
     Ok(transpiled_block_def)
 }
