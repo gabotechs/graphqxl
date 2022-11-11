@@ -1,14 +1,15 @@
 use crate::resolve_modified_ref::{resolve_modified_ref_with_context, ModifiedRefStackContext, ResolvedRef};
 use crate::transpile_description::transpile_description;
-use graphqxl_parser::{BlockDef, BlockEntry, ExpandableRef, ValueBasicType};
+use graphqxl_parser::{BlockEntry, ExpandableRef, ValueBasicType};
 use std::collections::HashMap;
 use std::error::Error;
+use crate::utils::BlockDefStore;
 
 const VARIABLES_PREFIX: &str = "variables";
 
 pub(crate) fn resolve_expandable_ref(
     expandable_ref: &ExpandableRef,
-    store: &HashMap<String, BlockDef>,
+    store: &BlockDefStore,
     stack_context: ModifiedRefStackContext,
 ) -> Result<ResolvedRef, Box<dyn Error>> {
     let referenced_block_def = match store.get(&expandable_ref.identifier.id) {

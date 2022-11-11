@@ -1,5 +1,6 @@
 use crate::resolve_modified_ref::resolve_modified_ref;
 use crate::transpile_description::transpile_description;
+use crate::utils::BlockDefStore;
 use graphqxl_parser::{BlockDef, BlockEntry, Identifier};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -11,10 +12,7 @@ enum IdOrBlock<'a> {
 }
 
 impl<'a> IdOrBlock<'a> {
-    fn block_def<'b>(
-        &'b self,
-        store: &'b HashMap<String, BlockDef>,
-    ) -> Result<&'b BlockDef, Box<dyn Error>> {
+    fn block_def<'b>(&'b self, store: &'b BlockDefStore) -> Result<&'b BlockDef, Box<dyn Error>> {
         match self {
             IdOrBlock::Id(id) => match store.get(&id.id) {
                 Some(block_def) => Ok(block_def),
@@ -32,7 +30,7 @@ pub(crate) const BLOCK_TYPE: &str = "block.type";
 
 fn transpile_block_def(
     identifier: &IdOrBlock,
-    store: &HashMap<String, BlockDef>,
+    store: &BlockDefStore,
 ) -> Result<BlockDef, Box<dyn Error>> {
     let block_def = identifier.block_def(store)?;
     if block_def.generic.is_some() {
@@ -85,14 +83,14 @@ fn transpile_block_def(
 
 pub(crate) fn transpile_block_def_by_id(
     identifier: &Identifier,
-    store: &HashMap<String, BlockDef>,
+    store: &BlockDefStore,
 ) -> Result<BlockDef, Box<dyn Error>> {
     transpile_block_def(&IdOrBlock::Id(identifier), store)
 }
 
 pub(crate) fn transpile_block_def_by_block(
     block_def: &BlockDef,
-    store: &HashMap<String, BlockDef>,
+    store: &BlockDefStore,
 ) -> Result<BlockDef, Box<dyn Error>> {
     transpile_block_def(&IdOrBlock::Block(block_def), store)
 }
@@ -111,8 +109,11 @@ mod tests {
         let mut types = HashMap::new();
         types.insert(block_def.name.id.clone(), block_def);
         types.insert(block_def_with_spread.name.id.clone(), block_def_with_spread);
-        let transpiled =
-            transpile_block_def(&IdOrBlock::Id(&Identifier::from("MyType2")), &types).unwrap();
+        let transpiled = transpile_block_def(
+            &IdOrBlock::Id(&Identifier::from("MyType2")),
+            &BlockDefStore::from(&types),
+        )
+        .unwrap();
         assert_eq!(
             transpiled,
             BlockDef::type_def("MyType2")
@@ -138,8 +139,11 @@ mod tests {
             another_block_def_with_spread.name.id.clone(),
             another_block_def_with_spread,
         );
-        let transpiled =
-            transpile_block_def(&IdOrBlock::Id(&Identifier::from("MyType3")), &types).unwrap();
+        let transpiled = transpile_block_def(
+            &IdOrBlock::Id(&Identifier::from("MyType3")),
+            &BlockDefStore::from(&types),
+        )
+        .unwrap();
         assert_eq!(
             transpiled,
             BlockDef::type_def("MyType3")
@@ -160,8 +164,11 @@ mod tests {
         let mut types = HashMap::new();
         types.insert(block_def.name.id.clone(), block_def);
         types.insert(block_def_with_spread.name.id.clone(), block_def_with_spread);
-        let err =
-            transpile_block_def(&IdOrBlock::Id(&Identifier::from("MyType")), &types).unwrap_err();
+        let err = transpile_block_def(
+            &IdOrBlock::Id(&Identifier::from("MyType")),
+            &BlockDefStore::from(&types),
+        )
+        .unwrap_err();
         assert!(err.to_string().contains("maximum nested spread operator"))
     }
 
@@ -173,8 +180,11 @@ mod tests {
 
         let mut types = HashMap::new();
         types.insert(block_def.name.id.clone(), block_def);
-        let err =
-            transpile_block_def(&IdOrBlock::Id(&Identifier::from("MyType")), &types).unwrap_err();
+        let err = transpile_block_def(
+            &IdOrBlock::Id(&Identifier::from("MyType")),
+            &BlockDefStore::from(&types),
+        )
+        .unwrap_err();
         assert!(err.to_string().contains("repeated field"))
     }
 
@@ -188,8 +198,11 @@ mod tests {
         let mut types = HashMap::new();
         types.insert(block_def.name.id.clone(), block_def);
         types.insert(block_def_2.name.id.clone(), block_def_2);
-        let err =
-            transpile_block_def(&IdOrBlock::Id(&Identifier::from("MyType2")), &types).unwrap_err();
+        let err = transpile_block_def(
+            &IdOrBlock::Id(&Identifier::from("MyType2")),
+            &BlockDefStore::from(&types),
+        )
+        .unwrap_err();
         assert!(err.to_string().contains("repeated field"))
     }
 
@@ -200,8 +213,11 @@ mod tests {
             .field(BlockField::build("field").string());
         let mut types = HashMap::new();
         types.insert(block_def.name.id.clone(), block_def);
-        let err =
-            transpile_block_def(&IdOrBlock::Id(&Identifier::from("MyType2")), &types).unwrap_err();
+        let err = transpile_block_def(
+            &IdOrBlock::Id(&Identifier::from("MyType2")),
+            &BlockDefStore::from(&types),
+        )
+        .unwrap_err();
         assert!(err.to_string().contains("undefined"))
     }
 }
