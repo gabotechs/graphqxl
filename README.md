@@ -20,15 +20,20 @@ Use the spread operator to inherit fields from other types or inputs. Descriptio
 will also be inherited.
 
 <table>
-    <tr>
-        <th style="width: 50%">
-            Source GraphQXL
-        </th>
-        <th style="width: 50%">
-            Compiled GraphQL
-        </th>
-    </tr>
-<tr><td> 
+    <thead>
+        <tr>
+            <th>
+                Source GraphQXL
+            </th>
+            <th>
+                Compiled GraphQL
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td> 
+
 
 ```graphql
 type _OtherType {
@@ -39,7 +44,7 @@ type _OtherType {
 type MyType {
     foo: String!
     ..._OtherType
-}
+                              #GraphQXL
 ```
 </td><td>
 
@@ -49,23 +54,31 @@ type MyType {
     "Descriptions are also inherited"
     bar: Int!
 }
+
+
+
+                               #GraphQL
 ```
-</td></tr></table>
+</td></tr></tbody></table>
 
 ### Generics
 
 Declare generic types and inputs in order to reuse common structures across your schema.
 
 <table>
-    <tr>
-        <th style="width: 50%">
-            Source GraphQXL
-        </th>
-        <th style="width: 50%">
-            Compiled GraphQL
-        </th>
-    </tr>
-<tr><td> 
+    <thead>
+        <tr>
+            <th>
+                Source GraphQXL
+            </th>
+            <th>
+                Compiled GraphQL
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td> 
 
 ```graphql
 type Generic<T> {
@@ -75,6 +88,8 @@ type Generic<T> {
 type MyStringType = Generic<String!>
 
 type MyIntType = Generic<Int!>
+
+                              #GraphQXL
 ```
 </td><td>
 
@@ -86,23 +101,29 @@ type MyStringType {
 type MyIntType {
     foo: Int!
 }
+
+                               #GraphQL
 ```
-</td></tr></table>
+</td></tr></tbody></table>
 
 ### Modifiers
 
 Modify `types` and `inputs` with built-in modifiers.
 
 <table>
-    <tr>
-        <th style="width: 50%">
-            Source GraphQXL
-        </th>
-        <th style="width: 50%">
-            Compiled GraphQL
-        </th>
-    </tr>
-<tr><td> 
+    <thead>
+        <tr>
+            <th>
+                Source GraphQXL
+            </th>
+            <th>
+                Compiled GraphQL
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td> 
 
 ```graphql
 type _MyType {
@@ -110,10 +131,11 @@ type _MyType {
     bar: String!
 }
 
-
 type MyTypeRequired = Required<_MyType>
 
 type MyTypeOptional = Optional<_MyType>
+
+                            #GraphQXL
 ```
 </td><td>
 
@@ -127,8 +149,9 @@ type MyTypeOptional {
     foo: String
     bar: String
 }
+                               #GraphQL
 ```
-</td></tr></table>
+</td></tr></tbody></table>
 
 
 ### Import statements
@@ -136,15 +159,19 @@ type MyTypeOptional {
 Import other `.graphqxl` files and use their definitions in the current file.
 
 <table>
-    <tr>
-        <th style="width: 50%">
-            Source GraphQXL
-        </th>
-        <th style="width: 50%">
-            Compiled GraphQL
-        </th>
-    </tr>
-<tr><td> 
+    <thead>
+        <tr>
+            <th>
+                Source GraphQXL
+            </th>
+            <th>
+                Compiled GraphQL
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td> 
 
 ```graphql
 # my_file.graphqxl
@@ -153,12 +180,14 @@ import "other_file"
 type MyType {
     foo: OtherType!
 }
+                              #GraphQXL
 ```
 ```graphql
 # other_file.graphqxl
 type OtherType {
     bar: Int!
 }
+                              #GraphQXL
 ```
 </td><td>
 
@@ -171,8 +200,15 @@ type OtherType {
 type MyType {
     foo: OtherType!
 }
+
+
+
+
+
+
+                               #GraphQL
 ```
-</td></tr></table>
+</td></tr></tbody></table>
 
 
 ## Install
