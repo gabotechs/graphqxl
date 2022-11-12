@@ -8,4 +8,4 @@ mod transpile_generic_block_def;
 mod transpile_spec;
 mod utils;
 
-pub use transpile_spec::transpile_spec;
+pub use transpile_spec::{transpile_spec, TranspileSpecOptions};

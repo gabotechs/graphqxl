@@ -5,7 +5,12 @@ use graphqxl_parser::{DefType, Spec};
 use std::collections::HashMap;
 use std::error::Error;
 
-pub fn transpile_spec(spec: &Spec) -> Result<Spec, Box<dyn Error>> {
+#[derive(Clone, Default, Debug, PartialEq, Eq)]
+pub struct TranspileSpecOptions {
+    pub private_prefix: String,
+}
+
+pub fn transpile_spec(spec: &Spec, options: &TranspileSpecOptions) -> Result<Spec, Box<dyn Error>> {
     let mut target = Spec::default();
     let mut transpiled_store = HashMap::new();
 
@@ -26,6 +31,9 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, Box<dyn Error>> {
 
         match def {
             DefType::Type(name) => {
+                if name.id.starts_with(&options.private_prefix) {
+                    continue;
+                }
                 let transpiled = transpile_block_def_by_id(name, &types_block_def_store)?;
                 if transpiled.generic.is_none() {
                     target.types.insert(name.id.clone(), transpiled);
@@ -45,6 +53,9 @@ pub fn transpile_spec(spec: &Spec) -> Result<Spec, Box<dyn Error>> {
                 target.order.push(DefType::Type(name.clone()));
             }
             DefType::Input(name) => {
+                if name.id.starts_with(&options.private_prefix) {
+                    continue;
+                }
                 let transpiled = transpile_block_def_by_id(name, &inputs_block_def_store)?;
                 if transpiled.generic.is_none() {
                     target.inputs.insert(name.id.clone(), transpiled);
