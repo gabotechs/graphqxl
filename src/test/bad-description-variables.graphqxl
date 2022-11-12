@@ -1,0 +1,12 @@
+"${{ custom.foo }}"
+type Type {
+    field: Int!
+}
+
+${foo: "description"}
+type Generic<T> {
+    field: T!
+}
+
+${bad: ""}
+type OtherType = Generic<Type>

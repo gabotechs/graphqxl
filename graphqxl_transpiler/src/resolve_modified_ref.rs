@@ -1,10 +1,10 @@
 use crate::resolve_expandable_ref::resolve_expandable_ref;
+use crate::utils::BlockDefStore;
 use graphqxl_parser::{
     BlockDef, BlockField, Directive, Implements, ModifiedRef, OwnedSpan, ValueType,
 };
 use std::error::Error;
 use std::ops::Deref;
-use crate::utils::BlockDefStore;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ResolvedRef {
@@ -22,7 +22,7 @@ impl ResolvedRef {
             implements: value.implements.clone(),
             description: value.description.clone(),
             fields: vec![],
-            directives: value.directives.clone()
+            directives: value.directives.clone(),
         }
     }
 }
