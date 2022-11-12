@@ -6,8 +6,8 @@
 [![Coverage Status](https://coveralls.io/repos/github/gabotechs/graphqxl/badge.svg?branch=main)](https://coveralls.io/github/gabotechs/graphqxl?branch=main)
 ![](https://img.shields.io/github/v/release/gabotechs/graphqxl?color=%e535abff)
 
-GraphQXL is an extension of the GraphQL language with some additional features
-that are useful for creating scalable server side schemas.
+GraphQXL is a new language built on top of the GraphQL syntax that extends the original 
+language with some additional features useful for creating scalable and big server side schemas.
 
 # Documentation
 
