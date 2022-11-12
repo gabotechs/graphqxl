@@ -1,0 +1,16 @@
+"""
+Hello from ${{ custom.foo }}
+"""
+type Type<T> {
+    "Me, as a ${{ variables.T }}, I think that today it's ${{ custom.bar }}"
+    string: String!
+}
+
+${foo: "Berlin", bar: "cold"}
+"Hi from ${{ custom.foo }}"
+type MyType {
+    ...Type<String>
+}
+
+${foo: "California", bar: "hot"}
+input MyInput = Type<Boolean>

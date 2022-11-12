@@ -1,8 +1,8 @@
 use std::error::Error;
 
 use crate::resolve_modified_ref::resolve_modified_ref;
-use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef};
 use crate::utils::BlockDefStore;
+use graphqxl_parser::{BlockDef, BlockEntry, GenericBlockDef};
 
 pub(crate) fn transpile_generic_block_def(
     generic_block_def: &GenericBlockDef,
@@ -25,6 +25,7 @@ pub(crate) fn transpile_generic_block_def(
         implements: resolved.implements.clone(),
         generic: None,
         description,
+        description_variables: generic_block_def.description_variables.clone(),
         kind: generic_block_def.kind.clone(),
         directives,
         entries: resolved

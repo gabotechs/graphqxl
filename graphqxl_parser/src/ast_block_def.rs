@@ -1,5 +1,6 @@
 use crate::ast_block_field::{parse_block_field, BlockField};
-use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
+use crate::ast_description::parse_description;
+use crate::ast_description_variables::{parse_description_variables, DescriptionVariables};
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::ast_implements::{parse_implements, Implements};
 use crate::ast_modified_ref::{parse_modified_ref, ModifiedRef};
@@ -45,6 +46,7 @@ pub struct BlockDef {
     pub generic: Option<Generic>,
     pub implements: Option<Implements>,
     pub description: String,
+    pub description_variables: Option<DescriptionVariables>,
     pub kind: BlockDefType,
     pub entries: Vec<BlockEntry>,
     pub directives: Vec<Directive>,
@@ -59,6 +61,7 @@ impl BlockDef {
             implements: None,
             description: "".to_string(),
             kind,
+            description_variables: None,
             entries: Vec::new(),
             directives: Vec::new(),
         }
@@ -95,6 +98,14 @@ impl BlockDef {
         self.clone()
     }
 
+    pub fn description_variable(&mut self, variable: (&str, &str)) -> Self {
+        self.description_variables = Some(match &mut self.description_variables {
+            Some(current) => current.variable(variable),
+            None => DescriptionVariables::build(variable),
+        });
+        self.clone()
+    }
+
     pub fn field(&mut self, field: BlockField) -> Self {
         self.entries.push(BlockEntry::Field(field));
         self.clone()
@@ -118,9 +129,21 @@ fn _parse_block_def(
 ) -> Result<BlockDef, pest::error::Error<Rule>> {
     let span = OwnedSpan::from(pair.as_span(), file);
     let mut pairs = pair.into_inner();
-    // [description?, identifier, directives*, selection_set]
-    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs, file);
-    let name = parse_identifier(next, file)?;
+    // [description_variables?, description?, identifier, directives*, selection_set]
+    let mut pair = pairs.next().unwrap();
+
+    let mut description_variables: Option<DescriptionVariables> = None;
+    if let Rule::description_variables = pair.as_rule() {
+        description_variables = Some(parse_description_variables(pair, file)?);
+        pair = pairs.next().unwrap();
+    }
+    let mut description = "".to_string();
+    if let Rule::description = pair.as_rule() {
+        description = parse_description(pair, file)?;
+        pair = pairs.next().unwrap();
+    }
+
+    let name = parse_identifier(pair, file)?;
 
     let mut entries = Vec::new();
     let mut directives = Vec::new();
@@ -160,6 +183,7 @@ fn _parse_block_def(
         name,
         generic,
         implements,
+        description_variables,
         description,
         kind,
         entries,
@@ -260,6 +284,27 @@ mod tests {
             parse_input("\"\"\" my description \"\"\"interface MyInterface { arg: String }"),
             Ok(BlockDef::interface_def("MyInterface")
                 .description("my description")
+                .field(BlockField::build("arg").string()))
+        );
+    }
+
+    #[test]
+    fn test_description_variables_works() {
+        assert_eq!(
+            parse_input("${foo: \"bar\"}type MyType { arg: String }"),
+            Ok(BlockDef::type_def("MyType")
+                .description_variable(("foo", "bar"))
+                .field(BlockField::build("arg").string()))
+        );
+    }
+
+    #[test]
+    fn test_description_variables_with_description_works() {
+        assert_eq!(
+            parse_input("${foo: \"bar\"}\"\"\" my description \"\"\"type MyType { arg: String }"),
+            Ok(BlockDef::type_def("MyType")
+                .description("my description")
+                .description_variable(("foo", "bar"))
                 .field(BlockField::build("arg").string()))
         );
     }

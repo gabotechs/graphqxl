@@ -1,0 +1,13 @@
+"Hi from Berlin"
+type MyType {
+  "Me, as a String, I think that today it's cold"
+  string: String!
+}
+
+"Hello from California"
+input MyInput {
+  "Me, as a Boolean, I think that today it's hot"
+  string: String!
+}
+
+
