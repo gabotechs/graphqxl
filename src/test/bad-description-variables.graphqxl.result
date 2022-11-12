@@ -1,0 +1,10 @@
+Could not transpile graphqxl spec:
+
+ --> 1:1
+  |
+1 | "${{ custom.foo }}"
+  | ...
+4 | }␊
+  | ^
+  |
+  = :1 Not all the template variables where resolved
