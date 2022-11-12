@@ -1,0 +1,7 @@
+type _Type {
+    "${{ custom.foo }}"
+    foo: Int
+}
+
+${foo: "custom"}
+type Type = _Type

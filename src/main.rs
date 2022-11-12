@@ -8,7 +8,7 @@ use apollo_compiler::ApolloCompiler;
 use clap::Parser;
 use graphqxl_parser::parse_spec;
 use graphqxl_synthesizer::{synth_spec, SynthConfig};
-use graphqxl_transpiler::transpile_spec;
+use graphqxl_transpiler::{transpile_spec, TranspileSpecOptions};
 use std::fs;
 
 #[derive(Parser, Debug)]
@@ -47,7 +47,12 @@ fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
     let spec_result = parse_spec(&args.input);
     let spec = ok_or_anyhow_err(spec_result, "Could not parse GraphQXL spec")?;
 
-    let transpile_result = transpile_spec(&spec);
+    let transpile_result = transpile_spec(
+        &spec,
+        &TranspileSpecOptions {
+            private_prefix: args.private_prefix.clone(),
+        },
+    );
     let transpiled = ok_or_anyhow_err(transpile_result, "Could not transpile graphqxl spec")?;
 
     let (result, source_map) = synth_spec(
