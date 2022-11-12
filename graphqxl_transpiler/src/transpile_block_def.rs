@@ -27,6 +27,7 @@ impl<'a> IdOrBlock<'a> {
 
 pub(crate) const BLOCK_NAME: &str = "block.name";
 pub(crate) const BLOCK_TYPE: &str = "block.type";
+pub(crate) const CUSTOM: &str = "custom";
 
 fn transpile_block_def(
     identifier: &IdOrBlock,
@@ -57,10 +58,16 @@ fn transpile_block_def(
     let mut seen = HashSet::new();
 
     let block_type = &block_def.kind;
-    let template_string_replacements = HashMap::from([
+    let mut template_string_replacements = HashMap::from([
         (BLOCK_NAME.to_string(), block_def.name.id.clone()),
         (BLOCK_TYPE.to_string(), format!("{block_type}")),
     ]);
+    if let Some(variables) = &block_def.description_variables {
+        for variable in variables.variables.iter() {
+            template_string_replacements
+                .insert(format!("{CUSTOM}.{}", variable.0), variable.1.clone());
+        }
+    }
 
     transpile_description(
         &mut transpiled_block_def,

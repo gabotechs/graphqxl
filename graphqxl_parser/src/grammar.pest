@@ -9,12 +9,12 @@ schema_def = { description? ~ "schema" ~ schema_selection_set }
     schema_key = @{ "query" | "mutation" | "subscription" }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
-generic_type_def = { description? ~  "type " ~ identifier ~ directive* ~ "=" ~ modified_ref }
-type_def = { description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
+generic_type_def = { description_variables? ~ description? ~  "type " ~ identifier ~ directive* ~ "=" ~ modified_ref }
+type_def = { description_variables? ~ description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
     implements = { "implements" ~ identifier ~ ("&" ~ identifier)* }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
-generic_input_def = { description? ~  "input " ~ identifier ~ directive* ~ "=" ~ modified_ref }
-input_def = { description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
+generic_input_def = { description_variables? ~  description? ~  "input " ~ identifier ~ directive* ~ "=" ~ modified_ref }
+input_def = { description_variables? ~  description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
     input_selection_set = { "{" ~ (field_without_args | spread_reference)* ~ "}" }
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
     enum_selection_set = { "{" ~ (field_without_args_without_value | spread_reference)* ~ "}" }
@@ -55,6 +55,9 @@ arguments = { "(" ~ argument* ~ ")" }
 
 function_call = { "(" ~ function_input+ ~ ")" }
     function_input = { identifier ~ ":" ~ value_data }
+
+description_variables = { "${" ~ description_variable+ ~ "}"  }
+description_variable = { identifier ~ ":" ~ string_data }
 
 description = @{ multiline_description | one_line_description }
     multiline_description = @{ "\"\"\"" ~ (!"\"\"\"" ~ ANY)*  ~ "\"\"\"" }

@@ -1,7 +1,8 @@
 use pest::iterators::Pair;
 use std::borrow::BorrowMut;
 
-use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
+use crate::ast_description::parse_description;
+use crate::ast_description_variables::{parse_description_variables, DescriptionVariables};
 use crate::ast_directive::parse_directive;
 use crate::ast_expandable_ref::ExpandableRef;
 use crate::ast_modified_ref::{parse_modified_ref, ModifiedRef};
@@ -13,6 +14,7 @@ use crate::{parse_identifier, BlockDefType, Directive, Identifier, OwnedSpan, Va
 pub struct GenericBlockDef {
     pub span: OwnedSpan,
     pub description: String,
+    pub description_variables: Option<DescriptionVariables>,
     pub kind: BlockDefType,
     pub name: Identifier,
     pub directives: Vec<Directive>,
@@ -28,6 +30,7 @@ impl GenericBlockDef {
         GenericBlockDef {
             kind,
             description: "".to_string(),
+            description_variables: None,
             directives: vec![],
             span: OwnedSpan::default(),
             name: Identifier::from(name),
@@ -72,8 +75,22 @@ fn _parse_generic_block_def(
 ) -> Result<GenericBlockDef, pest::error::Error<Rule>> {
     let span = OwnedSpan::from(pair.as_span(), file);
     let mut childs = pair.into_inner();
-    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs, file);
-    let name = parse_identifier(next, file)?;
+
+    let mut child = childs.next().unwrap();
+
+    let mut description_variables: Option<DescriptionVariables> = None;
+    if let Rule::description_variables = child.as_rule() {
+        description_variables = Some(parse_description_variables(child, file)?);
+        child = childs.next().unwrap();
+    }
+    let mut description = "".to_string();
+    if let Rule::description = child.as_rule() {
+        description = parse_description(child, file)?;
+        child = childs.next().unwrap();
+    }
+
+    let name = parse_identifier(child, file)?;
+
     let mut directives = vec![];
     let mut child = childs.next().unwrap();
     while let Rule::directive = &child.as_rule() {
@@ -85,6 +102,7 @@ fn _parse_generic_block_def(
     Ok(GenericBlockDef {
         kind,
         description,
+        description_variables,
         span,
         directives,
         name,
