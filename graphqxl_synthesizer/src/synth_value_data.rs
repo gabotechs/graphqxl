@@ -6,7 +6,7 @@ pub(crate) struct ValueDataSynth(pub(crate) ValueData);
 
 impl Synth for ValueDataSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        // TODO: for now, lets not allow any value to be multiline,
+        // NOTE: for now, lets not allow any value to be multiline,
         //  chances that someone wants a multiline value are very low
         let multiline = false;
 
@@ -17,7 +17,6 @@ impl Synth for ValueDataSynth {
                     true
                 }
                 ValueBasicData::Float(v) => {
-                    // FIXME: improve this formatting
                     let mut res = v.to_string();
                     if !res.contains('.') {
                         res += ".0";
