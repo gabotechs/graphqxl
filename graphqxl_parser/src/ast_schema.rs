@@ -1,14 +1,16 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
+use crate::ast_directive::parse_directive;
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::parser::Rule;
 use crate::utils::{unknown_rule_error, OwnedSpan};
+use crate::Directive;
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Schema {
     pub span: OwnedSpan,
     pub description: String,
-    // TODO: add directives
+    pub directives: Vec<Directive>,
     pub query: Identifier,
     pub mutation: Identifier,
     pub subscription: Identifier,
@@ -36,6 +38,11 @@ impl Schema {
 
     pub fn description(&mut self, description: &str) -> Self {
         self.description = description.to_string();
+        self.clone()
+    }
+
+    pub fn directive(&mut self, directive: Directive) -> Self {
+        self.directives.push(directive);
         self.clone()
     }
 }
@@ -68,11 +75,16 @@ pub(crate) fn parse_schema(
         Rule::schema_def => {
             let span = OwnedSpan::from(pair.as_span(), file);
             let mut childs = pair.into_inner();
-            let DescriptionAndNext(description, next) =
+            let DescriptionAndNext(description, mut next) =
                 parse_description_and_continue(&mut childs, file);
             let mut query = Identifier::from("");
             let mut mutation = Identifier::from("");
             let mut subscription = Identifier::from("");
+            let mut directives = vec![];
+            while let Rule::directive = next.as_rule() {
+                directives.push(parse_directive(next, file)?);
+                next = childs.next().unwrap();
+            }
             for field in next.into_inner() {
                 let mut field_parts = field.into_inner();
                 let key = parse_schema_key(field_parts.next().unwrap(), file)?;
@@ -85,6 +97,7 @@ pub(crate) fn parse_schema(
             }
             Ok(Schema {
                 span,
+                directives,
                 description,
                 query,
                 mutation,
@@ -109,6 +122,27 @@ mod tests {
         assert_eq!(
             parse_input("schema { query: Query }"),
             Ok(Schema::build().query("Query"))
+        )
+    }
+
+    #[test]
+    fn test_accepts_directive() {
+        assert_eq!(
+            parse_input("schema @dir { query: Query }"),
+            Ok(Schema::build()
+                .query("Query")
+                .directive(Directive::build("dir")))
+        )
+    }
+
+    #[test]
+    fn test_accepts_two_directives() {
+        assert_eq!(
+            parse_input("schema @dir1 @dir2 { query: Query }"),
+            Ok(Schema::build()
+                .query("Query")
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2")))
         )
     }
 
