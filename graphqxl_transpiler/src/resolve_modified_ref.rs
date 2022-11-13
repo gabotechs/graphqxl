@@ -66,13 +66,14 @@ impl ModifiedRefStackContext {
     }
 }
 
+const MAX_RECURSION_DEPTH: usize = 100;
+
 pub(crate) fn resolve_modified_ref_with_context(
     modified_ref: &ModifiedRef,
     store: &BlockDefStore,
     stack_context: ModifiedRefStackContext,
 ) -> Result<ResolvedRef, Box<dyn Error>> {
-    // todo: where does this come from
-    if stack_context.stack_count > 100 {
+    if stack_context.stack_count > MAX_RECURSION_DEPTH {
         return Err(modified_ref
             .span()
             .make_error("maximum nested spread operator surpassed"));
