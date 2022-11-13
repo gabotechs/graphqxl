@@ -1,42 +1,80 @@
 # Description templates
 
-Let's say that you have this `type` that you want to reuse in other types:
+Let's say that you have a `type` that you want to reuse in other types:
+
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+
 ```graphql
 type _ToBeReused {
-    "Field foo from ToBeReused"
+    "Field foo from type 'ToBeReused'"
     foo: String!
 }
 
-type Bar {
+input Bar {
     ..._ToBeReused
 }
 ```
-The result of compiling the above would look like this:
+</td>
+            <td>
+
 ```graphql
-type Bar {
-    "Field foo from ToBeReused"
+input Bar {
+    "Field foo from type 'ToBeReused'"
     foo: String!
 }
+
+
+
+
 ```
+
+</td>
+        </tr>
+    </tbody>
+</table>
+
 There, `foo`'s description says that the field `foo` belongs to the type `ToBeReused`,
 but once that is compiled it is not true, it should say something like:
 ```graphql
-type Bar {
-    "Field foo from Bar"
+input Bar {
+    "Field foo from input 'Bar'"
     foo: String!
 }
 ```
-How to solve this?
+
+## Description string interpolation
 
 You can use template variables in the description strings to refer to some 
 contextual values:
+
+
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+
 ```graphql
 type _ToBeReused {
-    "Field foo from ${{ block.name }}"
+    "Field foo from ${{ block.type }} '${{ block.name }}'"
     foo: String!
 }
 
-type Bar {
+input Bar {
     ..._ToBeReused
 }
 
@@ -44,18 +82,28 @@ type Baz {
     ..._ToBeReused
 }
 ```
-will compile to
+</td>
+            <td>
+
 ```graphql
-type Bar {
-    "Field foo from Bar"
+input Bar {
+    "Field foo from input 'Bar'"
     foo: String!
 }
 
 type Baz {
-    "Field foo from Baz"
+    "Field foo from type 'Baz'"
     foo: String!
 }
+
+
+
 ```
+
+</td>
+        </tr>
+    </tbody>
+</table>
 
 These are the available values for the templates:
 - **block.name**: The parent's block name

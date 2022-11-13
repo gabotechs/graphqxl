@@ -1,13 +1,17 @@
-# GraphQXL book
+<div style="display: flex; flex-direction: row; align-items: flex-start">
+    <img height="40" width="200" style="object-fit: cover; margin-top: 20px" src="./assets/graphqxl-name.svg" alt="">
+    <span style="font-size: 32px; margin-top: 16px; font-weight: normal">book</span>
+</div>
 
-GraphQXL is an extension of the [GraphQL](https://graphql.org/) language
+
+**GraphQXL** is an extension of the [GraphQL](https://graphql.org/) language
 with some additional features that help creating big and scalable server-side
 schemas.
 
-When following a schema-first approach for creating graphql schemas, there are
+When following a schema-first approach, there are
 some challenges that are left unaddressed compared to a code-first approach.
 
-- With a **code-first** approach, you have all the tools that the programming language
+- With a **code-first** approach, you have all the tools the programming language
 you are using provides, like functions for automatically generating repetitive 
 types, inheritance for reusing code pieces, and so on.
 

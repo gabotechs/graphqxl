@@ -2,26 +2,61 @@
 
 Generics can be used to reuse `types` or `inputs` that have some
 small subset of the fields slightly different from each other:
+
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="width: 50%">
+
 ```graphql
 type Generic<T> {
     foo: T
 }
 
-type ConcreteString = Generic<String!>
-type ConcreteInt = Generic<Int!>
+type FooString = Generic<String!>
+
+type FooInt = Generic<Int!>
 ```
-will compile to
+</td>
+            <td>
+
 ```graphql
-type ConcreteString {
+type FooString {
     foo: String!
 }
 
-type ConcreteInt {
+type FooInt {
     foo: Int!
 }
 ```
+</td>
+        </tr>
+    </tbody>
+</table>
+
+Notice how the generic type definition is omitted from the generated GraphQL. If
+a `type` or an `input` is declared with generic type parameters, it will not be
+present in the generated GraphQL.
 
 It can even be combined with [inheritance](./inheritance.md):
+
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+
 ```graphql
 type Book {
     title: String!
@@ -33,23 +68,32 @@ type List<T> {
     content: [T!]!
 }
 
-type _ListOfBooks = List<Book>
-
 type ListOfBooksWithLength {
-    ..._ListOfBooks
+    ...List<Book>
     length: Int!
 }
 ```
-will compile to
+</td>
+            <td>
+
 ```graphql
 type Book {
     title: String!
 }
 
 type ListOfBooksWithLength {
-    first: Book 
+    first: Book
     last: Book
     content: [Book!]!
     length: Int!
 }
+
+
+
+
 ```
+
+</td>
+        </tr>
+    </tbody>
+</table>

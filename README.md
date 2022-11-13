@@ -1,6 +1,6 @@
 <p align="center">
-    <img alt="" height="200" src="./docs/assets/graphqxl-name.svg">
-    <img alt="" height="200" src="./docs/assets/graphqxl.svg">
+    <img alt="" height="200" src="./docs/src/assets/graphqxl-name.svg">
+    <img alt="" height="200" src="./docs/src/assets/graphqxl.svg">
 </p>
 
 [![Coverage Status](https://coveralls.io/repos/github/gabotechs/graphqxl/badge.svg?branch=main)](https://coveralls.io/github/gabotechs/graphqxl?branch=main)
