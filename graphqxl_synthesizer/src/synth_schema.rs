@@ -1,4 +1,5 @@
 use crate::synth_description::DescriptionSynth;
+use crate::synth_directive::DirectiveSynth;
 use crate::synths::{ChainSynth, MultilineListSynth, PairSynth, StringSynth};
 use crate::{Synth, SynthContext};
 use graphqxl_parser::Schema;
@@ -23,13 +24,16 @@ impl Synth for SchemaSynth {
         if to_include.is_empty() {
             return false;
         }
-        let pair_synth = PairSynth::top_level(
-            DescriptionSynth::text(&self.0.description),
-            ChainSynth(vec![
-                Box::new(StringSynth::from("schema ")),
-                Box::new(MultilineListSynth::no_suffix(("{", to_include, "}"))),
-            ]),
-        );
+        let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth::from("schema "))];
+        for directive in self.0.directives.iter() {
+            v.push(Box::new(DirectiveSynth(directive.clone())));
+            v.push(Box::new(StringSynth::from(" ")));
+        }
+        v.push(Box::new(MultilineListSynth::no_suffix((
+            "{", to_include, "}",
+        ))));
+        let pair_synth =
+            PairSynth::top_level(DescriptionSynth::text(&self.0.description), ChainSynth(v));
         pair_synth.synth(context)
     }
 }
@@ -38,11 +42,26 @@ impl Synth for SchemaSynth {
 mod tests {
     use super::*;
     use crate::SynthConfig;
+    use graphqxl_parser::Directive;
 
     #[test]
     fn test_with_query() {
         let synth = SchemaSynth(Schema::build().query("Query"));
         assert_eq!(synth.synth_zero(), "schema {\n  query: Query\n}")
+    }
+
+    #[test]
+    fn test_with_query_and_directives() {
+        let synth = SchemaSynth(
+            Schema::build()
+                .query("Query")
+                .directive(Directive::build("dir1"))
+                .directive(Directive::build("dir2")),
+        );
+        assert_eq!(
+            synth.synth_zero(),
+            "schema @dir1 @dir2 {\n  query: Query\n}"
+        )
     }
 
     #[test]
