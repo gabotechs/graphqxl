@@ -5,7 +5,6 @@ pub(crate) struct BlockDefStore<'a> {
     hash_maps: Vec<&'a HashMap<String, BlockDef>>,
 }
 
-// TODO: This should be done with macros, but I don't know how to use them 🤷🏼‍
 impl<'a> From<&'a HashMap<String, BlockDef>> for BlockDefStore<'a> {
     fn from(value: &'a HashMap<String, BlockDef>) -> Self {
         Self {
@@ -14,55 +13,9 @@ impl<'a> From<&'a HashMap<String, BlockDef>> for BlockDefStore<'a> {
     }
 }
 
-impl<'a> From<(&'a HashMap<String, BlockDef>, &'a HashMap<String, BlockDef>)>
-    for BlockDefStore<'a>
-{
-    fn from(value: (&'a HashMap<String, BlockDef>, &'a HashMap<String, BlockDef>)) -> Self {
-        Self {
-            hash_maps: vec![value.0, value.1],
-        }
-    }
-}
-
-impl<'a>
-    From<(
-        &'a HashMap<String, BlockDef>,
-        &'a HashMap<String, BlockDef>,
-        &'a HashMap<String, BlockDef>,
-    )> for BlockDefStore<'a>
-{
-    fn from(
-        value: (
-            &'a HashMap<String, BlockDef>,
-            &'a HashMap<String, BlockDef>,
-            &'a HashMap<String, BlockDef>,
-        ),
-    ) -> Self {
-        Self {
-            hash_maps: vec![value.0, value.1, value.2],
-        }
-    }
-}
-
-impl<'a>
-    From<(
-        &'a HashMap<String, BlockDef>,
-        &'a HashMap<String, BlockDef>,
-        &'a HashMap<String, BlockDef>,
-        &'a HashMap<String, BlockDef>,
-    )> for BlockDefStore<'a>
-{
-    fn from(
-        value: (
-            &'a HashMap<String, BlockDef>,
-            &'a HashMap<String, BlockDef>,
-            &'a HashMap<String, BlockDef>,
-            &'a HashMap<String, BlockDef>,
-        ),
-    ) -> Self {
-        Self {
-            hash_maps: vec![value.0, value.1, value.2, value.3],
-        }
+impl<'a> From<Vec<&'a HashMap<String, BlockDef>>> for BlockDefStore<'a> {
+    fn from(value: Vec<&'a HashMap<String, BlockDef>>) -> Self {
+        Self { hash_maps: value }
     }
 }
 

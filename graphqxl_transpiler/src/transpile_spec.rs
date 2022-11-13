@@ -15,15 +15,15 @@ pub fn transpile_spec(spec: &Spec, options: &TranspileSpecOptions) -> Result<Spe
     let mut transpiled_store = HashMap::new();
 
     for def in spec.order.iter() {
-        let types_block_def_store = BlockDefStore::from((
+        let types_block_def_store = BlockDefStore::from(vec![
             &spec.types,
             &transpiled_store,
             &spec.interfaces,
             &spec.inputs,
-        ));
+        ]);
 
         let inputs_block_def_store =
-            BlockDefStore::from((&spec.inputs, &transpiled_store, &spec.types));
+            BlockDefStore::from(vec![&spec.inputs, &transpiled_store, &spec.types]);
 
         let enums_block_def_store = BlockDefStore::from(&spec.enums);
 

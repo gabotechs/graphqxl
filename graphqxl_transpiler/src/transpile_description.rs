@@ -1,8 +1,11 @@
+use crate::resolve_modified_ref::ResolvedRef;
 use graphqxl_parser::{BlockDef, BlockField, OwnedSpan};
 use regex::{escape, Regex};
 use std::collections::HashMap;
 use std::error::Error;
-use crate::resolve_modified_ref::ResolvedRef;
+
+#[derive(Debug)]
+struct Struct;
 
 pub(crate) trait TemplateDescription {
     fn get_description(&self) -> &str;
@@ -10,49 +13,27 @@ pub(crate) trait TemplateDescription {
     fn owned_span(&self) -> &OwnedSpan;
 }
 
-// TODO: this could be done with a macro
-impl TemplateDescription for BlockField {
-    fn get_description(&self) -> &str {
-        &self.description
-    }
+macro_rules! impl_template_description {
+    ($structure: ty) => {
+        impl TemplateDescription for $structure {
+            fn get_description(&self) -> &str {
+                &self.description
+            }
 
-    fn mutate_description(&mut self, new_description: &str) {
-        self.description = new_description.to_string();
-    }
+            fn mutate_description(&mut self, new_description: &str) {
+                self.description = new_description.to_string();
+            }
 
-    fn owned_span(&self) -> &OwnedSpan {
-        &self.span
-    }
+            fn owned_span(&self) -> &OwnedSpan {
+                &self.span
+            }
+        }
+    };
 }
 
-impl TemplateDescription for BlockDef {
-    fn get_description(&self) -> &str {
-        &self.description
-    }
-
-    fn mutate_description(&mut self, new_description: &str) {
-        self.description = new_description.to_string();
-    }
-
-    fn owned_span(&self) -> &OwnedSpan {
-        &self.span
-    }
-}
-
-
-impl TemplateDescription for ResolvedRef {
-    fn get_description(&self) -> &str {
-        &self.description
-    }
-
-    fn mutate_description(&mut self, new_description: &str) {
-        self.description = new_description.to_string();
-    }
-
-    fn owned_span(&self) -> &OwnedSpan {
-        &self.span
-    }
-}
+impl_template_description!(BlockField);
+impl_template_description!(BlockDef);
+impl_template_description!(ResolvedRef);
 
 pub(crate) fn transpile_description<T: TemplateDescription>(
     with_template_description: &mut T,
@@ -92,25 +73,19 @@ pub(crate) fn transpile_description<T: TemplateDescription>(
 mod tests {
     use super::*;
 
-    struct TestString(String, OwnedSpan);
-
-    impl TemplateDescription for TestString {
-        fn get_description(&self) -> &str {
-            &self.0
-        }
-
-        fn mutate_description(&mut self, new_description: &str) {
-            self.0 = new_description.to_string();
-        }
-
-        fn owned_span(&self) -> &OwnedSpan {
-            &self.1
-        }
+    struct TestString {
+        description: String,
+        span: OwnedSpan,
     }
+
+    impl_template_description!(TestString);
 
     impl From<&str> for TestString {
         fn from(text: &str) -> Self {
-            TestString(text.to_string(), OwnedSpan::default())
+            TestString {
+                description: text.to_string(),
+                span: OwnedSpan::default(),
+            }
         }
     }
 
@@ -126,7 +101,7 @@ mod tests {
             false,
         );
         match result {
-            Ok(_) => assert_eq!(string.0, "This must be replaced: Replacement"),
+            Ok(_) => assert_eq!(string.description, "This must be replaced: Replacement"),
             Err(err) => panic!("{err}"),
         }
     }
