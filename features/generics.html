@@ -137,23 +137,52 @@
                         <h1 id="generics"><a class="header" href="#generics">Generics</a></h1>
 <p>Generics can be used to reuse <code>types</code> or <code>inputs</code> that have some
 small subset of the fields slightly different from each other:</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="width: 50%">
 <pre><code class="language-graphql">type Generic&lt;T&gt; {
     foo: T
 }
 
-type ConcreteString = Generic&lt;String!&gt;
-type ConcreteInt = Generic&lt;Int!&gt;
+type FooString = Generic&lt;String!&gt;
+
+type FooInt = Generic&lt;Int!&gt;
 </code></pre>
-<p>will compile to</p>
-<pre><code class="language-graphql">type ConcreteString {
+</td>
+            <td>
+<pre><code class="language-graphql">type FooString {
     foo: String!
 }
 
-type ConcreteInt {
+type FooInt {
     foo: Int!
 }
 </code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
+<p>Notice how the generic type definition is omitted from the generated GraphQL. If
+a <code>type</code> or an <code>input</code> is declared with generic type parameters, it will not be
+present in the generated GraphQL.</p>
 <p>It can even be combined with <a href="./inheritance.html">inheritance</a>:</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
 <pre><code class="language-graphql">type Book {
     title: String!
 }
@@ -164,25 +193,32 @@ type List&lt;T&gt; {
     content: [T!]!
 }
 
-type _ListOfBooks = List&lt;Book&gt;
-
 type ListOfBooksWithLength {
-    ..._ListOfBooks
+    ...List&lt;Book&gt;
     length: Int!
 }
 </code></pre>
-<p>will compile to</p>
+</td>
+            <td>
 <pre><code class="language-graphql">type Book {
     title: String!
 }
 
 type ListOfBooksWithLength {
-    first: Book 
+    first: Book
     last: Book
     content: [Book!]!
     length: Int!
 }
+
+
+
+
 </code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
 
                     </main>
 

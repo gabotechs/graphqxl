@@ -141,12 +141,24 @@ This is useful for keeping your schema's code base clean and for improving its
 maintainability.</p>
 <p>An <code>import</code> statement will resolve all the content of the imported
 file in the current one, for example:</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
 <pre><code class="language-graphql"># common-stuff.graphqxl
+
 type Identifier {
     id: ID!
 }
 </code></pre>
 <pre><code class="language-graphql"># product.graphqxl
+
 import &quot;common-stuff&quot;
 
 type Product {
@@ -154,8 +166,10 @@ type Product {
     price: Float!
 }
 </code></pre>
-<p>Compiling with <code>graphqxl product.graphqxl</code> will output:</p>
+</td>
+            <td>
 <pre><code class="language-graphql"># product.graphql
+
 type Identifier {
     id: ID!
 }
@@ -164,7 +178,16 @@ type Product {
     id: Identifier
     price: Float!
 }
+
+
+
+
+
 </code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
 <p>A good pattern for keeping your schema clean could look something like this:</p>
 <pre><code class="language-graphql">import &quot;products&quot;
 import &quot;users&quot;

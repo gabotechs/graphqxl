@@ -135,6 +135,84 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="modifiers"><a class="header" href="#modifiers">Modifiers</a></h1>
+<p>Modifiers are like built-in generic types that will modify the provided type
+based on some rules. Users cannot define their own modifiers, only use the
+built-in ones.</p>
+<p>These are the currently available modifiers:</p>
+<h2 id="optional"><a class="header" href="#optional">Optional</a></h2>
+<p>The <code>Optional</code> modifier takes a <code>type</code> or an <code>input</code> as a parameter and outputs a
+similar object with all its fields marked as &quot;nullable&quot;. If the field in the original
+object was declared required with a <code>!</code> the output will contain that field without
+the <code>!</code>, otherwise the field is left untouched.</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+<pre><code class="language-graphql">type _SomeType {
+    foo: String!
+    bar: Int!
+    bool: [Float!]
+}
+
+type OptionalType = Optional&lt;_SomeType&gt;
+</code></pre>
+</td>
+            <td>
+<pre><code class="language-graphql">type OptionalType {
+    foo: String
+    bar: Int
+    bool: [Float!]
+}
+
+
+</code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
+<h2 id="required"><a class="header" href="#required">Required</a></h2>
+<p>The <code>Required</code> modifier takes a <code>type</code> or an <code>input</code> as a parameter and outputs a
+similar object with all its fields marked as &quot;non-nullable&quot;. If a field in the original
+object did not have a <code>!</code>, it will have it in the new object, otherwise it will be 
+left untouched</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+<pre><code class="language-graphql">type _SomeType {
+    foo: String
+    bar: Int
+    bool: [Float]!
+}
+
+type RequiredType = Required&lt;_SomeType&gt;
+</code></pre>
+</td>
+            <td>
+<pre><code class="language-graphql">type RequiredType {
+    foo: String!
+    bar: Int!
+    bool: [Float]!
+}
+
+
+</code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
 
                     </main>
 

@@ -135,9 +135,21 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="inheritance"><a class="header" href="#inheritance">Inheritance</a></h1>
+<p>There will be times that a lot of <code>types</code> or <code>inputs</code> have some fields in common. In GraphQXL you
+can inherit fields between <code>types</code> and <code>inputs</code> using spread operators.</p>
 <h2 id="spread-operator"><a class="header" href="#spread-operator">Spread operator</a></h2>
 <p><code>types</code> and <code>inputs</code> can inherit fields from other <code>types</code> and <code>inputs</code> using
 spread operators, for example:</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td >
 <pre><code class="language-graphql">type Common {
     &quot;Type's ID&quot;
     id: ID!
@@ -152,8 +164,14 @@ type Product {
     &quot;Product's price&quot;
     price: Float!
 }
+
+
+
+
+
 </code></pre>
-<p>will compile to </p>
+</td>
+            <td>
 <pre><code class="language-graphql">type Common {
     &quot;Type's ID&quot;
     id: ID!
@@ -174,10 +192,24 @@ type Product {
     price: Float!
 }
 </code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
 <h2 id="private-fields"><a class="header" href="#private-fields">Private fields</a></h2>
 <p>It is very common that you do not want to expose the <code>Common</code> type in the public API,
-so you can make it private by prefixing the type with a <code>_</code> character (or the 
+so you can make it private by prefixing the name with a <code>_</code> character (or the 
 prefix that you provide in the CLI argument):</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
 <pre><code class="language-graphql">type _Common {
     &quot;Type's ID&quot;
     id: ID!
@@ -193,7 +225,8 @@ type Product {
     price: Float!
 }
 </code></pre>
-<p>will compile to</p>
+</td>
+            <td>
 <pre><code class="language-graphql">type Product {
     &quot;Type's ID&quot;
     id: ID!
@@ -204,11 +237,29 @@ type Product {
     &quot;Product's price&quot;
     price: Float!
 }
+
+
+
+
 </code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
 <h2 id="inheriting-interfaces"><a class="header" href="#inheriting-interfaces">Inheriting interfaces</a></h2>
 <p>A common pattern is to declare a GraphQL <code>interface</code> and to implement it in a <code>type</code>, but
 you need to rewrite all the fields in the <code>type</code> that belong to the <code>interface</code> as they
 are not implicit. You can use the spread operator also with <code>interfaces</code>:</p>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <td align="center">Source GraphQXL</td>
+            <td align="center">Compiled GraphQL</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
 <pre><code class="language-graphql">interface Person {
     parent: String!
     childs: [String!]!
@@ -223,8 +274,11 @@ type Kid implements Person {
     ...Person
     school_name: String!
 }
+
+
 </code></pre>
-<p>will compile to</p>
+</td>
+            <td>
 <pre><code class="language-graphql">interface Person {
     parent: String!
     childs: [String!]!
@@ -242,6 +296,10 @@ type Kid implements Person {
     school_name: String!
 }
 </code></pre>
+</td>
+        </tr>
+    </tbody>
+</table>
 
                     </main>
 
