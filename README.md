@@ -19,6 +19,7 @@ There is a WIP version of the `GraphQXL book` with some useful docs, you can che
 Use the spread operator to inherit fields from other types or inputs. Descriptions
 will also be inherited.
 
+[Try it yourself!](https://graphqxl-explorer.vercel.app?code=dHlwZSBfT3RoZXJUeXBlIHsKICAgICJEZXNjcmlwdGlvbnMgYXJlIGFsc28gaW5oZXJpdGVkIgogICAgYmFyOiBJbnQhCn0KCnR5cGUgTXlUeXBlIHsKICAgIGZvbzogU3RyaW5nIQogICAgLi4uX090aGVyVHlwZQp9)
 <table>
     <thead>
         <tr>
@@ -44,6 +45,7 @@ type _OtherType {
 type MyType {
     foo: String!
     ..._OtherType
+}
                               #GraphQXL
 ```
 </td><td>
@@ -57,6 +59,7 @@ type MyType {
 
 
 
+
                                #GraphQL
 ```
 </td></tr></tbody></table>
@@ -65,6 +68,7 @@ type MyType {
 
 Declare generic types and inputs in order to reuse common structures across your schema.
 
+[Try it yourself!](https://graphqxl-explorer.vercel.app?code=dHlwZSBHZW5lcmljPFQ%2bIHsKICAgIGZvbzogVAp9Cgp0eXBlIE15U3RyaW5nVHlwZSA9IEdlbmVyaWM8U3RyaW5nIT4KCnR5cGUgTXlJbnRUeXBlID0gR2VuZXJpYzxJbnQhPgo=)
 <table>
     <thead>
         <tr>
@@ -110,6 +114,7 @@ type MyIntType {
 
 Modify `types` and `inputs` with built-in modifiers.
 
+[Try it yourself!](https://graphqxl-explorer.vercel.app?code=dHlwZSBfTXlUeXBlIHsKICAgIGZvbzogU3RyaW5nCiAgICBiYXI6IFN0cmluZyEKfQoKdHlwZSBNeVR5cGVSZXF1aXJlZCA9IFJlcXVpcmVkPF9NeVR5cGU%2bCgp0eXBlIE15VHlwZU9wdGlvbmFsID0gT3B0aW9uYWw8X015VHlwZT4K)
 <table>
     <thead>
         <tr>
