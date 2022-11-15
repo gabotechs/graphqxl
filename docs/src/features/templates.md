@@ -57,6 +57,7 @@ You can use template variables in the description strings to refer to some
 contextual values:
 
 
+[Open in sandbox](https://graphqxl-explorer.vercel.app/?code=dHlwZSBfVG9CZVJldXNlZCB7CiAgICAiRmllbGQgZm9vIGZyb20gJHt7IGJsb2NrLnR5cGUgfX0gJyR7eyBibG9jay5uYW1lIH19JyIKICAgIGZvbzogU3RyaW5nIQp9CgppbnB1dCBCYXIgewogICAgLi4uX1RvQmVSZXVzZWQKfQoKdHlwZSBCYXogewogICAgLi4uX1RvQmVSZXVzZWQKfQ==)
 <table style="width: 100%">
     <thead>
         <tr>

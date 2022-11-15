@@ -13,6 +13,7 @@ similar object with all its fields marked as "nullable". If the field in the ori
 object was declared required with a `!` the output will contain that field without
 the `!`, otherwise the field is left untouched.
 
+[Open in sandbox](https://graphqxl-explorer.vercel.app/?code=dHlwZSBfU29tZVR5cGUgewogICAgZm9vOiBTdHJpbmchCiAgICBiYXI6IEludCEKICAgIGJvb2w6IFtGbG9hdCFdCn0KCnR5cGUgT3B0aW9uYWxUeXBlID0gT3B0aW9uYWw8X1NvbWVUeXBlPg==)
 <table style="width: 100%">
     <thead>
         <tr>
@@ -57,6 +58,7 @@ similar object with all its fields marked as "non-nullable". If a field in the o
 object did not have a `!`, it will have it in the new object, otherwise it will be 
 left untouched
 
+[Open in sandbox](https://graphqxl-explorer.vercel.app/?code=dHlwZSBfU29tZVR5cGUgewogICAgZm9vOiBTdHJpbmcKICAgIGJhcjogSW50CiAgICBib29sOiBbRmxvYXRdIQp9Cgp0eXBlIFJlcXVpcmVkVHlwZSA9IFJlcXVpcmVkPF9Tb21lVHlwZT4=)
 <table style="width: 100%">
     <thead>
         <tr>
