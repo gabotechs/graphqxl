@@ -224,6 +224,7 @@ can inherit fields between <code>types</code> and <code>inputs</code> using spre
 <h2 id="spread-operator"><a class="header" href="#spread-operator">Spread operator</a></h2>
 <p><code>types</code> and <code>inputs</code> can inherit fields from other <code>types</code> and <code>inputs</code> using
 spread operators, for example:</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBDb21tb24gewogICAgIlR5cGUncyBJRCIKICAgIGlkOiBJRCEKICAgICJUeXBlJ3MgTmFtZSIKICAgIG5hbWU6IFN0cmluZyEKICAgICJUeXBlJ3MgZGVzY3JpcHRpb24iCiAgICBkZXNjcmlwdGlvbjogU3RyaW5nIQp9Cgp0eXBlIFByb2R1Y3QgewogICAgLi4uQ29tbW9uCiAgICAiUHJvZHVjdCdzIHByaWNlIgogICAgcHJpY2U6IEZsb2F0IQp9">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -284,6 +285,7 @@ type Product {
 <p>It is very common that you do not want to expose the <code>Common</code> type in the public API,
 so you can make it private by prefixing the name with a <code>_</code> character (or the 
 prefix that you provide in the CLI argument):</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfQ29tbW9uIHsKICAgICJUeXBlJ3MgSUQiCiAgICBpZDogSUQhCiAgICAiVHlwZSdzIE5hbWUiCiAgICBuYW1lOiBTdHJpbmchCiAgICAiVHlwZSdzIGRlc2NyaXB0aW9uIgogICAgZGVzY3JpcHRpb246IFN0cmluZyEKfQoKdHlwZSBQcm9kdWN0IHsKICAgIC4uLl9Db21tb24KICAgICJQcm9kdWN0J3MgcHJpY2UiCiAgICBwcmljZTogRmxvYXQhCn0=">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -334,6 +336,7 @@ type Product {
 <p>A common pattern is to declare a GraphQL <code>interface</code> and to implement it in a <code>type</code>, but
 you need to rewrite all the fields in the <code>type</code> that belong to the <code>interface</code> as they
 are not implicit. You can use the spread operator also with <code>interfaces</code>:</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=aW50ZXJmYWNlIFBlcnNvbiB7CiAgICBwYXJlbnQ6IFN0cmluZyEKICAgIGNoaWxkczogW1N0cmluZyFdIQp9Cgp0eXBlIERhZCBpbXBsZW1lbnRzIFBlcnNvbiB7CiAgICAuLi5QZXJzb24KICAgIGpvYl90aXRsZTogU3RyaW5nIQp9Cgp0eXBlIEtpZCBpbXBsZW1lbnRzIFBlcnNvbiB7CiAgICAuLi5QZXJzb24KICAgIHNjaG9vbF9uYW1lOiBTdHJpbmchCn0=">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -387,6 +390,7 @@ type Kid implements Person {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="generics"><a class="header" href="#generics">Generics</a></h1>
 <p>Generics can be used to reuse <code>types</code> or <code>inputs</code> that have some
 small subset of the fields slightly different from each other:</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBHZW5lcmljPFQ%2bIHsKICAgIGZvbzogVAp9Cgp0eXBlIEZvb1N0cmluZyA9IEdlbmVyaWM8U3RyaW5nIT4KCnR5cGUgRm9vSW50ID0gR2VuZXJpYzxJbnQhPg==">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -423,6 +427,7 @@ type FooInt {
 a <code>type</code> or an <code>input</code> is declared with generic type parameters, it will not be
 present in the generated GraphQL.</p>
 <p>It can even be combined with <a href="features/./inheritance.html">inheritance</a>:</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBCb29rIHsKICAgIHRpdGxlOiBTdHJpbmchCn0KCnR5cGUgTGlzdDxUPiB7CiAgICBmaXJzdDogVAogICAgbGFzdDogVAogICAgY29udGVudDogW1QhXSEKfQoKdHlwZSBMaXN0T2ZCb29rc1dpdGhMZW5ndGggewogICAgLi4uTGlzdDxCb29rPgogICAgbGVuZ3RoOiBJbnQhCn0">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -479,6 +484,7 @@ built-in ones.</p>
 similar object with all its fields marked as &quot;nullable&quot;. If the field in the original
 object was declared required with a <code>!</code> the output will contain that field without
 the <code>!</code>, otherwise the field is left untouched.</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfU29tZVR5cGUgewogICAgZm9vOiBTdHJpbmchCiAgICBiYXI6IEludCEKICAgIGJvb2w6IFtGbG9hdCFdCn0KCnR5cGUgT3B0aW9uYWxUeXBlID0gT3B0aW9uYWw8X1NvbWVUeXBlPg==">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -516,6 +522,7 @@ type OptionalType = Optional&lt;_SomeType&gt;
 similar object with all its fields marked as &quot;non-nullable&quot;. If a field in the original
 object did not have a <code>!</code>, it will have it in the new object, otherwise it will be 
 left untouched</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfU29tZVR5cGUgewogICAgZm9vOiBTdHJpbmcKICAgIGJhcjogSW50CiAgICBib29sOiBbRmxvYXRdIQp9Cgp0eXBlIFJlcXVpcmVkVHlwZSA9IFJlcXVpcmVkPF9Tb21lVHlwZT4=">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -674,6 +681,7 @@ but once that is compiled it is not true, it should say something like:</p>
 <h2 id="description-string-interpolation"><a class="header" href="#description-string-interpolation">Description string interpolation</a></h2>
 <p>You can use template variables in the description strings to refer to some 
 contextual values:</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfVG9CZVJldXNlZCB7CiAgICAiRmllbGQgZm9vIGZyb20gJHt7IGJsb2NrLnR5cGUgfX0gJyR7eyBibG9jay5uYW1lIH19JyIKICAgIGZvbzogU3RyaW5nIQp9CgppbnB1dCBCYXIgewogICAgLi4uX1RvQmVSZXVzZWQKfQoKdHlwZSBCYXogewogICAgLi4uX1RvQmVSZXVzZWQKfQ==">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>

@@ -140,6 +140,7 @@ can inherit fields between <code>types</code> and <code>inputs</code> using spre
 <h2 id="spread-operator"><a class="header" href="#spread-operator">Spread operator</a></h2>
 <p><code>types</code> and <code>inputs</code> can inherit fields from other <code>types</code> and <code>inputs</code> using
 spread operators, for example:</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBDb21tb24gewogICAgIlR5cGUncyBJRCIKICAgIGlkOiBJRCEKICAgICJUeXBlJ3MgTmFtZSIKICAgIG5hbWU6IFN0cmluZyEKICAgICJUeXBlJ3MgZGVzY3JpcHRpb24iCiAgICBkZXNjcmlwdGlvbjogU3RyaW5nIQp9Cgp0eXBlIFByb2R1Y3QgewogICAgLi4uQ29tbW9uCiAgICAiUHJvZHVjdCdzIHByaWNlIgogICAgcHJpY2U6IEZsb2F0IQp9">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -200,6 +201,7 @@ type Product {
 <p>It is very common that you do not want to expose the <code>Common</code> type in the public API,
 so you can make it private by prefixing the name with a <code>_</code> character (or the 
 prefix that you provide in the CLI argument):</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfQ29tbW9uIHsKICAgICJUeXBlJ3MgSUQiCiAgICBpZDogSUQhCiAgICAiVHlwZSdzIE5hbWUiCiAgICBuYW1lOiBTdHJpbmchCiAgICAiVHlwZSdzIGRlc2NyaXB0aW9uIgogICAgZGVzY3JpcHRpb246IFN0cmluZyEKfQoKdHlwZSBQcm9kdWN0IHsKICAgIC4uLl9Db21tb24KICAgICJQcm9kdWN0J3MgcHJpY2UiCiAgICBwcmljZTogRmxvYXQhCn0=">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
@@ -250,6 +252,7 @@ type Product {
 <p>A common pattern is to declare a GraphQL <code>interface</code> and to implement it in a <code>type</code>, but
 you need to rewrite all the fields in the <code>type</code> that belong to the <code>interface</code> as they
 are not implicit. You can use the spread operator also with <code>interfaces</code>:</p>
+<p><a href="https://graphqxl-explorer.vercel.app/?code=aW50ZXJmYWNlIFBlcnNvbiB7CiAgICBwYXJlbnQ6IFN0cmluZyEKICAgIGNoaWxkczogW1N0cmluZyFdIQp9Cgp0eXBlIERhZCBpbXBsZW1lbnRzIFBlcnNvbiB7CiAgICAuLi5QZXJzb24KICAgIGpvYl90aXRsZTogU3RyaW5nIQp9Cgp0eXBlIEtpZCBpbXBsZW1lbnRzIFBlcnNvbiB7CiAgICAuLi5QZXJzb24KICAgIHNjaG9vbF9uYW1lOiBTdHJpbmchCn0=">Open in sandbox</a></p>
 <table style="width: 100%">
     <thead>
         <tr>
