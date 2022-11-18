@@ -1,5 +1,5 @@
 use crate::ast_value_basic_type::{parse_value_basic_type, ValueBasicType};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::Identifier;
 use pest::iterators::Pair;
@@ -61,10 +61,7 @@ impl ValueType {
     }
 }
 
-pub(crate) fn parse_value_type(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<ValueType, pest::error::Error<Rule>> {
+pub(crate) fn parse_value_type(pair: Pair<Rule>, file: &str) -> Result<ValueType, Box<RuleError>> {
     match pair.as_rule() {
         Rule::value_type => parse_value_type(pair.into_inner().next().unwrap(), file),
         Rule::value_basic_type => Ok(ValueType::Basic(parse_value_basic_type(pair, file)?)),
@@ -88,7 +85,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<ValueType, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<ValueType, Box<RuleError>> {
         parse_full_input(input, Rule::value_type, parse_value_type)
     }
 

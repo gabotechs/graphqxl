@@ -1,5 +1,5 @@
 use crate::ast_identifier::{parse_identifier, Identifier};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_function_call, FunctionCall, FunctionInput, ValueData};
 use pest::iterators::Pair;
@@ -37,10 +37,7 @@ impl Directive {
     }
 }
 
-pub(crate) fn parse_directive(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<Directive, pest::error::Error<Rule>> {
+pub(crate) fn parse_directive(pair: Pair<Rule>, file: &str) -> Result<Directive, Box<RuleError>> {
     match pair.as_rule() {
         Rule::directive => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -62,7 +59,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<Directive, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<Directive, Box<RuleError>> {
         parse_full_input(input, Rule::directive, parse_directive)
     }
 

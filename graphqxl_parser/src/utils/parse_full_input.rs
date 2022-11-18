@@ -1,4 +1,4 @@
-use crate::parser::{GraphqxlParser, Rule};
+use crate::parser::{GraphqxlParser, Rule, RuleError};
 use pest::error::ErrorVariant;
 use pest::iterators::Pair;
 use pest::{Parser, Position};
@@ -7,8 +7,8 @@ use pest::{Parser, Position};
 pub fn parse_full_input<R>(
     input: &str,
     rule: Rule,
-    parser: fn(Pair<Rule>, file: &str) -> Result<R, pest::error::Error<Rule>>,
-) -> Result<R, pest::error::Error<Rule>> {
+    parser: fn(Pair<Rule>, file: &str) -> Result<R, Box<RuleError>>,
+) -> Result<R, Box<RuleError>> {
     let pair_or_err = GraphqxlParser::parse(rule, input);
     if let Err(err) = &pair_or_err {
         eprintln!("{}", err);
@@ -20,14 +20,14 @@ pub fn parse_full_input<R>(
     let parsed_len = parsed.as_str().len();
     let input_len = input.len();
     if parsed_len < input_len {
-        let err = pest::error::Error::new_from_pos(
+        let err = pest::error::Error::<Rule>::new_from_pos(
             ErrorVariant::CustomError {
                 message: "not everything was parsed: ".to_string() + &input[parsed_len..],
             },
             Position::new(input, pair.as_str().len()).unwrap(),
         );
         eprintln!("{}", err);
-        return Err(err);
+        return Err(Box::new(err));
     }
     let res = parser(parsed, "");
     if let Err(err) = &res {

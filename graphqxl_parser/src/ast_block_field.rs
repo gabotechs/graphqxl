@@ -2,7 +2,7 @@ use crate::ast_arguments::{parse_arguments, Argument};
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::ast_value_type::{parse_value_type, ValueType};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
@@ -71,10 +71,7 @@ impl BlockField {
     }
 }
 
-fn _parse_block_field(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<BlockField, pest::error::Error<Rule>> {
+fn _parse_block_field(pair: Pair<Rule>, file: &str) -> Result<BlockField, Box<RuleError>> {
     let span = OwnedSpan::from(pair.as_span(), file);
     // at this moment we are on [type_field|input_field], both will work
     let mut pairs = pair.into_inner();
@@ -109,7 +106,7 @@ fn _parse_block_field(
 pub(crate) fn parse_block_field(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<BlockField, pest::error::Error<Rule>> {
+) -> Result<BlockField, Box<RuleError>> {
     match pair.as_rule() {
         Rule::field_with_args => _parse_block_field(pair, file),
         Rule::field_without_args => _parse_block_field(pair, file),
@@ -124,17 +121,15 @@ mod tests {
     use crate::ast_value_data::ValueData;
     use crate::utils::parse_full_input;
 
-    fn parse_with_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
+    fn parse_with_args_input(input: &str) -> Result<BlockField, Box<RuleError>> {
         parse_full_input(input, Rule::field_with_args, parse_block_field)
     }
 
-    fn parse_without_args_input(input: &str) -> Result<BlockField, pest::error::Error<Rule>> {
+    fn parse_without_args_input(input: &str) -> Result<BlockField, Box<RuleError>> {
         parse_full_input(input, Rule::field_without_args, parse_block_field)
     }
 
-    fn parse_without_args_without_value_input(
-        input: &str,
-    ) -> Result<BlockField, pest::error::Error<Rule>> {
+    fn parse_without_args_without_value_input(input: &str) -> Result<BlockField, Box<RuleError>> {
         parse_full_input(
             input,
             Rule::field_without_args_without_value,

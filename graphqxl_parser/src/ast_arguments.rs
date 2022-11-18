@@ -1,7 +1,7 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::ast_value_data::{parse_value_data, ValueData};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, parse_value_type, Directive, ValueType};
 use pest::iterators::Pair;
@@ -64,7 +64,7 @@ impl Argument {
     }
 }
 
-fn parse_argument(pair: Pair<Rule>, file: &str) -> Result<Argument, pest::error::Error<Rule>> {
+fn parse_argument(pair: Pair<Rule>, file: &str) -> Result<Argument, Box<RuleError>> {
     match pair.as_rule() {
         Rule::argument => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -101,7 +101,7 @@ fn parse_argument(pair: Pair<Rule>, file: &str) -> Result<Argument, pest::error:
 pub(crate) fn parse_arguments(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<Vec<Argument>, pest::error::Error<Rule>> {
+) -> Result<Vec<Argument>, Box<RuleError>> {
     match pair.as_rule() {
         Rule::arguments => {
             let mut arguments = Vec::new();
@@ -119,7 +119,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<Vec<Argument>, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<Vec<Argument>, Box<RuleError>> {
         parse_full_input(input, Rule::arguments, parse_arguments)
     }
 

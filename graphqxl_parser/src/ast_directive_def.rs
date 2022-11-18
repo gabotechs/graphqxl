@@ -2,7 +2,7 @@ use crate::ast_arguments::{parse_arguments, Argument};
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_directive_location::{parse_directive_location, DirectiveLocation};
 use crate::ast_identifier::{parse_identifier, Identifier};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use pest::iterators::Pair;
 use std::collections::HashSet;
@@ -49,7 +49,7 @@ impl DirectiveDef {
 pub(crate) fn parse_directive_def(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<DirectiveDef, pest::error::Error<Rule>> {
+) -> Result<DirectiveDef, Box<RuleError>> {
     match pair.as_rule() {
         Rule::directive_def => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -77,12 +77,12 @@ pub(crate) fn parse_directive_def(
             }
             for child in childs {
                 if seen_locations.contains(child.as_str()) {
-                    return Err(pest::error::Error::new_from_span(
+                    return Err(Box::new(pest::error::Error::new_from_span(
                         pest::error::ErrorVariant::CustomError {
                             message: "repeated location ".to_string() + child.as_str(),
                         },
                         child.as_span(),
-                    ));
+                    )));
                 } else {
                     seen_locations.insert(child.as_str());
                 }
@@ -107,7 +107,7 @@ mod tests {
     use crate::utils::parse_full_input;
     use crate::ValueType;
 
-    fn parse_input(input: &str) -> Result<DirectiveDef, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<DirectiveDef, Box<RuleError>> {
         parse_full_input(input, Rule::directive_def, parse_directive_def)
     }
 

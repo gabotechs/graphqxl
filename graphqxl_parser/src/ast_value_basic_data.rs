@@ -1,4 +1,4 @@
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
 
@@ -10,9 +10,7 @@ pub enum ValueBasicData {
     Boolean(bool),
 }
 
-pub(crate) fn _parse_basic_data(
-    pair: Pair<Rule>,
-) -> Result<ValueBasicData, pest::error::Error<Rule>> {
+pub(crate) fn _parse_basic_data(pair: Pair<Rule>) -> Result<ValueBasicData, Box<RuleError>> {
     match pair.as_rule() {
         Rule::int_data => Ok(ValueBasicData::Int(pair.as_str().parse::<i64>().unwrap())),
         Rule::float_data => Ok(ValueBasicData::Float(pair.as_str().parse::<f64>().unwrap())),
@@ -31,7 +29,7 @@ pub(crate) fn _parse_basic_data(
 pub(crate) fn parse_basic_data(
     pair: Pair<Rule>,
     _file: &str,
-) -> Result<ValueBasicData, pest::error::Error<Rule>> {
+) -> Result<ValueBasicData, Box<RuleError>> {
     match pair.as_rule() {
         Rule::basic_data => _parse_basic_data(pair.into_inner().next().unwrap()),
         _unknown => Err(unknown_rule_error(pair, "basic_data")),
@@ -43,7 +41,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<ValueBasicData, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<ValueBasicData, Box<RuleError>> {
         parse_full_input(input, Rule::basic_data, parse_basic_data)
     }
 

@@ -1,5 +1,5 @@
 use crate::ast_expandable_ref::{parse_expandable_ref, ExpandableRef};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::OwnedSpan;
 use pest::iterators::Pair;
@@ -42,7 +42,7 @@ impl ModifiedRef {
 pub(crate) fn parse_modified_ref(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<ModifiedRef, pest::error::Error<Rule>> {
+) -> Result<ModifiedRef, Box<RuleError>> {
     match pair.as_rule() {
         Rule::modified_ref => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -82,7 +82,7 @@ mod tests {
     use crate::utils::parse_full_input;
     use crate::ValueType;
 
-    fn parse_input(input: &str) -> Result<ModifiedRef, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<ModifiedRef, Box<RuleError>> {
         parse_full_input(input, Rule::modified_ref, parse_modified_ref)
     }
 

@@ -1,4 +1,4 @@
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::{parse_identifier, Identifier, OwnedSpan};
 use pest::iterators::Pair;
@@ -23,10 +23,7 @@ impl Implements {
     }
 }
 
-pub(crate) fn parse_implements(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<Implements, pest::error::Error<Rule>> {
+pub(crate) fn parse_implements(pair: Pair<Rule>, file: &str) -> Result<Implements, Box<RuleError>> {
     match pair.as_rule() {
         Rule::implements => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -46,7 +43,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<Implements, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<Implements, Box<RuleError>> {
         parse_full_input(input, Rule::implements, parse_implements)
     }
 

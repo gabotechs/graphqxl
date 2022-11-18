@@ -1,11 +1,8 @@
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use pest::iterators::{Pair, Pairs};
 
-pub(crate) fn parse_description(
-    pair: Pair<Rule>,
-    _file: &str,
-) -> Result<String, pest::error::Error<Rule>> {
+pub(crate) fn parse_description(pair: Pair<Rule>, _file: &str) -> Result<String, Box<RuleError>> {
     match pair.as_rule() {
         Rule::description => {
             let mut result = "".to_string();
@@ -41,7 +38,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<String, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<String, Box<RuleError>> {
         parse_full_input(input, Rule::description, parse_description)
     }
 

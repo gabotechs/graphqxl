@@ -6,7 +6,7 @@ use crate::ast_description_variables::{parse_description_variables, DescriptionV
 use crate::ast_directive::parse_directive;
 use crate::ast_expandable_ref::ExpandableRef;
 use crate::ast_modified_ref::{parse_modified_ref, ModifiedRef};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::{parse_identifier, BlockDefType, Directive, Identifier, OwnedSpan, ValueType};
 
@@ -72,7 +72,7 @@ fn _parse_generic_block_def(
     kind: BlockDefType,
     pair: Pair<Rule>,
     file: &str,
-) -> Result<GenericBlockDef, pest::error::Error<Rule>> {
+) -> Result<GenericBlockDef, Box<RuleError>> {
     let span = OwnedSpan::from(pair.as_span(), file);
     let mut childs = pair.into_inner();
 
@@ -113,7 +113,7 @@ fn _parse_generic_block_def(
 pub(crate) fn parse_generic_block_def(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<GenericBlockDef, pest::error::Error<Rule>> {
+) -> Result<GenericBlockDef, Box<RuleError>> {
     match pair.as_rule() {
         Rule::generic_type_def => _parse_generic_block_def(BlockDefType::Type, pair, file),
         Rule::generic_input_def => _parse_generic_block_def(BlockDefType::Input, pair, file),
@@ -130,7 +130,7 @@ mod tests {
 
     use super::*;
 
-    fn parse_input(input: &str) -> Result<GenericBlockDef, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<GenericBlockDef, Box<RuleError>> {
         let rule = if input.contains("input ") {
             Rule::generic_input_def
         } else {
