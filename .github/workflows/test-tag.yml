@@ -25,10 +25,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all
+        run: cargo clippy --all
 
   test:
     if: ${{ !startsWith(github.event.head_commit.message, 'tag') }}
@@ -47,10 +44,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all --no-fail-fast
+        run: cargo test --all --no-fail-fast
         env:
           CARGO_INCREMENTAL: '0'
           RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
@@ -76,6 +70,16 @@ jobs:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.CI_TOKEN }}
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly-2022-10-09 # Fixed so that it can be cached
+          profile: minimal
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Install bump tool
         uses: actions-rs/cargo@v1
         with:
@@ -83,10 +87,7 @@ jobs:
           args: cargo-workspaces
 
       - name: Bump version
-        uses: actions-rs/cargo@v1
-        with:
-          command: workspaces
-          args: version minor -y --no-git-commit
+        run: cargo workspaces version minor -y --no-git-commit
 
       - name: Tag
         run: |
