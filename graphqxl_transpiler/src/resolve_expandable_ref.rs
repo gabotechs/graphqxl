@@ -1,9 +1,11 @@
-use crate::resolve_modified_ref::{resolve_modified_ref_with_context, ModifiedRefStackContext, ResolvedRef};
+use crate::resolve_modified_ref::{
+    resolve_modified_ref_with_context, ModifiedRefStackContext, ResolvedRef,
+};
 use crate::transpile_description::transpile_description;
+use crate::utils::BlockDefStore;
 use graphqxl_parser::{BlockEntry, ExpandableRef, ValueBasicType};
 use std::collections::HashMap;
 use std::error::Error;
-use crate::utils::BlockDefStore;
 
 const VARIABLES_PREFIX: &str = "variables";
 
@@ -51,8 +53,8 @@ pub(crate) fn resolve_expandable_ref(
             generic_call_args.get(i).unwrap(),
         );
     }
-    
-    let mut resolved_ref = ResolvedRef::init(&generic_referenced_block_def);
+
+    let mut resolved_ref = ResolvedRef::init(generic_referenced_block_def);
 
     let mut description_replacements = HashMap::new();
     for (key, value) in generic_map.iter() {

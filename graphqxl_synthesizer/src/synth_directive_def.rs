@@ -54,7 +54,7 @@ impl Synth for DirectiveLocationSynth {
 impl Synth for DirectiveDefSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
         let synth = PairSynth::top_level(
-            DescriptionSynth::text(&self.0.description.as_str()),
+            DescriptionSynth::text(self.0.description.as_str()),
             ChainSynth({
                 let mut v: Vec<Box<dyn Synth>> = vec![
                     Box::new(StringSynth::from("directive @")),
