@@ -1,6 +1,6 @@
 use crate::ast_generic_call::parse_generic_call;
 use crate::ast_identifier::parse_identifier;
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::{GenericCall, Identifier, OwnedSpan, ValueType};
 use pest::iterators::Pair;
@@ -35,7 +35,7 @@ impl ExpandableRef {
 pub(crate) fn parse_expandable_ref(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<ExpandableRef, pest::error::Error<Rule>> {
+) -> Result<ExpandableRef, Box<RuleError>> {
     match pair.as_rule() {
         Rule::expandable_ref => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -61,7 +61,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<ExpandableRef, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<ExpandableRef, Box<RuleError>> {
         parse_full_input(input, Rule::expandable_ref, parse_expandable_ref)
     }
 

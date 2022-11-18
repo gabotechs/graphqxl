@@ -1,6 +1,6 @@
 use pest::iterators::Pair;
 
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::{parse_identifier, Identifier, OwnedSpan};
 
@@ -24,10 +24,7 @@ impl Generic {
     }
 }
 
-pub(crate) fn parse_generic(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<Generic, pest::error::Error<Rule>> {
+pub(crate) fn parse_generic(pair: Pair<Rule>, file: &str) -> Result<Generic, Box<RuleError>> {
     match pair.as_rule() {
         Rule::generic => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -49,7 +46,7 @@ mod tests {
 
     use super::*;
 
-    fn parse_input(input: &str) -> Result<Generic, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<Generic, Box<RuleError>> {
         parse_full_input(input, Rule::generic, parse_generic)
     }
 

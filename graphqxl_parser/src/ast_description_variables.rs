@@ -1,5 +1,5 @@
 use crate::ast_identifier::parse_identifier;
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::OwnedSpan;
 use pest::iterators::Pair;
@@ -29,7 +29,7 @@ impl DescriptionVariables {
 pub(crate) fn parse_description_variables(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<DescriptionVariables, pest::error::Error<Rule>> {
+) -> Result<DescriptionVariables, Box<RuleError>> {
     match pair.as_rule() {
         Rule::description_variables => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -55,7 +55,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<DescriptionVariables, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<DescriptionVariables, Box<RuleError>> {
         parse_full_input(
             input,
             Rule::description_variables,

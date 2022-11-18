@@ -1,6 +1,6 @@
 use crate::ast_identifier::parse_identifier;
 use crate::ast_value_basic_data::{parse_basic_data, ValueBasicData};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use indexmap::IndexMap;
 use pest::iterators::Pair;
@@ -56,10 +56,7 @@ impl ValueData {
     }
 }
 
-pub(crate) fn parse_value_data(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<ValueData, pest::error::Error<Rule>> {
+pub(crate) fn parse_value_data(pair: Pair<Rule>, file: &str) -> Result<ValueData, Box<RuleError>> {
     match pair.as_rule() {
         Rule::value_data => parse_value_data(pair.into_inner().next().unwrap(), file),
         Rule::object_data => {
@@ -90,7 +87,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<ValueData, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<ValueData, Box<RuleError>> {
         parse_full_input(input, Rule::value_data, parse_value_data)
     }
 

@@ -1,4 +1,4 @@
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use pest::iterators::Pair;
 
@@ -28,7 +28,7 @@ pub enum DirectiveLocation {
 pub(crate) fn parse_directive_location(
     pair: Pair<Rule>,
     _file: &str,
-) -> Result<DirectiveLocation, pest::error::Error<Rule>> {
+) -> Result<DirectiveLocation, Box<RuleError>> {
     match pair.as_rule() {
         Rule::directive_location => {
             let location = pair.as_str();
@@ -52,12 +52,12 @@ pub(crate) fn parse_directive_location(
                 "INPUT_OBJECT" => Ok(DirectiveLocation::InputObject),
                 "INPUT_FIELD_DEFINITION" => Ok(DirectiveLocation::InputFieldDefinition),
                 "VARIABLE_DEFINITION" => Ok(DirectiveLocation::VariableDefinition),
-                _ => Err(pest::error::Error::new_from_span(
+                _ => Err(Box::new(pest::error::Error::new_from_span(
                     pest::error::ErrorVariant::CustomError {
                         message: "unknown directive location ".to_string() + location,
                     },
                     pair.as_span(),
-                )),
+                ))),
             }
         }
         _unknown => Err(unknown_rule_error(pair, "directive_location")),

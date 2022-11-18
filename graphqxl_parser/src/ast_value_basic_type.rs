@@ -1,4 +1,4 @@
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
 use crate::{Identifier, OwnedSpan};
 use pest::iterators::Pair;
@@ -27,10 +27,7 @@ impl Display for ValueBasicType {
     }
 }
 
-fn _parse_value_basic_type(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<ValueBasicType, pest::error::Error<Rule>> {
+fn _parse_value_basic_type(pair: Pair<Rule>, file: &str) -> Result<ValueBasicType, Box<RuleError>> {
     match pair.as_rule() {
         Rule::int => Ok(ValueBasicType::Int),
         Rule::float => Ok(ValueBasicType::Float),
@@ -50,7 +47,7 @@ fn _parse_value_basic_type(
 pub(crate) fn parse_value_basic_type(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<ValueBasicType, pest::error::Error<Rule>> {
+) -> Result<ValueBasicType, Box<RuleError>> {
     match pair.as_rule() {
         Rule::value_basic_type => _parse_value_basic_type(pair.into_inner().next().unwrap(), file),
         _unknown => Err(unknown_rule_error(pair, "value_type")),
@@ -62,7 +59,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<ValueBasicType, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<ValueBasicType, Box<RuleError>> {
         parse_full_input(input, Rule::value_basic_type, parse_value_basic_type)
     }
 

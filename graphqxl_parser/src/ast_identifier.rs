@@ -1,4 +1,4 @@
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use pest::iterators::Pair;
 
@@ -17,10 +17,7 @@ impl Identifier {
     }
 }
 
-pub(crate) fn parse_identifier(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<Identifier, pest::error::Error<Rule>> {
+pub(crate) fn parse_identifier(pair: Pair<Rule>, file: &str) -> Result<Identifier, Box<RuleError>> {
     match pair.as_rule() {
         Rule::identifier => Ok(Identifier {
             id: pair.as_str().to_string(),
@@ -33,9 +30,10 @@ pub(crate) fn parse_identifier(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::parser::RuleError;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<Identifier, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<Identifier, Box<RuleError>> {
         parse_full_input(input, Rule::identifier, parse_identifier)
     }
 

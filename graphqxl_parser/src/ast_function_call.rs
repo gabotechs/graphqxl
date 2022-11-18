@@ -1,5 +1,5 @@
 use crate::ast_identifier::{parse_identifier, Identifier};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_value_data, ValueData};
 use pest::iterators::Pair;
@@ -35,7 +35,7 @@ impl FunctionCall {
 pub(crate) fn parse_function_call(
     pair: Pair<Rule>,
     file: &str,
-) -> Result<FunctionCall, pest::error::Error<Rule>> {
+) -> Result<FunctionCall, Box<RuleError>> {
     let span = OwnedSpan::from(pair.as_span(), file);
     match pair.as_rule() {
         Rule::function_call => {
@@ -59,7 +59,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<FunctionCall, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<FunctionCall, Box<RuleError>> {
         parse_full_input(input, Rule::function_call, parse_function_call)
     }
 

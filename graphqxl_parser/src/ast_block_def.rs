@@ -4,7 +4,7 @@ use crate::ast_description_variables::{parse_description_variables, DescriptionV
 use crate::ast_identifier::{parse_identifier, Identifier};
 use crate::ast_implements::{parse_implements, Implements};
 use crate::ast_modified_ref::{parse_modified_ref, ModifiedRef};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, parse_generic, Directive, Generic};
 use pest::iterators::Pair;
@@ -126,7 +126,7 @@ fn _parse_block_def(
     pair: Pair<Rule>,
     kind: BlockDefType,
     file: &str,
-) -> Result<BlockDef, pest::error::Error<Rule>> {
+) -> Result<BlockDef, Box<RuleError>> {
     let span = OwnedSpan::from(pair.as_span(), file);
     let mut pairs = pair.into_inner();
     // [description_variables?, description?, identifier, directives*, selection_set]
@@ -191,10 +191,7 @@ fn _parse_block_def(
     })
 }
 
-pub(crate) fn parse_block_def(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<BlockDef, pest::error::Error<Rule>> {
+pub(crate) fn parse_block_def(pair: Pair<Rule>, file: &str) -> Result<BlockDef, Box<RuleError>> {
     match pair.as_rule() {
         Rule::type_def => _parse_block_def(pair, BlockDefType::Type, file),
         Rule::input_def => _parse_block_def(pair, BlockDefType::Input, file),
@@ -213,7 +210,7 @@ mod tests {
     use crate::utils::parse_full_input;
     use crate::ValueType;
 
-    fn parse_input(input: &str) -> Result<BlockDef, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<BlockDef, Box<RuleError>> {
         let rule = if input.contains("input ") {
             Rule::input_def
         } else if input.contains("type ") {

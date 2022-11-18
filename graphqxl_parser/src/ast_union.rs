@@ -1,6 +1,6 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::{parse_identifier, Identifier};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
@@ -38,7 +38,7 @@ impl Union {
     }
 }
 
-pub(crate) fn parse_union(pair: Pair<Rule>, file: &str) -> Result<Union, pest::error::Error<Rule>> {
+pub(crate) fn parse_union(pair: Pair<Rule>, file: &str) -> Result<Union, Box<RuleError>> {
     match pair.as_rule() {
         Rule::union_def => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -75,7 +75,7 @@ mod tests {
     use crate::utils::parse_full_input;
     use crate::ValueData;
 
-    fn parse_input(input: &str) -> Result<Union, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<Union, Box<RuleError>> {
         parse_full_input(input, Rule::union_def, parse_union)
     }
 

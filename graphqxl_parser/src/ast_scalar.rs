@@ -1,6 +1,6 @@
 use crate::ast_description::{parse_description_and_continue, DescriptionAndNext};
 use crate::ast_identifier::{parse_identifier, Identifier};
-use crate::parser::Rule;
+use crate::parser::{Rule, RuleError};
 use crate::utils::{unknown_rule_error, OwnedSpan};
 use crate::{parse_directive, Directive};
 use pest::iterators::Pair;
@@ -32,10 +32,7 @@ impl Scalar {
     }
 }
 
-pub(crate) fn parse_scalar(
-    pair: Pair<Rule>,
-    file: &str,
-) -> Result<Scalar, pest::error::Error<Rule>> {
+pub(crate) fn parse_scalar(pair: Pair<Rule>, file: &str) -> Result<Scalar, Box<RuleError>> {
     match pair.as_rule() {
         Rule::scalar_def => {
             let span = OwnedSpan::from(pair.as_span(), file);
@@ -63,7 +60,7 @@ mod tests {
     use super::*;
     use crate::utils::parse_full_input;
 
-    fn parse_input(input: &str) -> Result<Scalar, pest::error::Error<Rule>> {
+    fn parse_input(input: &str) -> Result<Scalar, Box<RuleError>> {
         parse_full_input(input, Rule::scalar_def, parse_scalar)
     }
 
