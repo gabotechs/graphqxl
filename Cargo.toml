@@ -1,6 +1,6 @@
 [package]
 name = "graphqxl"
-version = "0.36.0"
+version = "0.37.0"
 edition = "2021"
 description = "GraphQXL is an extension of the GraphQL language with some additional syntax that allows creating scalable server-side schemas"
 categories = ["language", "compilers"]
