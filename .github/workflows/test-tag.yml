@@ -81,10 +81,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install bump tool
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: cargo-workspaces
+        run: cargo install cargo-workspaces
 
       - name: Bump version
         run: cargo workspaces version minor -y --no-git-commit
