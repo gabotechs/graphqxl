@@ -4,6 +4,7 @@
 </p>
 
 [![Coverage Status](https://coveralls.io/repos/github/gabotechs/graphqxl/badge.svg?branch=main)](https://coveralls.io/github/gabotechs/graphqxl?branch=main)
+[![Book](https://img.shields.io/badge/book-WIP-4d76ae.svg)](https://gabotechs.github.io/graphqxl)
 ![](https://img.shields.io/github/v/release/gabotechs/graphqxl?color=%e535abff)
 
 GraphQXL is a new language built on top of the GraphQL syntax that extends the original 
