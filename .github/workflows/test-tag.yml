@@ -87,7 +87,7 @@ jobs:
       - name: Tag
         run: |
           SEM_VER=$(.github/semver.sh)
-          cargo workspaces version SEM_VER -y --no-git-commit
+          cargo workspaces version $SEM_VER -y --no-git-commit
           
           version=`grep '^version = ' Cargo.toml | sed 's/version = //; s/\"//; s/\"//'`
           git config --global user.email "gabimtme@gmail.com"
