@@ -7,7 +7,7 @@ pub(crate) struct ValueTypeSynth(pub(crate) ValueType);
 impl Synth for ValueTypeSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
         match &self.0 {
-            ValueType::Basic(basic) => match &basic {
+            ValueType::Basic(basic, _) => match &basic {
                 ValueBasicType::Int => {
                     context.write("Int");
                     true
@@ -29,12 +29,12 @@ impl Synth for ValueTypeSynth {
                     true
                 }
             },
-            ValueType::NonNullable(value_type) => {
+            ValueType::NonNullable(value_type, _) => {
                 ValueTypeSynth(*value_type.clone()).synth(context);
                 context.write("!");
                 true
             }
-            ValueType::Array(value_type) => {
+            ValueType::Array(value_type, _) => {
                 context.write("[");
                 ValueTypeSynth(*value_type.clone()).synth(context);
                 context.write("]");

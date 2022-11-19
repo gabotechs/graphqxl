@@ -1,41 +1,10 @@
 use pest::Span;
-use std::cmp::Ordering;
-use std::error::Error;
 
-use std::hash::{Hash, Hasher};
-
-#[derive(Clone, Debug)]
-pub struct NoopRuleType;
-
-impl PartialEq<Self> for NoopRuleType {
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-}
-
-impl Hash for NoopRuleType {
-    fn hash<H: Hasher>(&self, _state: &mut H) {}
-}
-
-impl Eq for NoopRuleType {}
-
-impl PartialOrd<Self> for NoopRuleType {
-    fn partial_cmp(&self, _other: &Self) -> Option<Ordering> {
-        Some(Ordering::Equal)
-    }
-}
-
-impl Ord for NoopRuleType {
-    fn cmp(&self, _other: &Self) -> Ordering {
-        Ordering::Equal
-    }
-}
-
-impl Copy for NoopRuleType {}
+use crate::parser::RuleError;
 
 #[derive(Clone, Debug)]
 pub struct OwnedSpan {
-    pub err_placeholder: pest::error::Error<NoopRuleType>,
+    pub err_placeholder: RuleError,
     pub file: String,
     pub line: usize,
     pub col: usize,
@@ -65,7 +34,7 @@ impl Default for OwnedSpan {
 }
 
 impl OwnedSpan {
-    pub fn make_error(&self, msg: &str) -> Box<dyn Error> {
+    pub fn make_error(&self, msg: &str) -> Box<RuleError> {
         let mut err = self.err_placeholder.clone();
         err.variant = pest::error::ErrorVariant::CustomError {
             message: format!("{}:{} {}", self.file, self.line, msg),

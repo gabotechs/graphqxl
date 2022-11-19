@@ -1,0 +1,7 @@
+type Type<T> {
+    foo: T!
+}
+
+type Other {
+    ...Type<String!>
+}

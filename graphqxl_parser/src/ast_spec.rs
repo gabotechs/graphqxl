@@ -1,6 +1,6 @@
 use crate::ast_import::parse_import;
-use crate::parser::{GraphqxlParser, Rule};
-use crate::utils::{already_defined_error, unknown_rule_error, NoopRuleType};
+use crate::parser::{GraphqxlParser, Rule, RuleError};
+use crate::utils::{already_defined_error, unknown_rule_error};
 use crate::{
     parse_block_def, parse_directive_def, parse_generic_block_def, parse_scalar, parse_schema,
     parse_union, BlockDef, DirectiveDef, GenericBlockDef, Identifier, OwnedSpan, Scalar, Schema,
@@ -157,7 +157,7 @@ impl Spec {
         match pair.as_rule() {
             Rule::schema_def => {
                 if self.schema_already_defined {
-                    Err(Box::new(pest::error::Error::<NoopRuleType>::new_from_span(
+                    Err(Box::new(RuleError::new_from_span(
                         pest::error::ErrorVariant::CustomError {
                             message: "schema is defined multiple times".to_string(),
                         },

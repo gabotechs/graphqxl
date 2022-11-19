@@ -1,19 +1,27 @@
 use crate::ast_value_basic_type::{parse_value_basic_type, ValueBasicType};
 use crate::parser::{Rule, RuleError};
 use crate::utils::unknown_rule_error;
-use crate::Identifier;
+use crate::{Identifier, OwnedSpan};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ValueType {
-    Basic(ValueBasicType),
-    Array(Box<ValueType>),
-    NonNullable(Box<ValueType>),
+    Basic(ValueBasicType, OwnedSpan),
+    Array(Box<ValueType>, OwnedSpan),
+    NonNullable(Box<ValueType>, OwnedSpan),
 }
 
 impl ValueType {
     pub fn build(t: ValueBasicType) -> Self {
-        Self::Basic(t)
+        Self::Basic(t, OwnedSpan::default())
+    }
+
+    pub fn span(&self) -> &OwnedSpan {
+        match self {
+            ValueType::Basic(_, span) => span,
+            ValueType::Array(_, span) => span,
+            ValueType::NonNullable(_, span) => span,
+        }
     }
 
     pub fn int() -> Self {
@@ -36,43 +44,52 @@ impl ValueType {
         Self::build(ValueBasicType::Object(identifier))
     }
 
-    pub fn non_nullable(&mut self) -> Self {
-        ValueType::NonNullable(Box::new(self.clone()))
+    pub fn non_nullable(&self) -> Self {
+        ValueType::NonNullable(Box::new(self.clone()), self.span().clone())
     }
 
-    pub fn array(&mut self) -> Self {
-        ValueType::Array(Box::new(self.clone()))
+    pub fn array(&self) -> Self {
+        ValueType::Array(Box::new(self.clone()), self.span().clone())
     }
 
     pub fn retrieve_basic_type(&self) -> &ValueBasicType {
         match self {
-            ValueType::Basic(b) => b,
-            ValueType::Array(a) => ValueType::retrieve_basic_type(a),
-            ValueType::NonNullable(a) => ValueType::retrieve_basic_type(a),
+            ValueType::Basic(b, _) => b,
+            ValueType::Array(a, _) => ValueType::retrieve_basic_type(a),
+            ValueType::NonNullable(a, _) => ValueType::retrieve_basic_type(a),
         }
     }
 
-    pub fn replace_basic_type(&mut self, value: ValueType) {
-        match self {
-            ValueType::Basic(_) => *self = value,
-            ValueType::Array(a) => ValueType::replace_basic_type(a, value),
-            ValueType::NonNullable(a) => ValueType::replace_basic_type(a, value),
+    pub fn replace_basic_type(&mut self, value: ValueType) -> Result<(), Box<RuleError>> {
+        if let ValueType::NonNullable(_, _) = value {
+            if let ValueType::NonNullable(_, _) = self {
+                return Err(value.span().make_error(
+                    "cannot use a non-nullable type inside another non-nullable type",
+                ));
+            }
         }
+        match self {
+            ValueType::Basic(_, _) => *self = value,
+            ValueType::Array(a, _) => ValueType::replace_basic_type(a, value)?,
+            ValueType::NonNullable(a, _) => ValueType::replace_basic_type(a, value)?,
+        };
+        Ok(())
     }
 }
 
 pub(crate) fn parse_value_type(pair: Pair<Rule>, file: &str) -> Result<ValueType, Box<RuleError>> {
+    let span = OwnedSpan::from(pair.as_span(), file);
     match pair.as_rule() {
         Rule::value_type => parse_value_type(pair.into_inner().next().unwrap(), file),
-        Rule::value_basic_type => Ok(ValueType::Basic(parse_value_basic_type(pair, file)?)),
-        Rule::value_non_nullable => Ok(ValueType::NonNullable(Box::new(parse_value_type(
-            pair.into_inner().next().unwrap(),
-            file,
-        )?))),
-        Rule::value_array => Ok(ValueType::Array(Box::new(parse_value_type(
-            pair.into_inner().next().unwrap(),
-            file,
-        )?))),
+        Rule::value_basic_type => Ok(ValueType::Basic(parse_value_basic_type(pair, file)?, span)),
+        Rule::value_non_nullable => Ok(ValueType::NonNullable(
+            Box::new(parse_value_type(pair.into_inner().next().unwrap(), file)?),
+            span,
+        )),
+        Rule::value_array => Ok(ValueType::Array(
+            Box::new(parse_value_type(pair.into_inner().next().unwrap(), file)?),
+            span,
+        )),
         _unknown => Err(unknown_rule_error(
             pair,
             "value_type, value_array, value_non_nullable or value_basic_type",
@@ -131,7 +148,9 @@ mod tests {
     #[test]
     fn test_replaces_value() {
         let mut parsed = parse_input("[Int!]!").unwrap();
-        parsed.replace_basic_type(ValueType::string().array());
+        parsed
+            .replace_basic_type(ValueType::string().array())
+            .unwrap();
         assert_eq!(
             parsed,
             ValueType::string()

@@ -82,7 +82,7 @@ pub(crate) fn resolve_expandable_ref(
                         // ...which is stored in the generic map...
                         if let Some(generic_replacement) = generic_map.get(&object.id) {
                             // ...then replace it
-                            value_type.replace_basic_type((*generic_replacement).clone());
+                            value_type.replace_basic_type((*generic_replacement).clone())?;
                         }
                     }
                 }
