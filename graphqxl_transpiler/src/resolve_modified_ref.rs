@@ -31,8 +31,8 @@ fn nullable(resolved_ref: &ResolvedRef) -> ResolvedRef {
     let mut optional_block_def = resolved_ref.clone();
     for field in optional_block_def.fields.iter_mut() {
         if let Some(value_type) = &mut field.value_type {
-            if let ValueType::NonNullable(inner) = value_type {
-                *value_type = inner.deref().deref().deref().clone()
+            if let ValueType::NonNullable(inner, _) = value_type {
+                *value_type = inner.deref().deref().clone()
             }
         }
     }
@@ -43,10 +43,10 @@ fn non_nullable(resolved_ref: &ResolvedRef) -> ResolvedRef {
     let mut required_block_def = resolved_ref.clone();
     for field in required_block_def.fields.iter_mut() {
         if let Some(value_type) = &mut field.value_type {
-            if let ValueType::NonNullable(_) = value_type {
+            if let ValueType::NonNullable(_, _) = value_type {
                 // do nothing here
             } else {
-                *value_type = ValueType::NonNullable(Box::new(value_type.clone()))
+                *value_type = value_type.non_nullable();
             }
         }
     }

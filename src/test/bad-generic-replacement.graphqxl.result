@@ -1,0 +1,8 @@
+Could not transpile graphqxl spec:
+
+ --> 6:13
+  |
+6 |     ...Type<String!>
+  |             ^-----^
+  |
+  = :6 cannot use a non-nullable type inside another non-nullable type
