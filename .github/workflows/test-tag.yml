@@ -84,11 +84,11 @@ jobs:
       - name: Install bump tool
         run: cargo install cargo-workspaces
 
-      - name: Bump version
-        run: cargo workspaces version minor -y --no-git-commit
-
       - name: Tag
         run: |
+          SEM_VER=$(.github/semver.sh)
+          cargo workspaces version SEM_VER -y --no-git-commit
+          
           version=`grep '^version = ' Cargo.toml | sed 's/version = //; s/\"//; s/\"//'`
           git config --global user.email "gabimtme@gmail.com"
           git config --global user.name "Automatic bumper"
