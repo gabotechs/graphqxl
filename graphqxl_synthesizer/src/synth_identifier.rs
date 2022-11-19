@@ -5,7 +5,7 @@ pub(crate) struct IdentifierSynth(pub(crate) Identifier);
 
 impl Synth for IdentifierSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        context.write_with_source(&self.0.id, self.0.span.clone());
+        context.write_with_source(&self.0.id, &self.0.span);
         true
     }
 }

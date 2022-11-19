@@ -7,21 +7,21 @@ pub(crate) struct ValueTypeSynth(pub(crate) ValueType);
 impl Synth for ValueTypeSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
         match &self.0 {
-            ValueType::Basic(basic, _) => match &basic {
+            ValueType::Basic(basic, span) => match &basic {
                 ValueBasicType::Int => {
-                    context.write("Int");
+                    context.write_with_source("Int", span);
                     true
                 }
                 ValueBasicType::Float => {
-                    context.write("Float");
+                    context.write_with_source("Float", span);
                     true
                 }
                 ValueBasicType::String => {
-                    context.write("String");
+                    context.write_with_source("String", span);
                     true
                 }
                 ValueBasicType::Boolean => {
-                    context.write("Boolean");
+                    context.write_with_source("Boolean", span);
                     true
                 }
                 ValueBasicType::Object(name) => {
@@ -29,15 +29,15 @@ impl Synth for ValueTypeSynth {
                     true
                 }
             },
-            ValueType::NonNullable(value_type, _) => {
+            ValueType::NonNullable(value_type, span) => {
                 ValueTypeSynth(*value_type.clone()).synth(context);
-                context.write("!");
+                context.write_with_source("!", span);
                 true
             }
-            ValueType::Array(value_type, _) => {
-                context.write("[");
+            ValueType::Array(value_type, span) => {
+                context.write_with_source("[", span);
                 ValueTypeSynth(*value_type.clone()).synth(context);
-                context.write("]");
+                context.write_with_source("]", span);
                 true
             }
         }

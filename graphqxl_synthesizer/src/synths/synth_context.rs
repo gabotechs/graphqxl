@@ -55,7 +55,7 @@ impl SynthContext {
         text
     }
 
-    pub(crate) fn write_with_source<'a>(&mut self, text: &'a str, span: OwnedSpan) -> &'a str {
+    pub(crate) fn write_with_source<'a>(&mut self, text: &'a str, span: &OwnedSpan) -> &'a str {
         let start = self.offset;
         self.write(text);
         let stop = self.offset;
@@ -64,7 +64,7 @@ impl SynthContext {
             col: self.col,
             start,
             stop,
-            span,
+            span: span.clone(),
         });
         text
     }
