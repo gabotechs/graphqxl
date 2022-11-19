@@ -1,8 +1,8 @@
 use crate::synth_spec::SpecSynth;
+pub use crate::synths::SourceMapEntry;
 pub use crate::synths::SynthConfig;
 use crate::synths::{Synth, SynthContext};
 use graphqxl_parser::Spec;
-pub use crate::synths::{SourceMapEntry};
 
 mod synth_arguments;
 mod synth_block_def;
