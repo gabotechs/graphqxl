@@ -70,6 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
+          fetch-depth: '0' # https://github.com/actions/checkout/issues/217
           token: ${{ secrets.CI_TOKEN }}
 
       - name: Install toolchain
