@@ -219,11 +219,17 @@ type MyType {
 
 ## Install
 
-There is built-in support for this programming languages:
+For brew users:
+
+```shell
+brew install graphqxl
+```
+
+There is built-in support for the following programming languages:
 - [Node](https://github.com/gabotechs/node-graphqxl)
 
 There are also precompiled binaries for each architecture that you can download directly from
-GitHub releases
+GitHub releases:
 
 Mac M1
 
