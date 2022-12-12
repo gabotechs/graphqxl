@@ -11,7 +11,7 @@ while IFS= read -r line; do
       BUMP=3
       VERSION="major"
     fi
-  elif [[ $line == feat:* || $line == feat\(*\):* ]]; then
+  elif [[ $line == *feat:* || $line == *feat\(*\):* ]]; then
     if [[ $BUMP -lt 2 ]]; then
       BUMP=2
       VERSION="minor"
