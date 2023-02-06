@@ -11,17 +11,17 @@ schema_def = { description? ~ "schema" ~ directive* ~ schema_selection_set }
     schema_field = { schema_key ~ ":" ~ identifier }
 generic_type_def = { description_variables? ~ description? ~  "type " ~ identifier ~ directive* ~ "=" ~ modified_ref }
 type_def = { description_variables? ~ description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
-    implements = { "implements" ~ identifier ~ ("&" ~ identifier)* }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
 generic_input_def = { description_variables? ~  description? ~  "input " ~ identifier ~ directive* ~ "=" ~ modified_ref }
 input_def = { description_variables? ~  description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
     input_selection_set = { "{" ~ (field_without_args | spread_reference)* ~ "}" }
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
     enum_selection_set = { "{" ~ (field_without_args_without_value | spread_reference)* ~ "}" }
-interface_def = { description? ~ "interface " ~ identifier ~ directive* ~ interface_selection_set }
-    interface_selection_set = { "{" ~ field_with_args* ~ "}" }
+interface_def = { description? ~ "interface " ~ identifier ~ implements? ~ directive* ~ interface_selection_set }
+    interface_selection_set = { "{" ~ (spread_reference | field_with_args)* ~ "}" }
 scalar_def = { description? ~ "scalar " ~ identifier ~ directive* }
 union_def = { description? ~ "union " ~ identifier ~ directive* ~ "=" ~ identifier ~ ("|" ~ identifier )* }
+
 directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
     directive_repeatable = @{ "repeatable" }
     directive_location = @{
@@ -46,6 +46,7 @@ directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ di
         "VARIABLE_DEFINITION"
     }
 
+implements = { "implements" ~ identifier ~ ("&" ~ identifier)* }
 field_with_args = { description? ~ identifier ~ arguments? ~ ":" ~ value_type ~ directive* }
 field_without_args = { description? ~ identifier ~ ":" ~ value_type ~ directive* }
 field_without_args_without_value = { description? ~ identifier ~ directive* }

@@ -454,6 +454,16 @@ mod tests {
     }
 
     #[test]
+    fn test_interface_implements_interface() {
+        assert_eq!(
+            parse_input("interface A implements B { foo: String }"),
+            Ok(BlockDef::interface_def("A")
+                .implements(Implements::from("B"))
+                .field(BlockField::build("foo").string()))
+        )
+    }
+
+    #[test]
     fn test_incorrect_input_no_different_field_types() {
         parse_input("enum MyEnum { Field1: String Field2 }").unwrap_err();
     }

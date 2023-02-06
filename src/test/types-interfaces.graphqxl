@@ -1,12 +1,17 @@
+interface Foo {
+    a: Int!
+}
+
 "description"
-interface Interface {
+interface Interface implements Foo {
+    ...Foo
     "foo description"
     foo: String!
     "bar description"
     bar: Int!
 }
 
-type Type implements Interface {
+type Type implements Interface & Foo {
     ...Interface
 }
 
