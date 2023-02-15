@@ -52,31 +52,8 @@
            id="tspan19180"
            style="fill:#e535ab;fill-opacity:1;stroke-width:0.264583"
            x="30.203388"
-           y="137.17374">GraphQ<tspan
-   style="fill:#0d0d0d;fill-opacity:1"
-   id="tspan24309">X</tspan>L</tspan></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#1a1a1a;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="71.051384"
-         y="137.32236"
-         id="text19912"><tspan
-           sodipodi:role="line"
-           id="tspan19910"
-           style="fill:#1a1a1a;fill-opacity:1;stroke-width:0.264583"
-           x="71.051384"
-           y="137.32236" /></text>
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#e535ab;fill-opacity:1;stroke:none;stroke-width:0.264583"
-         x="78.926033"
-         y="137.34926"
-         id="text19916"><tspan
-           sodipodi:role="line"
-           id="tspan19914"
-           style="fill:#e535ab;fill-opacity:1;stroke-width:0.264583"
-           x="78.926033"
-           y="137.34926" /></text>
+           y="137.17374">GraphQ<tspan style="fill:#4C00A6" id="tspan24309">X</tspan>L</tspan>
+      </text>
     </g>
   </g>
 </svg>
