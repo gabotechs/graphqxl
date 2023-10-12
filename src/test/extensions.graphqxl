@@ -2,4 +2,31 @@ input Input {
     foo: String
 }
 
-extend input Input
+extend input Input {
+    bar: String
+}
+
+enum Enum {
+    FOO
+}
+
+extend type Enum @deprecated
+
+interface Interface {
+    foo: String
+}
+
+type Type {
+    foo: String
+}
+
+extend type Type implements Interface
+
+
+schema {
+    query: Type
+}
+
+extend schema {
+    mutation: Type
+}
