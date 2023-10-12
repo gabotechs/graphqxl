@@ -10,4 +10,3 @@ type Concrete @dir @dir2 @dir3 {
   u: [Int]!
 }
 
-

@@ -9,4 +9,3 @@ type OptionalMyType {
   bax: Enum
 }
 
-

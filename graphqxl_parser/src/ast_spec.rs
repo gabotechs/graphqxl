@@ -1,6 +1,6 @@
 use crate::ast_import::parse_import;
-use crate::parser::{GraphqxlParser, Rule, RuleError};
-use crate::utils::{already_defined_error, unknown_rule_error};
+use crate::parser::{GraphqxlParser, Rule};
+use crate::utils::{already_defined_error, custom_error, unknown_rule_error};
 use crate::{
     parse_block_def, parse_directive_def, parse_generic_block_def, parse_scalar, parse_schema,
     parse_union, BlockDef, DirectiveDef, GenericBlockDef, Identifier, OwnedSpan, Scalar, Schema,
@@ -24,6 +24,7 @@ pub enum DefType {
     Scalar(Identifier),
     Union(Identifier),
     Directive(Identifier),
+    Schema(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -37,9 +38,8 @@ pub struct Spec {
     pub scalars: HashMap<String, Scalar>,
     pub unions: HashMap<String, Union>,
     pub directives: HashMap<String, DirectiveDef>,
+    pub schemas: HashMap<String, Schema>,
     pub order: Vec<DefType>,
-    pub schema: Schema,
-    schema_already_defined: bool,
 }
 
 impl Spec {
@@ -47,16 +47,21 @@ impl Spec {
         Self::default()
     }
 
+    fn extend_identifier(id: &Identifier) -> Identifier {
+        let mut clone = id.clone();
+        clone.id = format!("{}__extend__{}", clone.id, uuid::Uuid::new_v4());
+        clone
+    }
+
     fn merge(&mut self, other: Spec) -> Result<(), Box<dyn Error>> {
-        for el in other.order.iter() {
-            match el {
+        for el in other.order.into_iter() {
+            match &el {
                 DefType::Type(name) => {
                     if self.types.contains_key(&name.id)
                         || self.generic_types.contains_key(&name.id)
                     {
                         return Err(name.span.make_error("Duplicated type"));
                     }
-                    self.order.push(el.clone());
                     self.types.insert(
                         name.id.to_string(),
                         other.types.get(&name.id).unwrap().clone(),
@@ -68,7 +73,6 @@ impl Spec {
                     {
                         return Err(name.span.make_error("Duplicated type"));
                     }
-                    self.order.push(el.clone());
                     self.generic_types.insert(
                         name.id.to_string(),
                         other.generic_types.get(&name.id).unwrap().clone(),
@@ -80,7 +84,6 @@ impl Spec {
                     {
                         return Err(name.span.make_error("Duplicated input"));
                     }
-                    self.order.push(el.clone());
                     self.inputs.insert(
                         name.id.to_string(),
                         other.inputs.get(&name.id).unwrap().clone(),
@@ -92,7 +95,6 @@ impl Spec {
                     {
                         return Err(name.span.make_error("Duplicated input"));
                     }
-                    self.order.push(el.clone());
                     self.generic_inputs.insert(
                         name.id.to_string(),
                         other.generic_inputs.get(&name.id).unwrap().clone(),
@@ -102,7 +104,6 @@ impl Spec {
                     if self.enums.contains_key(&name.id) {
                         return Err(name.span.make_error("Duplicated enum"));
                     }
-                    self.order.push(el.clone());
                     self.enums.insert(
                         name.id.to_string(),
                         other.enums.get(&name.id).unwrap().clone(),
@@ -112,7 +113,6 @@ impl Spec {
                     if self.interfaces.contains_key(&name.id) {
                         return Err(name.span.make_error("Duplicated interface"));
                     }
-                    self.order.push(el.clone());
                     self.interfaces.insert(
                         name.id.to_string(),
                         other.interfaces.get(&name.id).unwrap().clone(),
@@ -122,7 +122,6 @@ impl Spec {
                     if self.scalars.contains_key(&name.id) {
                         return Err(name.span.make_error("Duplicated scalar"));
                     }
-                    self.order.push(el.clone());
                     self.scalars.insert(
                         name.id.to_string(),
                         other.scalars.get(&name.id).unwrap().clone(),
@@ -132,7 +131,6 @@ impl Spec {
                     if self.unions.contains_key(&name.id) {
                         return Err(name.span.make_error("Duplicated union"));
                     }
-                    self.order.push(el.clone());
                     self.unions.insert(
                         name.id.to_string(),
                         other.unions.get(&name.id).unwrap().clone(),
@@ -142,13 +140,20 @@ impl Spec {
                     if self.directives.contains_key(&name.id) {
                         return Err(name.span.make_error("Duplicated directive"));
                     }
-                    self.order.push(el.clone());
                     self.directives.insert(
                         name.id.to_string(),
                         other.directives.get(&name.id).unwrap().clone(),
                     );
                 }
+                DefType::Schema(name) => {
+                    if let Some(schema) = self.schemas.get(name) {
+                        return Err(schema.span.make_error("Schema defined multiple times"));
+                    }
+                    self.schemas
+                        .insert(name.clone(), other.schemas.get(name).unwrap().clone());
+                }
             }
+            self.order.push(el);
         }
         Ok(())
     }
@@ -156,22 +161,21 @@ impl Spec {
     fn add(&mut self, pair: Pair<Rule>, file: &str) -> Result<(), Box<dyn Error>> {
         match pair.as_rule() {
             Rule::schema_def => {
-                if self.schema_already_defined {
-                    Err(Box::new(RuleError::new_from_span(
-                        pest::error::ErrorVariant::CustomError {
-                            message: "schema is defined multiple times".to_string(),
-                        },
-                        pair.as_span(),
-                    )))
+                let schema = parse_schema(pair.clone(), file)?;
+                let id = "schema".to_string();
+                if self.schemas.contains_key(&id) {
+                    Err(Box::new(custom_error(pair, "schema is already defined")))
                 } else {
-                    self.schema_already_defined = true;
-                    self.schema = parse_schema(pair, file)?;
+                    self.schemas.insert(id.clone(), schema);
+                    self.order.push(DefType::Schema(id));
                     Ok(())
                 }
             }
             Rule::schema_ext => {
-                self.schema_already_defined = true;
-                self.schema = parse_schema(pair, file)?;
+                let schema = parse_schema(pair, file)?;
+                let id = Self::extend_identifier(&Identifier::from("schema")).id;
+                self.schemas.insert(id.clone(), schema);
+                self.order.push(DefType::Schema(id));
                 Ok(())
             }
             Rule::type_def => {
@@ -187,7 +191,7 @@ impl Spec {
             }
             Rule::type_ext => {
                 let block_def = parse_block_def(pair.clone(), file)?;
-                let id = Identifier::extend(&block_def.name);
+                let id = Self::extend_identifier(&block_def.name);
                 self.types.insert(id.id.clone(), block_def);
                 self.order.push(DefType::Type(id));
                 Ok(())
@@ -216,7 +220,7 @@ impl Spec {
             }
             Rule::input_ext => {
                 let block_def = parse_block_def(pair.clone(), file)?;
-                let id = Identifier::extend(&block_def.name);
+                let id = Self::extend_identifier(&block_def.name);
                 self.inputs.insert(id.id.clone(), block_def);
                 self.order.push(DefType::Input(id));
                 Ok(())
@@ -245,7 +249,7 @@ impl Spec {
             }
             Rule::enum_ext => {
                 let block_def = parse_block_def(pair.clone(), file)?;
-                let id = Identifier::extend(&block_def.name);
+                let id = Self::extend_identifier(&block_def.name);
                 self.enums.insert(id.id.clone(), block_def);
                 self.order.push(DefType::Enum(id));
                 Ok(())
@@ -263,7 +267,7 @@ impl Spec {
             }
             Rule::interface_ext => {
                 let block_def = parse_block_def(pair.clone(), file)?;
-                let id = Identifier::extend(&block_def.name);
+                let id = Self::extend_identifier(&block_def.name);
                 self.interfaces.insert(id.id.clone(), block_def);
                 self.order.push(DefType::Interface(id));
                 Ok(())
@@ -281,7 +285,7 @@ impl Spec {
             }
             Rule::scalar_ext => {
                 let block_def = parse_scalar(pair.clone(), file)?;
-                let id = Identifier::extend(&block_def.name);
+                let id = Self::extend_identifier(&block_def.name);
                 self.scalars.insert(id.id.clone(), block_def);
                 self.order.push(DefType::Scalar(id));
                 Ok(())
@@ -299,7 +303,7 @@ impl Spec {
             }
             Rule::union_ext => {
                 let block_def = parse_union(pair.clone(), file)?;
-                let id = Identifier::extend(&block_def.name);
+                let id = Self::extend_identifier(&block_def.name);
                 self.unions.insert(id.id.clone(), block_def);
                 self.order.push(DefType::Union(id));
                 Ok(())

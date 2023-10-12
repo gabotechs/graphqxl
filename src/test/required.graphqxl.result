@@ -9,4 +9,3 @@ type RequiredMyType {
   bax: Enum!
 }
 
-

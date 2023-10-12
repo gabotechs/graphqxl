@@ -6,4 +6,3 @@ type MyType {
   u: [Int!]!
 }
 
-

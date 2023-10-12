@@ -101,8 +101,12 @@ pub fn transpile_spec(spec: &Spec, options: &TranspileSpecOptions) -> Result<Spe
                     .insert(name.id.clone(), transpiled.clone());
                 target.order.push(DefType::Directive(name.clone()));
             }
+            DefType::Schema(name) => {
+                let transpiled = spec.schemas.get(name).unwrap();
+                target.schemas.insert(name.clone(), transpiled.clone());
+                target.order.push(DefType::Schema(name.clone()))
+            }
         }
     }
-    target.schema = spec.schema.clone();
     Ok(target)
 }

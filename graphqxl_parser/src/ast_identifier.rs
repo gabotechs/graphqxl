@@ -15,12 +15,6 @@ impl Identifier {
             span: OwnedSpan::default(),
         }
     }
-
-    pub fn extend(id: &Self) -> Self {
-        let mut clone = id.clone();
-        clone.id = format!("{}__extend__{}", clone.id, uuid::Uuid::new_v4());
-        clone
-    }
 }
 
 pub(crate) fn parse_identifier(pair: Pair<Rule>, file: &str) -> Result<Identifier, Box<RuleError>> {
