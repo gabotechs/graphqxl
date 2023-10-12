@@ -7,6 +7,7 @@ use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Union {
+    pub extend: bool,
     pub span: OwnedSpan,
     pub name: Identifier,
     pub description: String,
@@ -36,35 +37,43 @@ impl Union {
         self.directives.push(directive);
         self.clone()
     }
+
+    pub fn extend(&mut self) -> Self {
+        self.extend = true;
+        self.clone()
+    }
+}
+
+fn _parse_union(pair: Pair<Rule>, file: &str, extends: bool) -> Result<Union, Box<RuleError>> {
+    let span = OwnedSpan::from(pair.as_span(), file);
+    let mut childs = pair.into_inner();
+    // [description?, identifier, ...types]
+    let DescriptionAndNext(description, next) = parse_description_and_continue(&mut childs, file);
+    let name = parse_identifier(next.unwrap(), file)?;
+    let mut types = Vec::new();
+    let mut directives = Vec::new();
+    for child in childs {
+        if let Rule::directive = child.as_rule() {
+            directives.push(parse_directive(child, file)?);
+        } else {
+            let name = parse_identifier(child.clone(), file)?;
+            types.push(name);
+        }
+    }
+    Ok(Union {
+        extend: extends,
+        span,
+        name,
+        description,
+        types,
+        directives,
+    })
 }
 
 pub(crate) fn parse_union(pair: Pair<Rule>, file: &str) -> Result<Union, Box<RuleError>> {
     match pair.as_rule() {
-        Rule::union_def => {
-            let span = OwnedSpan::from(pair.as_span(), file);
-            let mut childs = pair.into_inner();
-            // [description?, identifier, ...types]
-            let DescriptionAndNext(description, next) =
-                parse_description_and_continue(&mut childs, file);
-            let name = parse_identifier(next, file)?;
-            let mut types = Vec::new();
-            let mut directives = Vec::new();
-            for child in childs {
-                if let Rule::directive = child.as_rule() {
-                    directives.push(parse_directive(child, file)?);
-                } else {
-                    let name = parse_identifier(child.clone(), file)?;
-                    types.push(name);
-                }
-            }
-            Ok(Union {
-                span,
-                name,
-                description,
-                types,
-                directives,
-            })
-        }
+        Rule::union_def => _parse_union(pair, file, false),
+        Rule::union_ext => _parse_union(pair, file, true),
         _unknown => Err(unknown_rule_error(pair, "union_def")),
     }
 }
@@ -76,7 +85,7 @@ mod tests {
     use crate::ValueData;
 
     fn parse_input(input: &str) -> Result<Union, Box<RuleError>> {
-        parse_full_input(input, Rule::union_def, parse_union)
+        parse_full_input(input, Rule::def, parse_union)
     }
 
     #[test]
@@ -94,6 +103,14 @@ mod tests {
         assert_eq!(
             parse_input("union MyUnion = Type1"),
             Ok(Union::build("MyUnion").type_("Type1"))
+        );
+    }
+
+    #[test]
+    fn test_parses_1_type_union_with_extend() {
+        assert_eq!(
+            parse_input("extend union MyUnion = Type1"),
+            Ok(Union::build("MyUnion").type_("Type1").extend())
         );
     }
 

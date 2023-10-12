@@ -35,4 +35,3 @@ type Parent {
   grand_child_foo: Int
 }
 
-

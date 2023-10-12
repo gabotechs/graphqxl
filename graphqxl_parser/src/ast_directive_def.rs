@@ -57,7 +57,7 @@ pub(crate) fn parse_directive_def(
             let mut childs = pair.into_inner();
             let DescriptionAndNext(description, next) =
                 parse_description_and_continue(&mut childs, file);
-            let name = parse_identifier(next, file)?;
+            let name = parse_identifier(next.unwrap(), file)?;
             let mut next = childs.next().unwrap();
             let mut arguments = Vec::new();
             if let Rule::arguments = next.as_rule() {

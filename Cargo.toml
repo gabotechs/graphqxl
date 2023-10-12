@@ -7,10 +7,9 @@ categories = ["language", "compilers"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/gabotechs/graphqxl"
-keywords = ["graphql", "graphqxl", "schemas", "server", "api", "language"]
+keywords = ["graphql", "schemas", "server", "api", "language"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 
 [workspace]
 members = [
@@ -22,7 +21,7 @@ members = [
 [dependencies]
 clap = { version = "4.0.22", features = ["derive"] }
 anyhow = "1.0.63"
-apollo-compiler = "0.3.0"
+apollo-compiler = "0.11.3"
 graphqxl_parser = { path = "graphqxl_parser" }
 graphqxl_transpiler = { path = "graphqxl_transpiler" }
 graphqxl_synthesizer = { path = "graphqxl_synthesizer" }

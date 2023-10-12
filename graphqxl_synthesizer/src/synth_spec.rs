@@ -56,13 +56,16 @@ impl Synth for SpecSynth {
                     DirectiveDefSynth(def).synth(context);
                     context.write_double_line_jump();
                 }
+                DefType::Schema(name) => {
+                    let def = self.0.schemas.get(name).unwrap().to_owned();
+                    SchemaSynth(def).synth(context);
+                    context.write_double_line_jump();
+                }
                 _ => {
                     // nothing to synth
                 }
             }
         }
-        SchemaSynth(self.0.schema.clone()).synth(context);
-        context.write_line_jump();
         true
     }
 }

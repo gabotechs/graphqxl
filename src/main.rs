@@ -1,7 +1,7 @@
 mod apollo_diagnostic_source;
 mod ok_or_anyhow_err;
 
-use crate::apollo_diagnostic_source::reverse_diagnostic_map;
+use crate::apollo_diagnostic_source::{is_fatal_diagnostic, reverse_diagnostic_map};
 use crate::ok_or_anyhow_err::ok_or_anyhow_err;
 use anyhow::Result;
 use apollo_compiler::ApolloCompiler;
@@ -63,10 +63,11 @@ fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
             ..Default::default()
         },
     );
-    let ctx = ApolloCompiler::new(&result);
+    let mut ctx = ApolloCompiler::new();
+    ctx.add_type_system(&result, &out_path);
     let diagnostics = ctx.validate();
     for diagnostic in diagnostics {
-        if diagnostic.is_error() {
+        if is_fatal_diagnostic(&diagnostic) {
             reverse_diagnostic_map(&diagnostic, &source_map)?;
         }
     }
@@ -76,7 +77,7 @@ fn graphqxl_to_graphql(args: &Args) -> Result<(String, String)> {
 fn main() -> Result<()> {
     let args = Args::parse();
     let (result, out_path) = graphqxl_to_graphql(&args)?;
-    fs::write(&out_path, result)?;
+    fs::write(out_path, result)?;
     Ok(())
 }
 

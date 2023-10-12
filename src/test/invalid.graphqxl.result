@@ -3,4 +3,4 @@
 4 |     foo: Bar!
   |          ^-^
   |
-  = :4 cannot find type `Bar` in this document
+  = :4 type `foo` is not defined

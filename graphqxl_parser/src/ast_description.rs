@@ -18,19 +18,23 @@ pub(crate) fn parse_description(pair: Pair<Rule>, _file: &str) -> Result<String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) struct DescriptionAndNext<'a>(pub(crate) String, pub(crate) Pair<'a, Rule>);
+pub(crate) struct DescriptionAndNext<'a>(pub(crate) String, pub(crate) Option<Pair<'a, Rule>>);
 
 pub(crate) fn parse_description_and_continue<'a>(
     pairs: &mut Pairs<'a, Rule>,
     file: &str,
 ) -> DescriptionAndNext<'a> {
-    let mut pair = pairs.next().unwrap();
+    let mut pair_opt = pairs.next();
     let mut description = "".to_string();
-    if let Rule::description = pair.as_rule() {
-        description = parse_description(pair, file).unwrap();
-        pair = pairs.next().unwrap();
+    if let Some(pair) = pair_opt {
+        if let Rule::description = pair.as_rule() {
+            description = parse_description(pair, file).unwrap();
+            pair_opt = pairs.next();
+        } else {
+            pair_opt = Some(pair)
+        }
     }
-    DescriptionAndNext(description, pair)
+    DescriptionAndNext(description, pair_opt)
 }
 
 #[cfg(test)]

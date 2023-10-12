@@ -77,7 +77,7 @@ fn _parse_block_field(pair: Pair<Rule>, file: &str) -> Result<BlockField, Box<Ru
     let mut pairs = pair.into_inner();
     // at this moment we are on [description?, identifier, args?, value?]
     let DescriptionAndNext(description, next) = parse_description_and_continue(&mut pairs, file);
-    let name = parse_identifier(next, file)?;
+    let name = parse_identifier(next.unwrap(), file)?;
     let mut block_field = BlockField {
         span,
         name,

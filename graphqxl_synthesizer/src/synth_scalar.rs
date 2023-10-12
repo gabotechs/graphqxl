@@ -8,10 +8,12 @@ pub(crate) struct ScalarSynth(pub(crate) Scalar);
 
 impl Synth for ScalarSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        let mut v: Vec<Box<dyn Synth>> = vec![
-            Box::new(StringSynth::from("scalar ")),
-            Box::new(IdentifierSynth(self.0.name.clone())),
-        ];
+        let mut v: Vec<Box<dyn Synth>> = match self.0.extend {
+            true => vec![Box::new(StringSynth::from("extend "))],
+            false => vec![],
+        };
+        v.push(Box::new(StringSynth::from("scalar ")));
+        v.push(Box::new(IdentifierSynth(self.0.name.clone())));
         for directive in self.0.directives.iter() {
             v.push(Box::new(StringSynth::from(" ")));
             v.push(Box::new(DirectiveSynth(directive.clone())));
@@ -31,6 +33,12 @@ mod tests {
     fn test_scalar_without_description() {
         let synth = ScalarSynth(Scalar::build("MyScalar"));
         assert_eq!(synth.synth_zero(), "scalar MyScalar")
+    }
+
+    #[test]
+    fn test_scalar_extension() {
+        let synth = ScalarSynth(Scalar::build("MyScalar").extend());
+        assert_eq!(synth.synth_zero(), "extend scalar MyScalar")
     }
 
     #[test]

@@ -7,6 +7,7 @@ use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Scalar {
+    pub extend: bool,
     pub span: OwnedSpan,
     pub name: Identifier,
     pub description: String,
@@ -30,27 +31,36 @@ impl Scalar {
         self.directives.push(directive);
         self.clone()
     }
+
+    pub fn extend(&mut self) -> Self {
+        self.extend = true;
+        self.clone()
+    }
 }
 
-pub(crate) fn parse_scalar(pair: Pair<Rule>, file: &str) -> Result<Scalar, Box<RuleError>> {
-    match pair.as_rule() {
-        Rule::scalar_def => {
+fn _parse_scalar(pair: Pair<Rule>, file: &str, extend: bool) -> Result<Scalar, Box<RuleError>> {
             let span = OwnedSpan::from(pair.as_span(), file);
             let mut childs = pair.into_inner();
             let DescriptionAndNext(description, next) =
                 parse_description_and_continue(&mut childs, file);
-            let name = parse_identifier(next, file)?;
+            let name = parse_identifier(next.unwrap(), file)?;
             let mut directives = Vec::new();
             for child in childs {
                 directives.push(parse_directive(child, file)?);
             }
             Ok(Scalar {
+                extend,
                 span,
                 name,
                 description,
                 directives,
             })
-        }
+}
+
+pub(crate) fn parse_scalar(pair: Pair<Rule>, file: &str) -> Result<Scalar, Box<RuleError>> {
+    match pair.as_rule() {
+        Rule::scalar_def => _parse_scalar(pair, file, false),
+        Rule::scalar_ext => _parse_scalar(pair, file, true),
         _unknown => Err(unknown_rule_error(pair, "scalar_def")),
     }
 }
@@ -61,7 +71,7 @@ mod tests {
     use crate::utils::parse_full_input;
 
     fn parse_input(input: &str) -> Result<Scalar, Box<RuleError>> {
-        parse_full_input(input, Rule::scalar_def, parse_scalar)
+        parse_full_input(input, Rule::def, parse_scalar)
     }
 
     #[test]
@@ -77,6 +87,14 @@ mod tests {
         assert_eq!(
             parse_input("scalar MyScalar"),
             Ok(Scalar::build("MyScalar"))
+        );
+    }
+
+    #[test]
+    fn test_parses_scalar_extension() {
+        assert_eq!(
+            parse_input("extend scalar MyScalar"),
+            Ok(Scalar::build("MyScalar").extend())
         );
     }
 

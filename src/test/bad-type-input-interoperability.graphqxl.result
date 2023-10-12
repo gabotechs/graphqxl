@@ -3,4 +3,4 @@
 6 |     input: Input
   |     ^---^
   |
-  = :6 `input` field must return an output type
+  = :6 `input` field does not return an output type

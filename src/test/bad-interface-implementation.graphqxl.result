@@ -3,4 +3,4 @@
 5 | type Type implements Interface {
   |      ^--^
   |
-  = :5 missing `foo` field
+  = :5 type `Type` does not satisfy interface `Interface` because it is missing field `foo`

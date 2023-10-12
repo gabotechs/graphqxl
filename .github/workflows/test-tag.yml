@@ -16,7 +16,7 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2022-10-09 # Fixed so that it can be cached
+          toolchain: nightly-2023-10-11 # Fixed so that it can be cached
           profile: minimal
           components: clippy
           override: true
@@ -36,7 +36,7 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2022-10-09 # Fixed so that it can be cached
+          toolchain: nightly-2023-10-11 # Fixed so that it can be cached
           override: true
           components: llvm-tools-preview
 
@@ -76,7 +76,7 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2022-10-09 # Fixed so that it can be cached
+          toolchain: nightly-2023-10-11 # Fixed so that it can be cached
           profile: minimal
 
       - name: Cache
