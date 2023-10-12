@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: gabotechs/node-graphqxl
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.CI_TOKEN }}
       - run: |
           VERSION="${GITHUB_REF_NAME:1}"
           jq ".version=\"$VERSION\"" package.json > _package.json
