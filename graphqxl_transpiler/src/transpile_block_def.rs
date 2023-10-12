@@ -16,9 +16,7 @@ impl<'a> IdOrBlock<'a> {
         match self {
             IdOrBlock::Id(id) => match store.get(&id.id) {
                 Some(block_def) => Ok(block_def),
-                None => {
-                    return Err(id.span.make_error(&format!("{} is undefined", &id.id)));
-                }
+                None => Err(id.span.make_error(&format!("{} is undefined", &id.id))),
             },
             IdOrBlock::Block(block_def) => Ok(block_def),
         }

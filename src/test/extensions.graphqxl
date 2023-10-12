@@ -1,0 +1,5 @@
+input Input {
+    foo: String
+}
+
+extend input Input

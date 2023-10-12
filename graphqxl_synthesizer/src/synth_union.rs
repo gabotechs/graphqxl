@@ -24,16 +24,22 @@ impl Synth for UnionTypesSynth {
 
 impl Synth for UnionSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        let mut v: Vec<Box<dyn Synth>> = vec![
-            Box::new(StringSynth::from("union ")),
-            Box::new(IdentifierSynth(self.0.name.clone())),
-        ];
+        let mut v: Vec<Box<dyn Synth>> = match self.0.extend {
+            true => vec![Box::new(StringSynth::from("extend "))],
+            false => vec![],
+        };
+
+        v.push(Box::new(StringSynth::from("union ")));
+        v.push(Box::new(IdentifierSynth(self.0.name.clone())));
         for directive in self.0.directives.iter() {
             v.push(Box::new(StringSynth::from(" ")));
             v.push(Box::new(DirectiveSynth(directive.clone())));
         }
-        v.push(Box::new(StringSynth::from(" = ")));
-        v.push(Box::new(UnionTypesSynth(self.0.types.clone())));
+        if !(self.0.extend && self.0.types.is_empty()) {
+            v.push(Box::new(StringSynth::from(" = ")));
+            v.push(Box::new(UnionTypesSynth(self.0.types.clone())));
+        }
+
         let pair_synth = PairSynth::top_level(
             DescriptionSynth::text(self.0.description.as_str()),
             ChainSynth(v),
@@ -52,6 +58,18 @@ mod tests {
     fn test_one_type() {
         let synth = UnionSynth(Union::build("MyUnion").type_("MyType"));
         assert_eq!(synth.synth_zero(), "union MyUnion = MyType");
+    }
+
+    #[test]
+    fn test_empty_with_extension() {
+        let synth = UnionSynth(Union::build("MyUnion").extend());
+        assert_eq!(synth.synth_zero(), "extend union MyUnion");
+    }
+
+    #[test]
+    fn test_one_type_with_extension() {
+        let synth = UnionSynth(Union::build("MyUnion").type_("MyType").extend());
+        assert_eq!(synth.synth_zero(), "extend union MyUnion = MyType");
     }
 
     #[test]

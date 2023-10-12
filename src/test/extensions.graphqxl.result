@@ -1,0 +1,8 @@
+Error: syntax error: expected Directives or an Input Fields Definition
+   ╭─[src/test/extensions.graphql:7:2]
+   │
+ 7 │ 
+   │  │ 
+   │  ╰─ expected Directives or an Input Fields Definition
+───╯
+

@@ -13,33 +13,33 @@ impl Synth for BlockDefSynth {
             return false;
         }
 
+        let mut v: Vec<Box<dyn Synth>> = match self.0.extend {
+            true => vec![Box::new(StringSynth::from("extend "))],
+            false => vec![],
+        };
+
         let symbol = match self.0.kind {
             BlockDefType::Type => "type",
             BlockDefType::Input => "input",
             BlockDefType::Enum => "enum",
             BlockDefType::Interface => "interface",
         };
-        let mut v: Vec<Box<dyn Synth>> = vec![
-            Box::new(StringSynth::from(symbol)),
-            Box::new(StringSynth::from(" ")),
-            Box::new(IdentifierSynth(self.0.name.clone())),
-            Box::new(StringSynth::from(" ")),
-        ];
+        v.push(Box::new(StringSynth::from(symbol)));
+        v.push(Box::new(StringSynth::from(" ")));
+        v.push(Box::new(IdentifierSynth(self.0.name.clone())));
         if let Some(implements) = &self.0.implements {
             let first = implements.interfaces.get(0).unwrap();
-            v.push(Box::new(StringSynth::from("implements ")));
+            v.push(Box::new(StringSynth::from(" implements ")));
             v.push(Box::new(IdentifierSynth(first.clone())));
-            v.push(Box::new(StringSynth::from(" ")));
             for i in 1..implements.interfaces.len() {
                 let implement = implements.interfaces.get(i).unwrap();
-                v.push(Box::new(StringSynth::from("& ")));
+                v.push(Box::new(StringSynth::from(" & ")));
                 v.push(Box::new(IdentifierSynth(implement.clone())));
-                v.push(Box::new(StringSynth::from(" ")));
             }
         }
         for directive in self.0.directives.iter() {
-            v.push(Box::new(DirectiveSynth(directive.clone())));
             v.push(Box::new(StringSynth::from(" ")));
+            v.push(Box::new(DirectiveSynth(directive.clone())));
         }
         let mut inner_synths = Vec::new();
         for entry in self.0.entries.iter() {
@@ -47,11 +47,14 @@ impl Synth for BlockDefSynth {
                 inner_synths.push(BlockFieldSynth(block_field.clone()));
             }
         }
-        v.push(Box::new(MultilineListSynth::no_suffix((
-            "{",
-            inner_synths,
-            "}",
-        ))));
+        if !(inner_synths.is_empty() && self.0.extend) {
+            v.push(Box::new(StringSynth::from(" ")));
+            v.push(Box::new(MultilineListSynth::no_suffix((
+                "{",
+                inner_synths,
+                "}",
+            ))));
+        }
         let synth =
             PairSynth::top_level(DescriptionSynth::text(&self.0.description), ChainSynth(v));
         synth.synth(context);
@@ -156,5 +159,11 @@ type MyType @dir1(arg: 1) @dir2 {
             synth.synth_zero(),
             "type MyType implements One & Two {\n  field: String\n}"
         )
+    }
+
+    #[test]
+    fn test_empty_extension() {
+        let synth = BlockDefSynth(BlockDef::type_def("MyType").extend());
+        assert_eq!(synth.synth_zero(), "extend type MyType")
     }
 }

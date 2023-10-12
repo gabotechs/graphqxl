@@ -41,6 +41,7 @@ pub enum BlockEntry {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BlockDef {
+    pub extend: bool,
     pub span: OwnedSpan,
     pub name: Identifier,
     pub generic: Option<Generic>,
@@ -55,6 +56,7 @@ pub struct BlockDef {
 impl BlockDef {
     fn build(name: &str, kind: BlockDefType) -> Self {
         Self {
+            extend: false,
             span: OwnedSpan::default(),
             name: Identifier::from(name),
             generic: None,
@@ -120,11 +122,17 @@ impl BlockDef {
         self.directives.push(directive);
         self.clone()
     }
+
+    pub fn extend(&mut self) -> Self {
+        self.extend = true;
+        self.clone()
+    }
 }
 
 fn _parse_block_def(
     pair: Pair<Rule>,
     kind: BlockDefType,
+    extend: bool,
     file: &str,
 ) -> Result<BlockDef, Box<RuleError>> {
     let span = OwnedSpan::from(pair.as_span(), file);
@@ -179,6 +187,7 @@ fn _parse_block_def(
         }
     }
     Ok(BlockDef {
+        extend,
         span,
         name,
         generic,
@@ -193,10 +202,14 @@ fn _parse_block_def(
 
 pub(crate) fn parse_block_def(pair: Pair<Rule>, file: &str) -> Result<BlockDef, Box<RuleError>> {
     match pair.as_rule() {
-        Rule::type_def => _parse_block_def(pair, BlockDefType::Type, file),
-        Rule::input_def => _parse_block_def(pair, BlockDefType::Input, file),
-        Rule::enum_def => _parse_block_def(pair, BlockDefType::Enum, file),
-        Rule::interface_def => _parse_block_def(pair, BlockDefType::Interface, file),
+        Rule::type_def => _parse_block_def(pair, BlockDefType::Type, false, file),
+        Rule::type_ext => _parse_block_def(pair, BlockDefType::Type, true, file),
+        Rule::input_def => _parse_block_def(pair, BlockDefType::Input, false, file),
+        Rule::input_ext => _parse_block_def(pair, BlockDefType::Input, true, file),
+        Rule::enum_def => _parse_block_def(pair, BlockDefType::Enum, false, file),
+        Rule::enum_ext => _parse_block_def(pair, BlockDefType::Enum, true, file),
+        Rule::interface_def => _parse_block_def(pair, BlockDefType::Interface, false, file),
+        Rule::interface_ext => _parse_block_def(pair, BlockDefType::Interface, true, file),
         _unknown => Err(unknown_rule_error(
             pair,
             "type_def, input_def, enum_def or interface_def",
@@ -211,18 +224,7 @@ mod tests {
     use crate::ValueType;
 
     fn parse_input(input: &str) -> Result<BlockDef, Box<RuleError>> {
-        let rule = if input.contains("input ") {
-            Rule::input_def
-        } else if input.contains("type ") {
-            Rule::type_def
-        } else if input.contains("enum ") {
-            Rule::enum_def
-        } else if input.contains("interface ") {
-            Rule::interface_def
-        } else {
-            Rule::type_def
-        };
-        parse_full_input(input, rule, parse_block_def)
+        parse_full_input(input, Rule::def, parse_block_def)
     }
 
     #[test]

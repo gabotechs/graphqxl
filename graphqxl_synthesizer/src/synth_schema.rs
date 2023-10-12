@@ -21,17 +21,26 @@ impl Synth for SchemaSynth {
                 self.0.subscription.id
             )))
         }
-        if to_include.is_empty() {
+        if to_include.is_empty() && !self.0.extend {
             return false;
         }
-        let mut v: Vec<Box<dyn Synth>> = vec![Box::new(StringSynth::from("schema "))];
+
+        let mut v: Vec<Box<dyn Synth>> = match self.0.extend {
+            true => vec![Box::new(StringSynth::from("extend "))],
+            false => vec![],
+        };
+
+        v.push(Box::new(StringSynth::from("schema")));
         for directive in self.0.directives.iter() {
-            v.push(Box::new(DirectiveSynth(directive.clone())));
             v.push(Box::new(StringSynth::from(" ")));
+            v.push(Box::new(DirectiveSynth(directive.clone())));
         }
-        v.push(Box::new(MultilineListSynth::no_suffix((
-            "{", to_include, "}",
-        ))));
+        if !(self.0.extend && to_include.is_empty()) {
+            v.push(Box::new(StringSynth::from(" ")));
+            v.push(Box::new(MultilineListSynth::no_suffix((
+                "{", to_include, "}",
+            ))));
+        }
         let pair_synth =
             PairSynth::top_level(DescriptionSynth::text(&self.0.description), ChainSynth(v));
         pair_synth.synth(context)
@@ -48,6 +57,12 @@ mod tests {
     fn test_with_query() {
         let synth = SchemaSynth(Schema::build().query("Query"));
         assert_eq!(synth.synth_zero(), "schema {\n  query: Query\n}")
+    }
+
+    #[test]
+    fn test_empty_with_extension() {
+        let synth = SchemaSynth(Schema::build().extend());
+        assert_eq!(synth.synth_zero(), "extend schema")
     }
 
     #[test]

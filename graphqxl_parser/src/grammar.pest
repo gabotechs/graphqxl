@@ -3,24 +3,50 @@ spec = { SOI ~ import* ~ def* ~ EOI }
 import = { "import" ~ filename }
 filename = @{ "\"" ~ (!("\n" | "\r\n") ~ char_no_double_quote)* ~ "\"" }
 
-def = _{ schema_def | type_def | generic_type_def | input_def | generic_input_def | enum_def | interface_def | scalar_def | union_def | directive_def }
+def = _{
+    schema_def |
+    schema_ext |
+    type_def |
+    type_ext |
+    generic_type_def |
+    input_def |
+    input_ext |
+    generic_input_def |
+    enum_def |
+    enum_ext |
+    interface_def |
+    interface_ext |
+    scalar_def |
+    scalar_ext |
+    union_def |
+    union_ext |
+    directive_def
+}
 
-schema_def = { description? ~ "schema" ~ directive* ~ schema_selection_set }
-    schema_key = @{ "query" | "mutation" | "subscription" }
+schema_def =       { description? ~ "schema" ~ directive* ~ schema_selection_set }
+schema_ext =       { "extend" ~     "schema" ~ directive* ~ schema_selection_set? }
+schema_empty_ext = { "extend" ~     "schema" ~ directive* }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
+    schema_key = @{ "query" | "mutation" | "subscription" }
 generic_type_def = { description_variables? ~ description? ~  "type " ~ identifier ~ directive* ~ "=" ~ modified_ref }
-type_def = { description_variables? ~ description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
+type_def       = { description_variables? ~ description? ~ "type " ~ identifier ~ generic? ~ implements? ~ directive* ~ type_selection_set }
+type_ext       = { "extend" ~                              "type " ~ identifier ~            implements? ~ directive* ~ type_selection_set? }
     type_selection_set = { "{" ~ (field_with_args | spread_reference)* ~ "}" }
 generic_input_def = { description_variables? ~  description? ~  "input " ~ identifier ~ directive* ~ "=" ~ modified_ref }
 input_def = { description_variables? ~  description? ~ "input " ~ identifier ~ generic? ~ directive* ~ input_selection_set }
+input_ext = { "extend" ~                               "input " ~ identifier ~           directive* ~ input_selection_set? }
     input_selection_set = { "{" ~ (field_without_args | spread_reference)* ~ "}" }
 enum_def = { description? ~ "enum " ~ identifier ~ directive* ~ enum_selection_set }
+enum_ext = { "extend"     ~ "enum " ~ identifier ~ directive* ~ enum_selection_set? }
     enum_selection_set = { "{" ~ (field_without_args_without_value | spread_reference)* ~ "}" }
 interface_def = { description? ~ "interface " ~ identifier ~ implements? ~ directive* ~ interface_selection_set }
+interface_ext = { "extend"     ~ "interface " ~ identifier ~ implements? ~ directive* ~ interface_selection_set? }
     interface_selection_set = { "{" ~ (spread_reference | field_with_args)* ~ "}" }
 scalar_def = { description? ~ "scalar " ~ identifier ~ directive* }
+scalar_ext = { "extend" ~ "scalar " ~ identifier ~ directive* }
 union_def = { description? ~ "union " ~ identifier ~ directive* ~ "=" ~ identifier ~ ("|" ~ identifier )* }
+union_ext = { "extend"     ~ "union " ~ identifier ~ directive* ~ "="? ~ identifier? ~ ("|" ~ identifier )* }
 
 directive_def = { description? ~"directive" ~ "@" ~ identifier ~ arguments? ~ directive_repeatable? ~ "on" ~ directive_location ~ ("|" ~ directive_location)* }
     directive_repeatable = @{ "repeatable" }

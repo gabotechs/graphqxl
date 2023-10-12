@@ -20,6 +20,7 @@ pub(crate) fn transpile_generic_block_def(
     };
 
     Ok(BlockDef {
+        extend: false,
         span: generic_block_def.span.clone(),
         name: generic_block_def.name.clone(),
         implements: resolved.implements.clone(),

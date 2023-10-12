@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-pest = "2.3.1"
-pest_derive = "2.3.1"
+pest = "2.7.4"
+pest_derive = "2.7.4"
 indexmap = "1.9.1"
+uuid = { version = "1.4.1", features = ["v4"]}
 

@@ -169,6 +169,11 @@ impl Spec {
                     Ok(())
                 }
             }
+            Rule::schema_ext => {
+                self.schema_already_defined = true;
+                self.schema = parse_schema(pair, file)?;
+                Ok(())
+            }
             Rule::type_def => {
                 let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
@@ -179,6 +184,13 @@ impl Spec {
                     self.order.push(DefType::Type(id));
                     Ok(())
                 }
+            }
+            Rule::type_ext => {
+                let block_def = parse_block_def(pair.clone(), file)?;
+                let id = Identifier::extend(&block_def.name);
+                self.types.insert(id.id.clone(), block_def);
+                self.order.push(DefType::Type(id));
+                Ok(())
             }
             Rule::generic_type_def => {
                 let generic_block_def = parse_generic_block_def(pair.clone(), file)?;
@@ -202,6 +214,13 @@ impl Spec {
                     Ok(())
                 }
             }
+            Rule::input_ext => {
+                let block_def = parse_block_def(pair.clone(), file)?;
+                let id = Identifier::extend(&block_def.name);
+                self.inputs.insert(id.id.clone(), block_def);
+                self.order.push(DefType::Input(id));
+                Ok(())
+            }
             Rule::generic_input_def => {
                 let generic_block_def = parse_generic_block_def(pair.clone(), file)?;
                 let id = generic_block_def.name.clone();
@@ -224,6 +243,13 @@ impl Spec {
                     Ok(())
                 }
             }
+            Rule::enum_ext => {
+                let block_def = parse_block_def(pair.clone(), file)?;
+                let id = Identifier::extend(&block_def.name);
+                self.enums.insert(id.id.clone(), block_def);
+                self.order.push(DefType::Enum(id));
+                Ok(())
+            }
             Rule::interface_def => {
                 let block_def = parse_block_def(pair.clone(), file)?;
                 let id = block_def.name.clone();
@@ -234,6 +260,13 @@ impl Spec {
                     self.order.push(DefType::Interface(id));
                     Ok(())
                 }
+            }
+            Rule::interface_ext => {
+                let block_def = parse_block_def(pair.clone(), file)?;
+                let id = Identifier::extend(&block_def.name);
+                self.interfaces.insert(id.id.clone(), block_def);
+                self.order.push(DefType::Interface(id));
+                Ok(())
             }
             Rule::scalar_def => {
                 let scalar = parse_scalar(pair.clone(), file)?;
@@ -246,6 +279,13 @@ impl Spec {
                     Ok(())
                 }
             }
+            Rule::scalar_ext => {
+                let block_def = parse_scalar(pair.clone(), file)?;
+                let id = Identifier::extend(&block_def.name);
+                self.scalars.insert(id.id.clone(), block_def);
+                self.order.push(DefType::Scalar(id));
+                Ok(())
+            }
             Rule::union_def => {
                 let union = parse_union(pair.clone(), file)?;
                 let id = union.name.clone();
@@ -256,6 +296,13 @@ impl Spec {
                     self.order.push(DefType::Union(id));
                     Ok(())
                 }
+            }
+            Rule::union_ext => {
+                let block_def = parse_union(pair.clone(), file)?;
+                let id = Identifier::extend(&block_def.name);
+                self.unions.insert(id.id.clone(), block_def);
+                self.order.push(DefType::Union(id));
+                Ok(())
             }
             Rule::directive_def => {
                 let directive = parse_directive_def(pair.clone(), file)?;

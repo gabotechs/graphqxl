@@ -73,7 +73,7 @@ fn parse_argument(pair: Pair<Rule>, file: &str) -> Result<Argument, Box<RuleErro
             let DescriptionAndNext(description, next) =
                 parse_description_and_continue(&mut childs, file);
             // at this moment we are on [identifier, value]
-            let name = parse_identifier(next, file)?;
+            let name = parse_identifier(next.unwrap(), file)?;
             let value = parse_value_type(childs.next().unwrap(), file)?;
             let mut default = None;
             let mut directives = Vec::new();
