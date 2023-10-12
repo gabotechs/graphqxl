@@ -248,7 +248,7 @@ dependencies = [
 
 [[package]]
 name = "graphqxl"
-version = "0.39.0"
+version = "0.40.0"
 dependencies = [
  "anyhow",
  "apollo-compiler",
@@ -261,7 +261,7 @@ dependencies = [
 
 [[package]]
 name = "graphqxl_parser"
-version = "0.39.0"
+version = "0.40.0"
 dependencies = [
  "indexmap 1.9.1",
  "pest",
@@ -271,7 +271,7 @@ dependencies = [
 
 [[package]]
 name = "graphqxl_synthesizer"
-version = "0.38.1"
+version = "0.40.0"
 dependencies = [
  "graphqxl_parser",
  "indexmap 1.9.1",
@@ -279,7 +279,7 @@ dependencies = [
 
 [[package]]
 name = "graphqxl_transpiler"
-version = "0.38.1"
+version = "0.40.0"
 dependencies = [
  "graphqxl_parser",
  "pest",
