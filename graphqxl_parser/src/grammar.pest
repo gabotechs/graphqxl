@@ -25,7 +25,6 @@ def = _{
 
 schema_def =       { description? ~ "schema" ~ directive* ~ schema_selection_set }
 schema_ext =       { "extend" ~     "schema" ~ directive* ~ schema_selection_set? }
-schema_empty_ext = { "extend" ~     "schema" ~ directive* }
     schema_selection_set = { "{" ~ schema_field+ ~ "}"}
     schema_field = { schema_key ~ ":" ~ identifier }
     schema_key = @{ "query" | "mutation" | "subscription" }
