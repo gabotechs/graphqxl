@@ -120,6 +120,7 @@ mod tests {
     use super::*;
     use crate::ast_value_data::ValueData;
     use crate::utils::parse_full_input;
+    use crate::ArgumentDefaultValue;
 
     fn parse_with_args_input(input: &str) -> Result<BlockField, Box<RuleError>> {
         parse_full_input(input, Rule::field_with_args, parse_block_field)
@@ -198,8 +199,9 @@ mod tests {
             Ok(BlockField::build("field")
                 .string()
                 .arg(
-                    Argument::build("arg1", ValueType::string().array().non_nullable())
-                        .default(ValueData::string("default").list())
+                    Argument::build("arg1", ValueType::string().array().non_nullable()).default(
+                        ArgumentDefaultValue::ValueData(ValueData::string("default").list())
+                    )
                 )
                 .arg(Argument::build("arg2", ValueType::float().non_nullable())))
         );

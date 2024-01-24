@@ -7,12 +7,19 @@ use crate::{parse_directive, parse_value_type, Directive, ValueType};
 use pest::iterators::Pair;
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum ArgumentDefaultValue {
+    None,
+    ValueData(ValueData),
+    Identifier(Identifier),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Argument {
     pub span: OwnedSpan,
     pub name: Identifier,
     pub description: String,
     pub value_type: ValueType,
-    pub default: Option<ValueData>,
+    pub default: ArgumentDefaultValue,
     pub directives: Vec<Directive>,
 }
 
@@ -23,7 +30,7 @@ impl Argument {
             name: Identifier::from(name),
             description: "".to_string(),
             value_type: t,
-            default: None,
+            default: ArgumentDefaultValue::None,
             directives: Vec::new(),
         }
     }
@@ -53,8 +60,8 @@ impl Argument {
         self.clone()
     }
 
-    pub fn default(&mut self, value_data: ValueData) -> Self {
-        self.default = Some(value_data);
+    pub fn default(&mut self, default: ArgumentDefaultValue) -> Self {
+        self.default = default;
         self.clone()
     }
 
@@ -75,11 +82,13 @@ fn parse_argument(pair: Pair<Rule>, file: &str) -> Result<Argument, Box<RuleErro
             // at this moment we are on [identifier, value]
             let name = parse_identifier(next.unwrap(), file)?;
             let value = parse_value_type(childs.next().unwrap(), file)?;
-            let mut default = None;
+            let mut default = ArgumentDefaultValue::None;
             let mut directives = Vec::new();
             if let Some(pair) = childs.next() {
                 if let Rule::value_data = pair.as_rule() {
-                    default = Some(parse_value_data(pair, file)?)
+                    default = ArgumentDefaultValue::ValueData(parse_value_data(pair, file)?)
+                } else if let Rule::identifier = pair.as_rule() {
+                    default = ArgumentDefaultValue::Identifier(parse_identifier(pair, file)?)
                 }
                 for directive in childs {
                     directives.push(parse_directive(directive, file)?);
@@ -154,9 +163,19 @@ mod tests {
     fn test_default_value_for_argument_works() {
         assert_eq!(
             parse_input("(arg: String = \"default\")"),
-            Ok(vec![
-                Argument::string("arg").default(ValueData::string("default"))
-            ])
+            Ok(vec![Argument::string("arg").default(
+                ArgumentDefaultValue::ValueData(ValueData::string("default"))
+            )])
+        );
+    }
+
+    #[test]
+    fn test_default_value_as_identifier_for_argument_works() {
+        assert_eq!(
+            parse_input("(arg: String = Foo)"),
+            Ok(vec![Argument::string("arg").default(
+                ArgumentDefaultValue::Identifier(Identifier::from("Foo"))
+            )])
         );
     }
 
@@ -165,7 +184,9 @@ mod tests {
         assert_eq!(
             parse_input("(arg: String = \"default\" @dir1 @dir2)"),
             Ok(vec![Argument::string("arg")
-                .default(ValueData::string("default"))
+                .default(ArgumentDefaultValue::ValueData(ValueData::string(
+                    "default"
+                )))
                 .directive(Directive::build("dir1"))
                 .directive(Directive::build("dir2"))])
         );

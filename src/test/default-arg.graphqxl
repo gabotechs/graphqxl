@@ -1,0 +1,8 @@
+enum Enum {
+    One
+    Other
+}
+
+type Query {
+    foo(bar: Enum! = One): Boolean
+}
