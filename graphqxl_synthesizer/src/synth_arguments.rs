@@ -1,10 +1,11 @@
 use crate::synth_directive::DirectiveSynth;
+use crate::synth_identifier::IdentifierSynth;
 use crate::synth_value_data::ValueDataSynth;
 use crate::synth_value_type::ValueTypeSynth;
 use crate::synths::{
     ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth, Synth, SynthContext,
 };
-use graphqxl_parser::Argument;
+use graphqxl_parser::{Argument, ArgumentDefaultValue};
 
 pub(crate) struct ArgumentsSynth(pub(crate) Vec<Argument>);
 
@@ -18,10 +19,14 @@ impl Synth for ArgumentsSynth {
                     Box::new(StringSynth(argument.name.id.clone() + ": ")),
                     Box::new(ValueTypeSynth(argument.value_type.clone())),
                 ];
-                if let Some(default) = &argument.default {
+                if let ArgumentDefaultValue::ValueData(default) = &argument.default {
                     v.push(Box::new(StringSynth::from(" = ")));
                     v.push(Box::new(ValueDataSynth(default.clone())));
+                } else if let ArgumentDefaultValue::Identifier(default) = &argument.default {
+                    v.push(Box::new(StringSynth::from(" = ")));
+                    v.push(Box::new(IdentifierSynth(default.clone())));
                 }
+
                 for directive in argument.directives.iter() {
                     v.push(Box::new(StringSynth::from(" ")));
                     v.push(Box::new(DirectiveSynth(directive.clone())));
@@ -68,7 +73,9 @@ mod tests {
 
     #[test]
     fn test_with_default_value() {
-        let synth = ArgumentsSynth(vec![Argument::int("arg").default(ValueData::int(1).list())]);
+        let synth =
+            ArgumentsSynth(vec![Argument::int("arg")
+                .default(ArgumentDefaultValue::ValueData(ValueData::int(1).list()))]);
         assert_eq!(synth.synth_zero(), "(arg: Int = [ 1 ])")
     }
 
@@ -81,7 +88,7 @@ mod tests {
     #[test]
     fn test_with_default_value_with_directives() {
         let synth = ArgumentsSynth(vec![Argument::int("arg")
-            .default(ValueData::int(1).list())
+            .default(ArgumentDefaultValue::ValueData(ValueData::int(1).list()))
             .directive(Directive::build("dir"))]);
         assert_eq!(synth.synth_zero(), "(arg: Int = [ 1 ] @dir)")
     }

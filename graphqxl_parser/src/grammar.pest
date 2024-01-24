@@ -77,7 +77,7 @@ field_without_args = { description? ~ identifier ~ ":" ~ value_type ~ directive*
 field_without_args_without_value = { description? ~ identifier ~ directive* }
 
 arguments = { "(" ~ argument* ~ ")" }
-    argument = { description? ~ identifier ~ ":" ~ value_type ~ ("=" ~ value_data)? ~ directive* }
+    argument = { description? ~ identifier ~ ":" ~ value_type ~ ("=" ~ (value_data | identifier))? ~ directive* }
 
 function_call = { "(" ~ function_input+ ~ ")" }
     function_input = { identifier ~ ":" ~ value_data }
