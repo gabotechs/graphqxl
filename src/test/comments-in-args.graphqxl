@@ -1,0 +1,14 @@
+type Query {
+  "Comment on foo"
+  foo(
+    "Comment on bar"
+    bar: String
+    baz: Int
+    """
+    multiline comment
+
+    bar_baz
+    """
+    bar_baz: Boolean
+  ): [String!]!
+}
