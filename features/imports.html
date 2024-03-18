@@ -198,7 +198,7 @@ type Identifier {
 </code></pre>
 <pre><code class="language-graphql"># product.graphqxl
 
-import &quot;common-stuff&quot;
+import "common-stuff"
 
 type Product {
     id: Identifier
@@ -228,8 +228,8 @@ type Product {
     </tbody>
 </table>
 <p>A good pattern for keeping your schema clean could look something like this:</p>
-<pre><code class="language-graphql">import &quot;products&quot;
-import &quot;users&quot;
+<pre><code class="language-graphql">import "products"
+import "users"
 # import other entities
 
 type Query {

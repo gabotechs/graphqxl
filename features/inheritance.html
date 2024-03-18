@@ -191,17 +191,17 @@ spread operators, for example:</p>
         <tr>
             <td >
 <pre><code class="language-graphql">type Common {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
 }
 
 type Product {
     ...Common
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 
@@ -213,22 +213,22 @@ type Product {
 </td>
             <td>
 <pre><code class="language-graphql">type Common {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
 }
 
 type Product {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 </code></pre>
@@ -238,7 +238,7 @@ type Product {
 </table>
 <h2 id="private-fields"><a class="header" href="#private-fields">Private fields</a></h2>
 <p>It is very common that you do not want to expose the <code>Common</code> type in the public API,
-so you can make it private by prefixing the name with a <code>_</code> character (or the 
+so you can make it private by prefixing the name with a <code>_</code> character (or the
 prefix that you provide in the CLI argument):</p>
 <p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfQ29tbW9uIHsKICAgICJUeXBlJ3MgSUQiCiAgICBpZDogSUQhCiAgICAiVHlwZSdzIE5hbWUiCiAgICBuYW1lOiBTdHJpbmchCiAgICAiVHlwZSdzIGRlc2NyaXB0aW9uIgogICAgZGVzY3JpcHRpb246IFN0cmluZyEKfQoKdHlwZSBQcm9kdWN0IHsKICAgIC4uLl9Db21tb24KICAgICJQcm9kdWN0J3MgcHJpY2UiCiAgICBwcmljZTogRmxvYXQhCn0=">Open in sandbox</a></p>
 <table style="width: 100%">
@@ -252,30 +252,30 @@ prefix that you provide in the CLI argument):</p>
         <tr>
             <td>
 <pre><code class="language-graphql">type _Common {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
 }
 
 type Product {
     ..._Common
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 </code></pre>
 </td>
             <td>
 <pre><code class="language-graphql">type Product {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 

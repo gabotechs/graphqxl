@@ -186,12 +186,12 @@ some challenges that are left unaddressed compared to a code-first approach.</p>
 <ul>
 <li>
 <p>With a <strong>code-first</strong> approach, you have all the tools the programming language
-you are using provides, like functions for automatically generating repetitive 
+you are using provides, like functions for automatically generating repetitive
 types, inheritance for reusing code pieces, and so on.</p>
 </li>
 <li>
 <p>With a <strong>schema-first</strong> approach you need to write by hand all the repetitive entities
-in your schema, and if you want to split your schema across different files for a better 
+in your schema, and if you want to split your schema across different files for a better
 maintainability you are bound to language-specific tools for merging them.</p>
 </li>
 </ul>
@@ -275,17 +275,17 @@ spread operators, for example:</p>
         <tr>
             <td >
 <pre><code class="language-graphql">type Common {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
 }
 
 type Product {
     ...Common
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 
@@ -297,22 +297,22 @@ type Product {
 </td>
             <td>
 <pre><code class="language-graphql">type Common {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
 }
 
 type Product {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 </code></pre>
@@ -322,7 +322,7 @@ type Product {
 </table>
 <h2 id="private-fields"><a class="header" href="#private-fields">Private fields</a></h2>
 <p>It is very common that you do not want to expose the <code>Common</code> type in the public API,
-so you can make it private by prefixing the name with a <code>_</code> character (or the 
+so you can make it private by prefixing the name with a <code>_</code> character (or the
 prefix that you provide in the CLI argument):</p>
 <p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfQ29tbW9uIHsKICAgICJUeXBlJ3MgSUQiCiAgICBpZDogSUQhCiAgICAiVHlwZSdzIE5hbWUiCiAgICBuYW1lOiBTdHJpbmchCiAgICAiVHlwZSdzIGRlc2NyaXB0aW9uIgogICAgZGVzY3JpcHRpb246IFN0cmluZyEKfQoKdHlwZSBQcm9kdWN0IHsKICAgIC4uLl9Db21tb24KICAgICJQcm9kdWN0J3MgcHJpY2UiCiAgICBwcmljZTogRmxvYXQhCn0=">Open in sandbox</a></p>
 <table style="width: 100%">
@@ -336,30 +336,30 @@ prefix that you provide in the CLI argument):</p>
         <tr>
             <td>
 <pre><code class="language-graphql">type _Common {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
 }
 
 type Product {
     ..._Common
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 </code></pre>
 </td>
             <td>
 <pre><code class="language-graphql">type Product {
-    &quot;Type's ID&quot;
+    "Type's ID"
     id: ID!
-    &quot;Type's Name&quot;
+    "Type's Name"
     name: String!
-    &quot;Type's description&quot;
+    "Type's description"
     description: String!
-    &quot;Product's price&quot;
+    "Product's price"
     price: Float!
 }
 
@@ -520,7 +520,7 @@ built-in ones.</p>
 <p>These are the currently available modifiers:</p>
 <h2 id="optional"><a class="header" href="#optional">Optional</a></h2>
 <p>The <code>Optional</code> modifier takes a <code>type</code> or an <code>input</code> as a parameter and outputs a
-similar object with all its fields marked as &quot;nullable&quot;. If the field in the original
+similar object with all its fields marked as "nullable". If the field in the original
 object was declared required with a <code>!</code> the output will contain that field without
 the <code>!</code>, otherwise the field is left untouched.</p>
 <p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfU29tZVR5cGUgewogICAgZm9vOiBTdHJpbmchCiAgICBiYXI6IEludCEKICAgIGJvb2w6IFtGbG9hdCFdCn0KCnR5cGUgT3B0aW9uYWxUeXBlID0gT3B0aW9uYWw8X1NvbWVUeXBlPg==">Open in sandbox</a></p>
@@ -558,8 +558,8 @@ type OptionalType = Optional&lt;_SomeType&gt;
 </table>
 <h2 id="required"><a class="header" href="#required">Required</a></h2>
 <p>The <code>Required</code> modifier takes a <code>type</code> or an <code>input</code> as a parameter and outputs a
-similar object with all its fields marked as &quot;non-nullable&quot;. If a field in the original
-object did not have a <code>!</code>, it will have it in the new object, otherwise it will be 
+similar object with all its fields marked as "non-nullable". If a field in the original
+object did not have a <code>!</code>, it will have it in the new object, otherwise it will be
 left untouched</p>
 <p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfU29tZVR5cGUgewogICAgZm9vOiBTdHJpbmcKICAgIGJhcjogSW50CiAgICBib29sOiBbRmxvYXRdIQp9Cgp0eXBlIFJlcXVpcmVkVHlwZSA9IFJlcXVpcmVkPF9Tb21lVHlwZT4=">Open in sandbox</a></p>
 <table style="width: 100%">
@@ -619,7 +619,7 @@ type Identifier {
 </code></pre>
 <pre><code class="language-graphql"># product.graphqxl
 
-import &quot;common-stuff&quot;
+import "common-stuff"
 
 type Product {
     id: Identifier
@@ -649,8 +649,8 @@ type Product {
     </tbody>
 </table>
 <p>A good pattern for keeping your schema clean could look something like this:</p>
-<pre><code class="language-graphql">import &quot;products&quot;
-import &quot;users&quot;
+<pre><code class="language-graphql">import "products"
+import "users"
 # import other entities
 
 type Query {
@@ -687,7 +687,7 @@ schema {
         <tr>
             <td>
 <pre><code class="language-graphql">type _ToBeReused {
-    &quot;Field foo from type 'ToBeReused'&quot;
+    "Field foo from type 'ToBeReused'"
     foo: String!
 }
 
@@ -698,7 +698,7 @@ input Bar {
 </td>
             <td>
 <pre><code class="language-graphql">input Bar {
-    &quot;Field foo from type 'ToBeReused'&quot;
+    "Field foo from type 'ToBeReused'"
     foo: String!
 }
 
@@ -713,12 +713,12 @@ input Bar {
 <p>There, <code>foo</code>'s description says that the field <code>foo</code> belongs to the type <code>ToBeReused</code>,
 but once that is compiled it is not true, it should say something like:</p>
 <pre><code class="language-graphql">input Bar {
-    &quot;Field foo from input 'Bar'&quot;
+    "Field foo from input 'Bar'"
     foo: String!
 }
 </code></pre>
 <h2 id="description-string-interpolation"><a class="header" href="#description-string-interpolation">Description string interpolation</a></h2>
-<p>You can use template variables in the description strings to refer to some 
+<p>You can use template variables in the description strings to refer to some
 contextual values:</p>
 <p><a href="https://graphqxl-explorer.vercel.app/?code=dHlwZSBfVG9CZVJldXNlZCB7CiAgICAiRmllbGQgZm9vIGZyb20gJHt7IGJsb2NrLnR5cGUgfX0gJyR7eyBibG9jay5uYW1lIH19JyIKICAgIGZvbzogU3RyaW5nIQp9CgppbnB1dCBCYXIgewogICAgLi4uX1RvQmVSZXVzZWQKfQoKdHlwZSBCYXogewogICAgLi4uX1RvQmVSZXVzZWQKfQ==">Open in sandbox</a></p>
 <table style="width: 100%">
@@ -732,7 +732,7 @@ contextual values:</p>
         <tr>
             <td>
 <pre><code class="language-graphql">type _ToBeReused {
-    &quot;Field foo from ${{ block.type }} '${{ block.name }}'&quot;
+    "Field foo from ${{ block.type }} '${{ block.name }}'"
     foo: String!
 }
 
@@ -747,12 +747,12 @@ type Baz {
 </td>
             <td>
 <pre><code class="language-graphql">input Bar {
-    &quot;Field foo from input 'Bar'&quot;
+    "Field foo from input 'Bar'"
     foo: String!
 }
 
 type Baz {
-    &quot;Field foo from type 'Baz'&quot;
+    "Field foo from type 'Baz'"
     foo: String!
 }
 
