@@ -1,9 +1,10 @@
+use crate::synth_description::DescriptionSynth;
 use crate::synth_directive::DirectiveSynth;
 use crate::synth_identifier::IdentifierSynth;
 use crate::synth_value_data::ValueDataSynth;
 use crate::synth_value_type::ValueTypeSynth;
 use crate::synths::{
-    ChainSynth, MultilineListSynth, OneLineListSynth, StringSynth, Synth, SynthContext,
+    ChainSynth, MultilineListSynth, OneLineListSynth, PairSynth, StringSynth, Synth, SynthContext,
 };
 use graphqxl_parser::{Argument, ArgumentDefaultValue};
 
@@ -11,7 +12,8 @@ pub(crate) struct ArgumentsSynth(pub(crate) Vec<Argument>);
 
 impl Synth for ArgumentsSynth {
     fn synth(&self, context: &mut SynthContext) -> bool {
-        let inner_synths = self
+        let mut at_least_one_description = false;
+        let inner_synths: Vec<Box<dyn Synth>> = self
             .0
             .iter()
             .map(|argument| {
@@ -31,11 +33,21 @@ impl Synth for ArgumentsSynth {
                     v.push(Box::new(StringSynth::from(" ")));
                     v.push(Box::new(DirectiveSynth(directive.clone())));
                 }
-                ChainSynth(v)
+
+                if !argument.description.is_empty() {
+                    at_least_one_description = true;
+                    Box::new(PairSynth {
+                        first: DescriptionSynth::text(&argument.description),
+                        last: ChainSynth(v),
+                        line_jump_sep: true,
+                    })
+                } else {
+                    Box::new(ChainSynth(v)) as Box<dyn Synth>
+                }
             })
             .collect();
 
-        if self.0.len() > context.config.max_one_line_args {
+        if self.0.len() > context.config.max_one_line_args || at_least_one_description {
             MultilineListSynth::no_suffix(("(", inner_synths, ")")).synth(context);
         } else {
             OneLineListSynth::comma(("(", inner_synths, ")")).synth(context);

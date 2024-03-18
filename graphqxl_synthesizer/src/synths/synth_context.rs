@@ -94,6 +94,12 @@ pub(crate) trait Synth {
     }
 }
 
+impl Synth for Box<dyn Synth> {
+    fn synth(&self, context: &mut SynthContext) -> bool {
+        self.as_ref().synth(context)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
